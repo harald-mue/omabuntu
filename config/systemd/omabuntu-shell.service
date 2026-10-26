@@ -1,0 +1,23 @@
+# Omabuntu shell login autostart (plan 012, Option A: pure autostart).
+# Deployed to ~/.config/systemd/user/omabuntu-shell.service by
+# tools/deploy_autostart.py. Enabled only after explicit user approval.
+# No Restart directive: the shell starts once per login and is never a
+# supervisor. The manager's running.json record stays the source of truth
+# for the owned process; use `omabuntu stop`, not `systemctl --user stop`,
+# to end the shell mid-session (stopping the unit would kill the process
+# group at logout through PartOf, which is the intended session lifetime).
+[Unit]
+Description=Omabuntu shell login autostart hand-off
+PartOf=graphical-session.target
+Requires=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=%h/.local/bin/omabuntu start
+Slice=session.slice
+
+[Install]
+WantedBy=graphical-session.target
