@@ -14,7 +14,9 @@ import subprocess
 import sys
 
 UNIT_NAME = 'omabuntu-shell.service'
+WAIT_NAME = 'omabuntu-shell-wait.py'
 TEMPLATE = Path(__file__).resolve().parent.parent / 'config/systemd' / UNIT_NAME
+WAIT_TEMPLATE = Path(__file__).resolve().parent.parent / 'config/systemd' / WAIT_NAME
 SYSTEMCTL = '/usr/bin/systemctl'
 
 
@@ -24,6 +26,10 @@ def stamp():
 
 def target_path(home):
     return Path(home) / '.config/systemd/user' / UNIT_NAME
+
+
+def wait_target_path(home):
+    return Path(home) / '.config/systemd/user' / WAIT_NAME
 
 
 def check_path(path):
@@ -39,13 +45,21 @@ def check_path(path):
     return path
 
 
-def load_template():
-    if TEMPLATE.is_symlink() or not TEMPLATE.is_file():
-        raise ValueError('Unit template missing: ' + str(TEMPLATE))
-    text = TEMPLATE.read_text()
+def load_text(path, label):
+    if path.is_symlink() or not path.is_file():
+        raise ValueError(label + ' missing: ' + str(path))
+    text = path.read_text()
     if not text.endswith('\n'):
-        raise ValueError('Unit template must end with a newline')
+        raise ValueError(label + ' must end with a newline')
     return text
+
+
+def load_template():
+    return load_text(TEMPLATE, 'Unit template')
+
+
+def load_wait():
+    return load_text(WAIT_TEMPLATE, 'Instance wait helper')
 
 
 def systemctl(binary, user_args, *, dry=False):
@@ -62,17 +76,25 @@ def plan(args):
     home = check_path(args.home)
     target = target_path(home)
     text = load_template()
+    wait_text = load_wait()
+    wait_target = wait_target_path(home)
     if Path(args.systemctl) != Path(SYSTEMCTL):
         print('Note: test systemctl stub in use: ' + args.systemctl)
     print('Template: ' + str(TEMPLATE))
+    print('Wait:     ' + str(WAIT_TEMPLATE))
     print('Target:   ' + str(target))
+    print('Wait file:' + str(wait_target))
     print('Existing: ' + ('yes' if target.exists() else 'no'))
+    print('Wait present: ' + ('yes' if wait_target.exists() else 'no'))
     print('Launcher: ' + str(Path(home) / '.local/bin/omabuntu')
           + ' (' + ('present' if (Path(home) / '.local/bin/omabuntu').is_file() else 'MISSING') + ')')
     print('--- unit content ---')
     print(text, end='')
+    print('--- wait helper ---')
+    print(wait_text, end='')
     print('--- apply would run ---')
-    print('  write the unit file above' + (' (after backing up the existing one)' if target.exists() else ''))
+    print('  write the unit and wait helper above'
+          + (' (after backing up existing files)' if target.exists() or wait_target.exists() else ''))
     systemctl(args.systemctl, ['daemon-reload'], dry=True)
     systemctl(args.systemctl, ['enable', UNIT_NAME], dry=True)
     print('Apply never starts the service; the shell starts at the next login.')
@@ -84,20 +106,26 @@ def apply(args):
     home = check_path(args.home)
     target = target_path(home)
     text = load_template()
+    wait_text = load_wait()
+    wait_target = wait_target_path(home)
     if not (Path(home) / '.local/bin/omabuntu').is_file():
         raise ValueError('The omabuntu launcher is not installed; refusing to enable autostart')
-    if target.exists() or target.is_symlink():
-        if not args.replace:
-            raise ValueError('Target already exists; pass --replace to back it up and redeploy')
-        backup = target.with_name(UNIT_NAME + '.bak-' + stamp())
-        shutil.copy2(target, backup)
-        print('Backed up the previous unit to ' + str(backup))
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if args.dry_run:
-        print('Dry run: would write ' + str(target))
-    else:
+    existing = [path for path in (target, wait_target) if path.exists() or path.is_symlink()]
+    if existing and not args.replace:
+        raise ValueError('Target already exists; pass --replace to back it up and redeploy')
+    if not args.dry_run:
+        for path in existing:
+            backup = path.with_name(path.name + '.bak-' + stamp())
+            shutil.copy2(path, backup)
+            print('Backed up the previous file to ' + str(backup))
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text)
+        wait_target.write_text(wait_text)
+        wait_target.chmod(0o755)
         print('Wrote ' + str(target))
+        print('Wrote ' + str(wait_target))
+    else:
+        print('Dry run: would write ' + str(target) + ' and ' + str(wait_target))
     systemctl(args.systemctl, ['daemon-reload'], dry=args.dry_run)
     systemctl(args.systemctl, ['enable', UNIT_NAME], dry=args.dry_run)
     print('Enabled. No start was performed; the shell starts at the next login.')
@@ -109,10 +137,16 @@ def remove(args):
     home = check_path(args.home)
     target = target_path(home)
     systemctl(args.systemctl, ['disable', UNIT_NAME], dry=args.dry_run)
-    if target.is_symlink() or target.exists():
-        target.unlink()
-        print('Removed ' + str(target))
-    else:
+    removed = False
+    for path in (target, wait_target_path(home)):
+        if args.dry_run:
+            print('Dry run: would remove ' + str(path))
+            continue
+        if path.is_symlink() or path.exists():
+            path.unlink()
+            print('Removed ' + str(path))
+            removed = True
+    if not removed and not args.dry_run:
         print('Nothing to remove at ' + str(target))
     systemctl(args.systemctl, ['daemon-reload'], dry=args.dry_run)
     print('Rollback complete; a running shell is unaffected until it is stopped or the session ends.')

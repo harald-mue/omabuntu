@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "https://github.com/omacom/omarchy",
+    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+    "path": "default/fonts/omarchy/omarchy.ttf",
+    "sha256": "154c1a11c232430d2633be942019d34c08222e518f8f41021fad9080d8fda0f5",
+    "bytes": 9972,
+    "license": "MIT"
+  },
+  "glyph": {
+    "codepoint": "U+E900",
+    "name": "Omarchy mark",
+    "units_per_em": 1024,
+    "contours": 5,
+    "svg_path": "M 70 -70 L 549 -70 L 549 0 L 0 0 L 0 -1024 L 1024 -1024 L 1024 0 L 626 0 L 626 -70 L 954 -70 L 954 -954 L 70 -954 Z M 884 -140 L 140 -140 L 140 -884 L 551 -884 L 551 -814 L 210 -814 L 210 -210 L 814 -210 L 814 -814 L 736 -814 L 736 -884 L 884 -884 Z M 471 -140 L 549 -140 L 549 -70 L 471 -70 Z M 473 -954 L 551 -954 L 551 -884 L 473 -884 Z M 0 -551 L 210 -551 L 210 -473 L 0 -473 Z"
+  },
+  "extraction": "tools/extract_menu_mark.py (stdlib TrueType glyf reader; y flipped; only U+E900 recorded)",
+  "limits": "The binary font is not imported or redistributed; it also contains third-party agent marks that are not extracted."
+}

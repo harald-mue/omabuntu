@@ -1,0 +1,29 @@
+# Capability matrix
+
+This is an implementation plan, not a functional acceptance record.
+
+| Capability | Source behavior | Target evidence | Next action | Acceptance |
+|---|---|---|---|---|
+| Lua configuration | Hyprland 0.56.2 Lua APIs | Installed binary reports the same upstream commit | Prefer native Lua; review each imported helper | Not runtime-tested |
+| Core bindings | 248 recorded bindings across all features | 43 binds live with Omarchy-style descriptions: session essentials, focus, workspaces 1-10, mouse drag/resize, fullscreen, float toggle on SUPER+T, eight installed-app binds, and the four persistent shell menu binds; SUPER+K lists them all | Interactive SUPER+F/app-launch acceptance; remaining ~170 upstream binds (tiling, media, utilities, clipboard, input-method) are a separate follow-up | Binds verified live after reload; configerrors empty |
+| Terminal | Ghostty and Omarchy launch helper | Prototype binds Ghostty directly | Test launch without provisioning dependencies | Binding parsed; launch untested |
+| Tiling and decoration | Dwindle; gaps 2/10; border 2; rounding 8; blur off; shadow on | Prototype uses these values and parses natively | Back up target before any application; test behavior | Parser accepted; runtime untested |
+| Workspaces | Per-monitor helper logic and persistent modes | Prototype uses global 1-6; Omarchy uses ten per monitor | Implement original helper semantics before claiming parity | Prototype only |
+| Input | German layout and custom Shift+Caps Compose | Bar carries the original keyboard-layout widget (single reviewed visibility deviation, xkb cycling allowlisted, no fcitx indicator); `xkbcli` 1.13.1 installed by the user so the label reads "DE" | Use German layout; evaluate XKB extension separately; a second kb_layout is a separate approved config edit before click-cycling does anything | Widget unit-tested; native click acceptance pending |
+| Displays | Original Display panel and source-specific monitor helpers | Original surface derived; logind brightness and validated runtime scaling; actual connected outputs, no source monitor configuration | Native brightness/scale acceptance; see [boundaries](desktop-panels.md) | Python and isolated QML checks; native actions unaccepted |
+| Desktop shell | Original Quickshell shell | Pinned runtime built/staged with warnings; original tray integrated, five isolated tray fixtures pass; menu mark button and keyboard-layout widget in the bar; watched theme palette with the original color behaviors, background looks and bar-off flag | Complete the [original bar port](bar-port.md); do not start the full original shell | Multiple timed three-output trials, app grid and workspace clicks confirmed; native tray host running, menus need interactive acceptance; full shell incomplete |
+| Themes and fonts | Tokyo Night and selected fonts | Assets not imported | Check licenses, then import only required resources | Not implemented |
+| Notifications/Polkit | Shell-owned services | Current GNOME session must remain intact | Inspect agent ownership before shell tests | Not tested |
+| Clipboard/capture | Shell helpers, Omasnap, portals | wl-clipboard and portal package available | Review transitive dependencies and privacy | Not tested |
+| Audio/network | Original output/network sections | Output-only audio and seven network extensions in the trial | Native interaction acceptance; full audio parity remains separate | Fixtures pass; not full native acceptance |
+| Bluetooth | Original grouped device panel | Source-derived surface; native BlueZ actions and shared discovery lease | Native pairing/device acceptance | Isolated construction/mock actions tested |
+| Power | Original battery/profile panel | UPower and native Ubuntu power-profiles-daemon interface, no session controls | Native battery/profile acceptance | Isolated construction/mock actions tested |
+| Floating dock | Original app dock on floating workspaces | Original window/pure model; current-trial successful floating grants only | Native app/window/pointer acceptance | Source and isolated compilation checked; not visual acceptance |
+| Manual screen lock | Standalone Hyprlock substituted for the unadmitted original lock UI | Installed v0.9.6, reviewed static config, explicit `lock --apply` only | Add a shortcut only after approval; keep idle/suspend separate | Lock, unlock and all three outputs accepted; wrong-password, hotplug and policy checks pending |
+| Idle/suspend | Quickshell idle, sleep integration | No approved idle or sleep policy | Preserve existing mechanism; separate safety gate | Not activated |
+| Optional widgets | Weather, agents, live wallpaper, dictation | Requirements not approved | Keep out of initial profile | Deliberately deferred |
+| Updates/provisioning | Arch-specific management | Not a project capability | Do not expose these routes in menus or PATH | Excluded |
+
+Before applying any configuration: verify target backups, record path-by-path
+changes and rollback, and obtain application approval. Matching version/commit
+does not establish native plugin ABI compatibility or validate enterprise security.

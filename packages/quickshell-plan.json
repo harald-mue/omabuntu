@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "name": "quickshell",
+  "status": "candidate-recipe-target-approval-required",
+  "sources": [
+    {
+      "name": "quickshell",
+      "url": "https://github.com/quickshell-mirror/quickshell",
+      "commit": "2b4501a282689792b62e94f3fb30d8f512324fe6",
+      "license": "LGPL-3.0-only"
+    },
+    {
+      "name": "cpptrace",
+      "url": "https://github.com/jeremy-rifkin/cpptrace",
+      "commit": "3db8da80111171c219ab5839905771386bee06b3",
+      "tag": "v1.0.4",
+      "license": "MIT"
+    }
+  ],
+  "build_dependencies": [
+    "cmake",
+    "ninja-build",
+    "g++",
+    "pkgconf",
+    "qt6-base-dev",
+    "qt6-base-private-dev",
+    "qt6-declarative-dev",
+    "qt6-declarative-private-dev",
+    "qt6-wayland-dev",
+    "qt6-wayland-private-dev",
+    "qt6-shadertools-dev",
+    "spirv-tools",
+    "libcli11-dev",
+    "libjemalloc-dev",
+    "libpipewire-0.3-dev",
+    "libpam0g-dev",
+    "libpolkit-agent-1-dev",
+    "libdrm-dev",
+    "libgbm-dev",
+    "libegl-dev",
+    "libvulkan-dev",
+    "libglib2.0-dev",
+    "libwayland-dev",
+    "wayland-protocols",
+    "libxcb1-dev"
+  ],
+  "cpptrace_dependencies": [
+    "libunwind-dev",
+    "libdwarf-dev",
+    "libzstd-dev",
+    "zlib1g-dev"
+  ],
+  "runtime_dependencies": [
+    "qt6-wayland",
+    "qt6-svg-plugins",
+    "qml6-module-qtquick",
+    "qml6-module-qtquick-controls",
+    "qml6-module-qtquick-layouts",
+    "qml6-module-qtquick-shapes",
+    "qml6-module-qtquick-effects",
+    "qml6-module-qtquick-window",
+    "qml6-module-qtquick-templates",
+    "qml6-module-qtqml-models",
+    "qml6-module-qt-labs-folderlistmodel"
+  ],
+  "proposed_cmake_options": {
+    "quickshell": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "INSTALL_QML_PREFIX": "lib/qt6/qml",
+      "DISTRIBUTOR": "Omabuntu",
+      "GIT_REVISION": "2b4501a282689792b62e94f3fb30d8f512324fe6",
+      "CRASH_HANDLER": "ON",
+      "VENDOR_CPPTRACE": "OFF",
+      "SERVICE_PAM": "ON",
+      "SERVICE_POLKIT": "ON",
+      "WAYLAND": "ON",
+      "HYPRLAND": "ON",
+      "HYPRLAND_IPC": "ON",
+      "HYPRLAND_GLOBAL_SHORTCUTS": "ON",
+      "WAYLAND_SESSION_LOCK": "ON",
+      "NETWORK": "ON",
+      "BLUETOOTH": "ON",
+      "SERVICE_PIPEWIRE": "ON",
+      "SERVICE_NOTIFICATIONS": "ON",
+      "SERVICE_STATUS_NOTIFIER": "ON",
+      "SERVICE_MPRIS": "ON",
+      "SERVICE_UPOWER": "ON",
+      "FETCHCONTENT_FULLY_DISCONNECTED": "ON"
+    },
+    "cpptrace": {
+      "CPPTRACE_UNWIND_WITH_LIBUNWIND": "ON",
+      "CPPTRACE_GET_SYMBOLS_WITH_LIBDWARF": "ON",
+      "CPPTRACE_USE_EXTERNAL_LIBDWARF": "ON",
+      "CPPTRACE_FIND_LIBDWARF_WITH_PKGCONFIG": "ON",
+      "CPPTRACE_USE_EXTERNAL_ZSTD": "ON",
+      "CPPTRACE_BUILD_TESTING": "OFF",
+      "CPPTRACE_BUILD_TOOLS": "OFF",
+      "FETCHCONTENT_FULLY_DISCONNECTED": "ON"
+    }
+  },
+  "limitations": [
+    "This pins proposed upstream commits, not the original distributor's packaging patches.",
+    "Successful compilation and staging do not establish package, QML service, or complete desktop compatibility.",
+    "Explicit package candidates are pinned in each local simulation; transitive dependencies are recorded by APT, not locked across machines.",
+    "No Owe, SDDM preview, multimedia feed, wallpaper, or optional private feature is enabled.",
+    "Build-time feature support does not authorize runtime PAM changes, service activation, or lock testing.",
+    "Network isolation must be enforced when testing a build; CMake flags alone are not a universal network sandbox."
+  ]
+}

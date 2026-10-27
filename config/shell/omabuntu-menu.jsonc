@@ -1,0 +1,48 @@
+{
+  // Omabuntu menu definition. This follows Omarchy's omarchy-menu.jsonc
+  // entry schema at commit 03ff1eff3812933f7088484533784d2f63eaf19a (MIT,
+  // preserved in licenses/Omarchy-MIT.txt): IDs are object keys, dotted IDs
+  // imply hierarchy, and kind is inferred (action -> action, target -> link,
+  // otherwise submenu). Icons keep the original upstream glyphs. `when`,
+  // `checked`, and `disabled` are bash conditions that one batched guard
+  // process evaluates (see tools/menu_model.py). Actions use a reviewed
+  // omabuntu registry instead of arbitrary shell commands; tools/menu_model.py
+  // builds the dispatch allowlist from this file and refuses everything else.
+  // Excluded upstream sections (install, remove, update, trigger, setup,
+  // about, dmenu modes, locale catalogs) are documented in
+  // plans/002-command-menu.md and docs/menu-surface.md.
+
+  // Root menu (upstream order: apps, learn, trigger, style, setup, install,
+  // remove, update, about, system; only sections with reviewed Ubuntu
+  // backends are kept).
+  "apps": {"icon": "\udb80\udc3b", "label": "Apps", "aliases": ["app", "applications"], "action": "omabuntu-open:apps"},
+  "learn": {"icon": "\udb82\uddd1", "label": "Learn"},
+  "style": {"icon": "\uebcf", "label": "Style", "aliases": ["theme-menu"]},
+  "system": {"icon": "\uf011", "label": "System", "aliases": ["power-menu", "power"]},
+
+  // Learn (adapted: Ubuntu documentation replaces the Arch wiki; the Tmux,
+  // Herdr, Omarchy-manual, community and webapp rows stay excluded).
+  "learn.keybindings": {"icon": "\uf11c", "label": "Keybindings", "action": "omabuntu-open:keybindings"},
+  "learn.hyprland": {"icon": "\uf359", "label": "Hyprland", "description": "Open the Hyprland wiki", "action": "xdg-open:https://wiki.hypr.land/"},
+  "learn.ubuntu": {"icon": "\uf08b", "label": "Ubuntu", "description": "Open the Ubuntu desktop documentation", "action": "xdg-open:https://help.ubuntu.com/"},
+
+  // Style: the Hyprland configuration things. Theme and Background open the
+  // image picker (upstream opens omarchy.image-picker the same way); their
+  // provider fields stay because applying re-derives the row by id inside
+  // tools/menu_model.py. Font stays a provider submenu in the card.
+  "style.theme": {"icon": "\udb83\ude0c", "label": "Theme", "aliases": ["theme", "themes"], "provider": "themes", "action": "omabuntu-open:themes"},
+  "style.background": {"icon": "\uf03e", "label": "Background", "aliases": ["background", "wallpaper"], "provider": "backgrounds", "action": "omabuntu-open:backgrounds"},
+  "style.font": {"icon": "\ue659", "label": "Font", "provider": "fonts"},
+
+  // System menu (Super+Escape opens this route). Upstream order is kept:
+  // screensaver, lock, suspend, hibernate, logout, reboot, shutdown. The
+  // screensaver and lock rows stay excluded here because no reviewed Ubuntu
+  // backend exists and lock activation is a separate approval gate. Every
+  // session-ending action is additionally gated in tools/power_actions.py;
+  // an unapproved row is refused there, not hidden here.
+  "system.suspend": {"icon": "\udb81\udcb2", "label": "Suspend", "when": "omabuntu-can-suspend", "action": "systemctl:suspend"},
+  "system.hibernate": {"icon": "\udb82\udd01", "label": "Hibernate", "when": "omabuntu-can-hibernate", "action": "systemctl:hibernate"},
+  "system.logout": {"icon": "\udb80\udf43", "label": "Logout", "action": "uwsm:stop"},
+  "system.reboot": {"icon": "\udb81\udf09", "label": "Reboot", "action": "systemctl:reboot"},
+  "system.shutdown": {"icon": "\udb81\udc25", "label": "Shutdown", "action": "systemctl:poweroff"}
+}

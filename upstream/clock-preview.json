@@ -1,0 +1,777 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "https://github.com/omacom/omarchy",
+    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
+  },
+  "scope": "sealed-clock-bar-preview-v1",
+  "production_catalog": "empty",
+  "host_activation": "separate-approval-required",
+  "upstream": {
+    "Ui/BarWidget.qml": {
+      "path": "shell/Ui/BarWidget.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/BarWidget.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/BarWidget.qml",
+      "bytes": 2297,
+      "sha256": "6dc5f08b92280e323b9bb8645ec530bca9c68512f3af49f6e3d5a13a6d9f99a3",
+      "git_blob_sha1": "69fa9b6cf78dd61e597f43fe05b719d21afb3dfd",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "6dc5f08b92280e323b9bb8645ec530bca9c68512f3af49f6e3d5a13a6d9f99a3"
+    },
+    "Ui/WidgetButton.qml": {
+      "path": "shell/Ui/WidgetButton.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/WidgetButton.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/WidgetButton.qml",
+      "bytes": 6739,
+      "sha256": "206e278477a25c990673fefb22e8f98d77128f430d345a98194ae0338a9fcae0",
+      "git_blob_sha1": "c27e21aa4cad738b7903de56928829cf592f9826",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "206e278477a25c990673fefb22e8f98d77128f430d345a98194ae0338a9fcae0"
+    },
+    "Ui/OpticalGlyph.qml": {
+      "path": "shell/Ui/OpticalGlyph.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/OpticalGlyph.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/OpticalGlyph.qml",
+      "bytes": 2441,
+      "sha256": "b040c69c2323460fe8dcd7c91081c99b45925e0da5521e93df4be8443a751ad3",
+      "git_blob_sha1": "ea2fdeba33dc2da92c715b0922a9fb23d20bcff4",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "b040c69c2323460fe8dcd7c91081c99b45925e0da5521e93df4be8443a751ad3"
+    },
+    "Spacer.qml": {
+      "path": "shell/plugins/bar/widgets/Spacer.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/Spacer.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/Spacer.qml",
+      "bytes": 293,
+      "sha256": "85abd1cd06755e57194b86d30df9c31e7521e5c91f5a663d9cd6420b9e91c545",
+      "git_blob_sha1": "542d7d732262aeb99f0ed88d5e84a45a17556329",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "85abd1cd06755e57194b86d30df9c31e7521e5c91f5a663d9cd6420b9e91c545"
+    },
+    "ClockLabel.qml": {
+      "path": "shell/plugins/panels/clock/BarWidget.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/clock/BarWidget.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/clock/BarWidget.qml",
+      "bytes": 6886,
+      "sha256": "28ac6687b356472c296ecac02724a95755f4e971c8b419abe1d58725a84248a5",
+      "git_blob_sha1": "b5adcc537b523e0bfeec85979cee66f58f344c59",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "readonly-clock-v1",
+      "staged_sha256": "bfdd6c36d97bdc73922f8e59d4de3c230a5d93fc3973ed74de6c092079f22a18"
+    },
+    "Model.js": {
+      "path": "shell/plugins/panels/clock/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/clock/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/clock/Model.js",
+      "bytes": 12174,
+      "sha256": "101514693517f694203841a4f39fe4c54d9469a2cbf4dd6b0264e6d440adbe75",
+      "git_blob_sha1": "873db9535edc73e220517c848d69733cdd4d1feb",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "101514693517f694203841a4f39fe4c54d9469a2cbf4dd6b0264e6d440adbe75"
+    },
+    "CalendarPanel.qml": {
+      "path": "shell/plugins/panels/clock/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/clock/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/clock/Panel.qml",
+      "bytes": 32215,
+      "sha256": "7ee5d57ae463bd272b7d0a4efaf2aae2e368df8f55fbc758a6c8cc681330a1ba",
+      "git_blob_sha1": "6baa18fe6218ff384a345343ab59aac26418a7bd",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "clock-calendar-v1",
+      "staged_sha256": "d642bbb0308a0894ebae25f5382a847d1b8dcaebde9bec418a71f09e942901d2"
+    },
+    "ClockControlView.qml": {
+      "path": "shell/plugins/panels/clock/BarWidget.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/clock/BarWidget.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/clock/BarWidget.qml",
+      "bytes": 6886,
+      "sha256": "28ac6687b356472c296ecac02724a95755f4e971c8b419abe1d58725a84248a5",
+      "git_blob_sha1": "b5adcc537b523e0bfeec85979cee66f58f344c59",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "clock-calendar-host-v1",
+      "staged_sha256": "5e9fa1200e161c772584cce090265d5847691630d19c4c39a2f56d5cf0acb76e"
+    },
+    "Port/Tray.qml": {
+      "path": "shell/plugins/bar/widgets/Tray.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/Tray.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/Tray.qml",
+      "bytes": 34685,
+      "sha256": "25075577ea208ae8ed1ad544a6837420927c7b00f07b5c8c4127039f6be5c9fc",
+      "git_blob_sha1": "cb9115e537acbb73d4e7aa294a3081efb076130d",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "25075577ea208ae8ed1ad544a6837420927c7b00f07b5c8c4127039f6be5c9fc"
+    },
+    "Port/TrayModel.js": {
+      "path": "shell/plugins/bar/widgets/TrayModel.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/TrayModel.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/TrayModel.js",
+      "bytes": 2491,
+      "sha256": "e2a06e56334a37f41f057ba7ef128a870b9b37e6e489dd502dfde979b5af7247",
+      "git_blob_sha1": "ea34a97c09abc1a6c7b92f90e1259d31fdc5f5ea",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "e2a06e56334a37f41f057ba7ef128a870b9b37e6e489dd502dfde979b5af7247"
+    },
+    "Port/NetworkModel.js": {
+      "path": "shell/plugins/panels/network/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/network/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/network/Model.js",
+      "bytes": 16126,
+      "sha256": "8b37e23b3318036a426efdabfa2002d07e10ebfd786413b3ff004130607397e9",
+      "git_blob_sha1": "36a62b1ed5f3b74da0ebc92242447f69297b9863",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "8b37e23b3318036a426efdabfa2002d07e10ebfd786413b3ff004130607397e9"
+    },
+    "Port/AudioModel.js": {
+      "path": "shell/plugins/panels/audio/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/audio/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/audio/Model.js",
+      "bytes": 10880,
+      "sha256": "cac32aa2c2a2449223f64bfd935be360b4f61eb8112d4f62dc21270447eaee1b",
+      "git_blob_sha1": "76fe9a4796cd4faf7119317588ed9278838d3aba",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "cac32aa2c2a2449223f64bfd935be360b4f61eb8112d4f62dc21270447eaee1b"
+    },
+    "Ui/PanelSlider.qml": {
+      "path": "shell/Ui/PanelSlider.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PanelSlider.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PanelSlider.qml",
+      "bytes": 5301,
+      "sha256": "b1cf37e74a65133ff0e272233860cb4b6635ccd5f11a83c014a072888d583a54",
+      "git_blob_sha1": "ad9d438389cb303654bbf0c73355aa15a2730597",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "b1cf37e74a65133ff0e272233860cb4b6635ccd5f11a83c014a072888d583a54"
+    },
+    "AudioOutputView.qml": {
+      "path": "shell/plugins/panels/audio/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/audio/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/audio/Panel.qml",
+      "bytes": 48533,
+      "sha256": "f75564d2a8be05a18d832be926747b298401748d6e976a0c39f9053456439d09",
+      "git_blob_sha1": "e3ae77181fde99723e222a80fad928c9c7c5ef73",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "audio-output-frontend-v1",
+      "staged_sha256": "6bcdc641f7f8b5076fd6809cb01271fd56625d0b90f65640509d8c408f3372c7"
+    },
+    "BarTooltip.qml": {
+      "path": "shell/plugins/bar/Bar.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/Bar.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/Bar.qml",
+      "bytes": 104979,
+      "sha256": "33f359bfba0cd17df13bd331cb8500b5c9d7f8b6a5356ce2b36d7e3c2eca999c",
+      "git_blob_sha1": "2831ab535a631d329f8aa63beb091060e4dba136",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "bar-tooltip-window-v1",
+      "staged_sha256": "5583a40debd6ec646e442b85783044929ad0333950969e73fc2fa85d6ffb6dc3"
+    },
+    "BarFrame.qml": {
+      "path": "shell/plugins/bar/Bar.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/Bar.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/Bar.qml",
+      "bytes": 104979,
+      "sha256": "33f359bfba0cd17df13bd331cb8500b5c9d7f8b6a5356ce2b36d7e3c2eca999c",
+      "git_blob_sha1": "2831ab535a631d329f8aa63beb091060e4dba136",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "fixed-horizontal-sections-v1",
+      "staged_sha256": "b6d72331f588b5633a845360d53c377cf35eedaeb37cf085c96f3f91ba23bed8"
+    },
+    "BarTooltipHost.qml": {
+      "path": "shell/plugins/bar/Bar.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/Bar.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/Bar.qml",
+      "bytes": 104979,
+      "sha256": "33f359bfba0cd17df13bd331cb8500b5c9d7f8b6a5356ce2b36d7e3c2eca999c",
+      "git_blob_sha1": "2831ab535a631d329f8aa63beb091060e4dba136",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "bar-tooltip-host-v1",
+      "staged_sha256": "07063ce1fb7c95f18460d2748e29a648551c2d9d1fe7c8c6071abdcce8ee559c"
+    },
+    "Ui/KeyboardPanel.qml": {
+      "path": "shell/Ui/KeyboardPanel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/KeyboardPanel.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/KeyboardPanel.qml",
+      "bytes": 19205,
+      "sha256": "7a5dc2284b1990b2bf53a806221458c6a64ea538cb92b4787dca846c7cc33a54",
+      "git_blob_sha1": "ddf922964ce689173ba98a0d7a6f241593e883db",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "ondemand-keyboard-panel-v1",
+      "staged_sha256": "3ccd5eaea0a5f6bd74baf11d5ba7a0971dbdb37657d2804dad21170ebcdd33c2"
+    },
+    "Ui/PanelKeyCatcher.qml": {
+      "path": "shell/Ui/PanelKeyCatcher.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PanelKeyCatcher.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PanelKeyCatcher.qml",
+      "bytes": 3735,
+      "sha256": "f39fe259bd811ef3be00834a888dfe4ba003b4148738e495708c2070a914c27f",
+      "git_blob_sha1": "3009c921c7b5655b39c2d39f4741d57149e871bb",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "f39fe259bd811ef3be00834a888dfe4ba003b4148738e495708c2070a914c27f"
+    },
+    "Ui/CursorSurface.qml": {
+      "path": "shell/Ui/CursorSurface.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/CursorSurface.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/CursorSurface.qml",
+      "bytes": 1584,
+      "sha256": "f16939e750ae68c20afdeded78b074da4d8cdbea0a4e02c5cd99bf91c06e3458",
+      "git_blob_sha1": "1563f982383b9b80ccead34f9a8e28d5019d4cbe",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "f16939e750ae68c20afdeded78b074da4d8cdbea0a4e02c5cd99bf91c06e3458"
+    },
+    "Ui/ToggleSwitch.qml": {
+      "path": "shell/Ui/ToggleSwitch.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/ToggleSwitch.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/ToggleSwitch.qml",
+      "bytes": 4783,
+      "sha256": "ee2419357a064767d4b6de3b3c341f92ebfce7c8cd9b4b294eb9a6de48f6e167",
+      "git_blob_sha1": "538e111586d76ae3d78a993d5dad1fe31011673a",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "ee2419357a064767d4b6de3b3c341f92ebfce7c8cd9b4b294eb9a6de48f6e167"
+    },
+    "Ui/PanelToolTip.qml": {
+      "path": "shell/Ui/PanelToolTip.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PanelToolTip.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PanelToolTip.qml",
+      "bytes": 1779,
+      "sha256": "fa62fbdbe132bb90d9fca95b97b3ed7c5f0f7ca345fa9bac643ab15fce03f2ca",
+      "git_blob_sha1": "06e2ac53fb11e6db0bacc457b5073e2b09d2dc97",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "fa62fbdbe132bb90d9fca95b97b3ed7c5f0f7ca345fa9bac643ab15fce03f2ca"
+    },
+    "Ui/PanelSeparator.qml": {
+      "path": "shell/Ui/PanelSeparator.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PanelSeparator.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PanelSeparator.qml",
+      "bytes": 517,
+      "sha256": "54b970d6a6e5683583906517c808f271227f5b47a3a1ac3a58faa3f41d822316",
+      "git_blob_sha1": "887aa5716da253058039e803d0176ac0a9fbe6a3",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "54b970d6a6e5683583906517c808f271227f5b47a3a1ac3a58faa3f41d822316"
+    },
+    "Ui/PanelSectionHeader.qml": {
+      "path": "shell/Ui/PanelSectionHeader.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PanelSectionHeader.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PanelSectionHeader.qml",
+      "bytes": 1264,
+      "sha256": "7747685a102cb8a5f8f239acb72ce43c7c3a0326eb884db71e8427ab9c62e597",
+      "git_blob_sha1": "7c2096ee561c0deeb88b001f2fc690042cd0d7c3",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "7747685a102cb8a5f8f239acb72ce43c7c3a0326eb884db71e8427ab9c62e597"
+    },
+    "Ui/PopupCard.qml": {
+      "path": "shell/Ui/PopupCard.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PopupCard.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PopupCard.qml",
+      "bytes": 6956,
+      "sha256": "eecbf7dba4ba1b0e63643b20607b3a29d993ce2ed9e8af77444a383e5163c485",
+      "git_blob_sha1": "ad3a514e6e8aef6c18351f9ba0f5cb694ee41e3b",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "eecbf7dba4ba1b0e63643b20607b3a29d993ce2ed9e8af77444a383e5163c485"
+    },
+    "Ui/BarIconButton.qml": {
+      "path": "shell/Ui/BarIconButton.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/BarIconButton.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/BarIconButton.qml",
+      "bytes": 3810,
+      "sha256": "687e79d601419d9ac66a071dded6869d5aea7d9df05b6a37d14ccf58c15a9c8c",
+      "git_blob_sha1": "a5567b4f9ad65941fd953e74a988cc3aaa332789",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "687e79d601419d9ac66a071dded6869d5aea7d9df05b6a37d14ccf58c15a9c8c"
+    },
+    "Ui/BarIconContent.qml": {
+      "path": "shell/Ui/BarIconContent.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/BarIconContent.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/BarIconContent.qml",
+      "bytes": 1504,
+      "sha256": "1a458e182a43b198a860ead4bc51c9d7965890f36af72fc01f7da7d5656c30be",
+      "git_blob_sha1": "61bd4b71c1fbc0cbbc3b2de69743197b754703a3",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "1a458e182a43b198a860ead4bc51c9d7965890f36af72fc01f7da7d5656c30be"
+    },
+    "Ui/IconContentBounds.qml": {
+      "path": "shell/Ui/IconContentBounds.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/IconContentBounds.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/IconContentBounds.qml",
+      "bytes": 5669,
+      "sha256": "465c613d7e33f5dbfaa083f4049740a51160a68f5a802a54267a17e4b6c2700b",
+      "git_blob_sha1": "90bde568d570190df48b836a40eb32c367a8835a",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "465c613d7e33f5dbfaa083f4049740a51160a68f5a802a54267a17e4b6c2700b"
+    },
+    "Ui/Button.qml": {
+      "path": "shell/Ui/Button.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/Button.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/Button.qml",
+      "bytes": 9600,
+      "sha256": "cecce7dc01a79be8ebcf52817914233daab8d9b87a4a7b6dc1ec780fcb716e09",
+      "git_blob_sha1": "05ef75263eb22bcb5719228cdec489a7b15dc28c",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "cecce7dc01a79be8ebcf52817914233daab8d9b87a4a7b6dc1ec780fcb716e09"
+    },
+    "Ui/BorderSurface.qml": {
+      "path": "shell/Ui/BorderSurface.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/BorderSurface.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/BorderSurface.qml",
+      "bytes": 1443,
+      "sha256": "e17d8150d0b0e60f431bd6df5e661f5d9fe1f5eec9c2e2420f6eff2179a45baf",
+      "git_blob_sha1": "50714e52133b1efc6ff304431baac474f456e682",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "e17d8150d0b0e60f431bd6df5e661f5d9fe1f5eec9c2e2420f6eff2179a45baf"
+    },
+    "Ui/BorderOverlay.qml": {
+      "path": "shell/Ui/BorderOverlay.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/BorderOverlay.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/BorderOverlay.qml",
+      "bytes": 2697,
+      "sha256": "c0aaf4f8a080712bf8dce2360d496ba1a63dcacb982a0fd9ed15bc51be333d66",
+      "git_blob_sha1": "f67c9e5fa3ce7dc786e6c09558e226048067cc90",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "c0aaf4f8a080712bf8dce2360d496ba1a63dcacb982a0fd9ed15bc51be333d66"
+    },
+    "Commons/Border.qml": {
+      "path": "shell/Commons/Border.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Commons/Border.qml",
+      "vendor_path": "vendor/omarchy/shell/Commons/Border.qml",
+      "bytes": 10171,
+      "sha256": "4062986c0226eed4a7e054381ddf3f5bdbe20081a0c2f5efd7803a8606ea4b07",
+      "git_blob_sha1": "b4e803c809b1ecd1826e303cc561b2e72abe19ca",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "4062986c0226eed4a7e054381ddf3f5bdbe20081a0c2f5efd7803a8606ea4b07"
+    },
+    "Commons/BorderGeometry.js": {
+      "path": "shell/Commons/BorderGeometry.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Commons/BorderGeometry.js",
+      "vendor_path": "vendor/omarchy/shell/Commons/BorderGeometry.js",
+      "bytes": 12503,
+      "sha256": "8b99fb8d32a2f4ccb72f09a1c6421771d7329555c59bff69d181f1218033c85d",
+      "git_blob_sha1": "0a9090351c69b7ac5042cd86ae44b87d4885937f",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "8b99fb8d32a2f4ccb72f09a1c6421771d7329555c59bff69d181f1218033c85d"
+    },
+    "Ui/PanelActionButton.qml": {
+      "path": "shell/Ui/PanelActionButton.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PanelActionButton.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PanelActionButton.qml",
+      "bytes": 3928,
+      "sha256": "299a6b758450b04047db9d119f3d3b508b4a692fa34779d10cfde519c7cb5275",
+      "git_blob_sha1": "ab19391ee2c33977d3eeea9b702dd334df09b7ad",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "299a6b758450b04047db9d119f3d3b508b4a692fa34779d10cfde519c7cb5275"
+    },
+    "Ui/TextField.qml": {
+      "path": "shell/Ui/TextField.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/TextField.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/TextField.qml",
+      "bytes": 2535,
+      "sha256": "08c8141e74b7791060461939626f08453a28fe97eed4f4339dabde9d6a6edb3b",
+      "git_blob_sha1": "96cac226018305db29d8e7937299b231e7fe3da8",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "08c8141e74b7791060461939626f08453a28fe97eed4f4339dabde9d6a6edb3b"
+    },
+    "NetworkControlView.qml": {
+      "path": "shell/plugins/panels/network/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/network/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/network/Panel.qml",
+      "bytes": 82882,
+      "sha256": "44f5fb68169a1f141bc0c7313ff949191f18bf21436725546d26704bd55753aa",
+      "git_blob_sha1": "4b7b2bab9279e5e712d635f68f3f85a27ace9937",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "network-control-frontend-v1",
+      "staged_sha256": "a8eeb0ef3aeac2a11fd8afb2ded4cbf5889e1e256158e62f7ad0416d4da53c3a"
+    },
+    "WorkspaceSwitcher.qml": {
+      "path": "shell/plugins/bar/widgets/Workspaces.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/Workspaces.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/Workspaces.qml",
+      "bytes": 9944,
+      "sha256": "a320502697738957ad4e04ce68ce06cd9163e8b2fddccac72bc888224778d96d",
+      "git_blob_sha1": "d1892541bca9f74d60371264f1696de2dda31b4e",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "workspace-switcher-v1",
+      "staged_sha256": "d5d543c815335d2415cf10c2e0cc8c48696a92525343e171db3b31a92a489b3e"
+    },
+    "KeyboardLayout.qml": {
+      "path": "shell/plugins/bar/widgets/KeyboardLayout.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/KeyboardLayout.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/KeyboardLayout.qml",
+      "bytes": 11137,
+      "sha256": "3717d02d5dfd43892283706a7bee78c85ba4f6c51202badd45a25dd96f521992",
+      "git_blob_sha1": "48f3c6511438fd73090b6243d43d282c7dcdc875",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "keyboard-layout-widget-v1",
+      "staged_sha256": "6d5347819364737077a34ad5e385401e943bda886380fca191adb7dce7e46c49"
+    },
+    "KeyboardLayoutModel.js": {
+      "path": "shell/plugins/bar/widgets/KeyboardLayoutModel.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/KeyboardLayoutModel.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/KeyboardLayoutModel.js",
+      "bytes": 6056,
+      "sha256": "0258430589d9d82bb2b7f292a85147601adeb89da5e10be19333885d4f279272",
+      "git_blob_sha1": "2c313f2cc05afe23321abad49ff0d0f88e18ba0b",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "0258430589d9d82bb2b7f292a85147601adeb89da5e10be19333885d4f279272"
+    },
+    "Commons/Util.qml": {
+      "path": "shell/Commons/Util.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Commons/Util.qml",
+      "vendor_path": "vendor/omarchy/shell/Commons/Util.qml",
+      "bytes": 7281,
+      "sha256": "f252d02a43c9ae10d394e1a2e9349a74a81e1c83021314299b182d58c21f3cf6",
+      "git_blob_sha1": "688714e02d2876d6f123e6e237bec7c6448637ea",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "f252d02a43c9ae10d394e1a2e9349a74a81e1c83021314299b182d58c21f3cf6"
+    },
+    "Commons/InputDevices.qml": {
+      "path": "shell/Commons/InputDevices.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Commons/InputDevices.qml",
+      "vendor_path": "vendor/omarchy/shell/Commons/InputDevices.qml",
+      "bytes": 3898,
+      "sha256": "e1d5cbee7fc4906f158d6b28ead51458143c79416b926523d547999184474f50",
+      "git_blob_sha1": "fa008264368f1175c2d9fc7c35982a18a9078387",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "e1d5cbee7fc4906f158d6b28ead51458143c79416b926523d547999184474f50"
+    },
+    "BluetoothControlView.qml": {
+      "path": "shell/plugins/panels/bluetooth/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/bluetooth/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/bluetooth/Panel.qml",
+      "bytes": 37503,
+      "sha256": "d5723c21ccc51684ba47aee1f6543da6e43e336ff58a384574c88d210c181d20",
+      "git_blob_sha1": "d64c3c8ec99837095f603f803a7920d864dd220c",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "bluetooth-surface-v1",
+      "staged_sha256": "fa0be8503706d7423a1afcc00f07418e5429703ccef4ff0ce564ae845fcd99d8"
+    },
+    "BluetoothPanelController.qml": {
+      "path": "shell/plugins/panels/bluetooth/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/bluetooth/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/bluetooth/Panel.qml",
+      "bytes": 37503,
+      "sha256": "d5723c21ccc51684ba47aee1f6543da6e43e336ff58a384574c88d210c181d20",
+      "git_blob_sha1": "d64c3c8ec99837095f603f803a7920d864dd220c",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "bluetooth-cursor-v1",
+      "staged_sha256": "73a969b76f1c1a22e0c79bd37533c949e9f5d6237f8618c7cdc3f3835ba4dbaa"
+    },
+    "DisplayControlView.qml": {
+      "path": "shell/plugins/panels/monitor/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/monitor/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/monitor/Panel.qml",
+      "bytes": 33240,
+      "sha256": "4886d9cbb383d297d12d26607756edabd58ab4184f515098ab523803c8ea5397",
+      "git_blob_sha1": "0084c134185157d11371e87f74f3e608bd0e9e71",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "display-surface-v1",
+      "staged_sha256": "26fca27804ca1742286bfba280bc0795f6611d8388c1e0808674f54fa629dd97"
+    },
+    "PowerControlView.qml": {
+      "path": "shell/plugins/panels/power/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/power/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/power/Panel.qml",
+      "bytes": 19523,
+      "sha256": "f3fa597ba8bce73dee4cd15d788432d03fc72406e6b71c1538c73d251469a4b4",
+      "git_blob_sha1": "c7ceeadd2cc65c0f1ca9c397d3b4e0d48d622ed9",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "power-surface-v1",
+      "staged_sha256": "e51593b1a7e7061a58f543433da4c98340c0e4e3ad2160e2e05fcba9e505ce40"
+    },
+    "DockWindow.qml": {
+      "path": "shell/plugins/dock/DockWindow.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/dock/DockWindow.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/dock/DockWindow.qml",
+      "bytes": 23075,
+      "sha256": "f141b27cd7d042cb7afe3cd70fab69d4cf7bd0470368273b50d1ccd5ead17095",
+      "git_blob_sha1": "709e3fc6ecfb47118e2247584fb09f78648b318f",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "floating-dock-window-v1",
+      "staged_sha256": "6549e45dc64acdc8f735f1cd8d0e6d185245802aa6ca97ea28879d56fbe56b4b"
+    },
+    "Port/BluetoothModel.js": {
+      "path": "shell/plugins/panels/bluetooth/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/bluetooth/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/bluetooth/Model.js",
+      "bytes": 5202,
+      "sha256": "b34f3259c6553f20ce37619d2f390cd3293303266f89f2a6df0b6810da384417",
+      "git_blob_sha1": "55b29bf0bfa6f17bab09c6f1b58a8ce80324b61d",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "b34f3259c6553f20ce37619d2f390cd3293303266f89f2a6df0b6810da384417"
+    },
+    "Port/DisplayModel.js": {
+      "path": "shell/plugins/panels/monitor/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/monitor/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/monitor/Model.js",
+      "bytes": 3938,
+      "sha256": "4374daa9cf57e7428dadfd7b0156ee8cef75b32a934ddd82b30dc4d0bf6d7c5c",
+      "git_blob_sha1": "7c38f74a43d05ba60b5c3f52f166756a0dc222cc",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "4374daa9cf57e7428dadfd7b0156ee8cef75b32a934ddd82b30dc4d0bf6d7c5c"
+    },
+    "Port/PowerModel.js": {
+      "path": "shell/plugins/panels/power/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/power/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/power/Model.js",
+      "bytes": 4502,
+      "sha256": "0a7f42b18dcdea6da54e02813f0fe9ff57e355f16e7a9caba1ba63913420ca43",
+      "git_blob_sha1": "10ceb1a84a6e856e1dc8bd76c0434380f49e4da7",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "0a7f42b18dcdea6da54e02813f0fe9ff57e355f16e7a9caba1ba63913420ca43"
+    },
+    "Port/DockModel.js": {
+      "path": "shell/plugins/dock/DockModel.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/dock/DockModel.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/dock/DockModel.js",
+      "bytes": 6747,
+      "sha256": "d7d1dbb871e3fc2eff454775750811b80f54259ab51ca4e5653ac7f589285c87",
+      "git_blob_sha1": "4f4627f56ae907c4251b6ba7d8804fef0043355f",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "d7d1dbb871e3fc2eff454775750811b80f54259ab51ca4e5653ac7f589285c87"
+    }
+  },
+  "authored": {
+    "Commons/Style.qml": {
+      "path": "config/shell/preview/Style.qml",
+      "sha256": "0be9fc9ed8c316d3c2177f75722b4c571ec423f6aa59c7db2bde187cf72fe646"
+    },
+    "Commons/Color.qml": {
+      "path": "config/shell/preview/Color.qml",
+      "sha256": "65f5cf61598ec5f49f51af7a4644ba303e7876e1be4b4396f5a969052e2fccbb"
+    },
+    "Commons/I18n.qml": {
+      "path": "config/shell/preview/I18n.qml",
+      "sha256": "bf89ac9b50d2ef75d461860c1e028aae18c3394d0305d1bbc93f65a93e449bb5"
+    },
+    "PreviewContent.qml": {
+      "path": "config/shell/preview/PreviewContent.qml",
+      "sha256": "2cc286f042985bd2443f11e231f80e12a9a656839dd36314dc1bc4b1bc400263"
+    },
+    "TrialPolicy.js": {
+      "path": "config/shell/preview/TrialPolicy.js",
+      "sha256": "169b6c4d58d4eb395dbfa91625783d0114be322e335980d70fe95bd341b1f0d2"
+    },
+    "TrialShell.qml": {
+      "path": "config/shell/preview/TrialShell.qml",
+      "sha256": "cd7bbf587856a7c620b4037ba942cd38f2b63c1e9babf694e788a61d5a759d0c"
+    },
+    "TrialPanel.qml": {
+      "path": "config/shell/preview/TrialPanel.qml",
+      "sha256": "4c3885a6e1e43546817a7857feb991fca2f75027b1a7af149523693e9c2d4fd8"
+    },
+    "LiveStatus.qml": {
+      "path": "config/shell/preview/LiveStatus.qml",
+      "sha256": "81bb06e39b4eb7d2ed00bcb714914904961aa702798cbace9e58a24ed2c3e30a"
+    },
+    "AppLauncher.qml": {
+      "path": "config/shell/preview/AppLauncher.qml",
+      "sha256": "7e00e7f05d8227e1e4cf53fed56d581eddb334c2156a34a8c752c31548bb9789"
+    },
+    "KeybindingsMenu.qml": {
+      "path": "config/shell/preview/KeybindingsMenu.qml",
+      "sha256": "3adef6d9dbc65dcfba581bc48095aedc00410b5296e0c7e372dcc79c7d619b21"
+    },
+    "PortTrayHost.qml": {
+      "path": "config/shell/preview/PortTrayHost.qml",
+      "sha256": "d051d022e7d13bedc8103f92b88a8fad225d5cd28fe6b253362ac81025f04093"
+    },
+    "NetworkPresentation.js": {
+      "path": "config/shell/preview/NetworkPresentation.js",
+      "sha256": "ddbd238c81ae266a996908e41fc4d7de1b0a04c5a5d6303f375f89e76ea1338b"
+    },
+    "NetworkStatusProvider.qml": {
+      "path": "config/shell/preview/NetworkStatusProvider.qml",
+      "sha256": "a2adbd9ef1ecc144a2f350e9d8bed06f8b5430037a936e72091329d4f820fa39"
+    },
+    "NetworkStatusView.qml": {
+      "path": "config/shell/preview/NetworkStatusView.qml",
+      "sha256": "1a791acd03ca34a656bb6686e02316e2e2bad471bb7a7263d002e0afbe3f34a7"
+    },
+    "AudioActions.js": {
+      "path": "config/shell/preview/AudioActions.js",
+      "sha256": "ecfd4abc18ba7ff3453d5a496722f56a21a9ed1431a56ecafb43c2883c560fd1"
+    },
+    "AudioPresentation.js": {
+      "path": "config/shell/preview/AudioPresentation.js",
+      "sha256": "50cff2bb57c8c51ae964770d4c7a70dcece66d8470968e1dbde2d03289c5722c"
+    },
+    "AudioOutputProvider.qml": {
+      "path": "config/shell/preview/AudioOutputProvider.qml",
+      "sha256": "a0a97d4f43a7c980ea695181073a1efc11e8537d79c44ab1b955bace8f207f95"
+    },
+    "AudioPanelController.qml": {
+      "path": "config/shell/preview/AudioPanelController.qml",
+      "sha256": "2cad43c28ca3609dac3764ffc46ab995421861f0ecc6c552cbfa38d94bc446d9"
+    },
+    "NetworkPanelController.qml": {
+      "path": "config/shell/preview/NetworkPanelController.qml",
+      "sha256": "9d5e3b05c0acfa959402fb56ad2744dcef4b80ea4816d74f0560e94a3aee81e7"
+    },
+    "DesktopPanelController.qml": {
+      "path": "config/shell/preview/DesktopPanelController.qml",
+      "sha256": "63030f151d6d8876ba089b8a04ce2de75122e9bcdca8e6b20449e5bdb18d7191"
+    },
+    "BluetoothActions.qml": {
+      "path": "config/shell/preview/BluetoothActions.qml",
+      "sha256": "9e006198afcbd68d40dd64684c3f52f44bc81f63a337a972d9f2b63d1ea1a4b9"
+    },
+    "DisplayPanelController.qml": {
+      "path": "config/shell/preview/DisplayPanelController.qml",
+      "sha256": "74408d6f3cb121dd88a382b9729caebdabd4122b40d1ae3333498fad849d20df"
+    },
+    "PowerPanelController.qml": {
+      "path": "config/shell/preview/PowerPanelController.qml",
+      "sha256": "25df4163927083d9d046a2698b8ae5c6f9bb0b6768e8395034093b3cdc6137b8"
+    },
+    "FloatingDock.qml": {
+      "path": "config/shell/preview/FloatingDock.qml",
+      "sha256": "bfc81929850773f316dc1a930df43720cbdec21a349627b0dfdce9c337092f6f"
+    },
+    "Commons/TrialDesktopState.qml": {
+      "path": "config/shell/preview/TrialDesktopState.qml",
+      "sha256": "bb06ead0a982f009e2da86280d57c2350147314c2763ab4a8fa24a98324040da"
+    },
+    "Commons/BluetoothDiscovery.qml": {
+      "path": "config/shell/preview/BluetoothDiscovery.qml",
+      "sha256": "86120c2da8cb7243dab46d43cf5f8ab4f3d30502f039edd11fc57bd35b20c2fb"
+    },
+    "Commons/InputMethodState.qml": {
+      "path": "config/shell/preview/InputMethodState.qml",
+      "sha256": "36e35dcd1a9e18cc80ae1424a29f5bd04612d9a3cbf9df21a941282ae3fdb4b8"
+    },
+    "DockState.qml": {
+      "path": "config/shell/preview/DockState.qml",
+      "sha256": "8a81decb37fe2833c8b6e79238473121b463c59a7952a5b9b0dc540115f87727"
+    },
+    "CommandMenu.qml": {
+      "path": "config/shell/preview/CommandMenu.qml",
+      "sha256": "fe34c7ce51e04d021b777f18e38fc929370aa764b43851035be6412b1637b347"
+    },
+    "MenuModel.js": {
+      "path": "config/shell/preview/MenuModel.js",
+      "sha256": "c408b5cbbd4fbbdc891893de22b8d4348909555d78f7241ad037c75ad2204117"
+    },
+    "MenuButton.qml": {
+      "path": "config/shell/preview/MenuButton.qml",
+      "sha256": "ee844384107b61ba5e1e04a9cf27712b80a22bb3606a6a7c2c8905f3b12585a9"
+    },
+    "OmarchyMark.qml": {
+      "path": "config/shell/preview/OmarchyMark.qml",
+      "sha256": "5507bf7a6c8cd2b0b897cfc26d0054be85545bc012081680a6e1812d4ac39252"
+    },
+    "BarRun.js": {
+      "path": "config/shell/preview/BarRun.js",
+      "sha256": "3303b143bbe85f8bd429c34b87871ad26103688bdddc94c7330707591f992a94"
+    },
+    "ImagePicker.qml": {
+      "path": "config/shell/preview/ImagePicker.qml",
+      "sha256": "d84e0bb2df12c35a7a65edd33bacc850ee30cba9e65d5852df380302f5f55c65"
+    },
+    "ImagePickerModel.js": {
+      "path": "config/shell/preview/ImagePickerModel.js",
+      "sha256": "194de174f4cc45671cfc391ea6f90552d301012e3b370835935c09987cb3d982"
+    }
+  },
+  "module_maps": {
+    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\n",
+    "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\nsingleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\nsingleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n",
+    "Port/qmldir": "Tray 1.0 Tray.qml\n"
+  },
+  "notice_paths": [
+    "licenses/Omarchy-MIT.txt",
+    "vendor/omarchy/LICENSE"
+  ],
+  "review": [
+    "All six upstream inputs read completely; root MIT applies with no additional file notices. Preserve full notices; public vendor inputs unchanged.",
+    "Original clock parent retained unchanged for provenance, never staged runnable. Exact readonly-clock-v1 extraction removes calendar Loader and all calendar forwarding, IPC, refresh, persistence and pointer actions before preparation. Original format/ISO-week/time logic, SystemClock and WidgetButton/OpticalGlyph presentation retained.",
+    "WidgetButton and OpticalGlyph unchanged. No registration API; tooltip compatibility callbacks are explicitly inert. Parent/button pointer input disabled; no timezone action or shell.run route.",
+    "Commons has only authored passive Style/Color/I18n, no original singleton, watcher, process, catalog or font asset. Fixed palette and 12px monospace remain diagnostic adaptations. Panel labels and the clock format locale use the pinned English catalog: en-US. This is not full theme or locale-file loading.",
+    "TrialShell defaults denied; exact finite grant before its fixed panel URL; sticky revoke on input change. No arbitrary QML/path/catalog/command. The panel uses pinned Quickshell Variants.model so each connected screen gets one non-focusable bar. A visible Wayland trial stays separately approved; production catalog remains empty.",
+    "Clock calendar is a separate derivation (clock-calendar-v1 and clock-calendar-host-v1) of the pinned Panel.qml and BarWidget.qml. The sealed ClockLabel stays read-only. The live trial opens the original month grid. Shell IPC, the timezone helper, and configuration writes are not admitted; week start, label format, and birth year stay in session memory."
+  ],
+  "limits": [
+    "Authored frame, not original Bar.qml. The sealed preview label stays read-only. The live trial calendar is the derived original popup without IPC, configuration writes, or the privileged timezone picker.",
+    "Checker uses established Bubblewrap isolation; private software offscreen QtQuick Window only, no host display/compositor/GPU/network/buses.",
+    "No real Wayland start, desktop configuration/service replacement, deployment, authentication, lock/idle/suspend, packages, privilege or publication acceptance.",
+    "Real trial requires session/socket validation, explicit scope and recovery/stop agreement, immutable staging and external owned-process timeout; no host launcher provided yet."
+  ]
+}

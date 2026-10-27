@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "https://github.com/omacom/omarchy",
+    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
+  },
+  "scope": "isolated-spacer-geometry-only",
+  "production_catalog": "empty",
+  "originals": {
+    "Ui/BarWidget.qml": {
+      "path": "shell/Ui/BarWidget.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/BarWidget.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/BarWidget.qml",
+      "bytes": 2297,
+      "sha256": "6dc5f08b92280e323b9bb8645ec530bca9c68512f3af49f6e3d5a13a6d9f99a3",
+      "git_blob_sha1": "69fa9b6cf78dd61e597f43fe05b719d21afb3dfd",
+      "license": "MIT",
+      "modifications": []
+    },
+    "Spacer.qml": {
+      "path": "shell/plugins/bar/widgets/Spacer.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/Spacer.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/Spacer.qml",
+      "bytes": 293,
+      "sha256": "85abd1cd06755e57194b86d30df9c31e7521e5c91f5a663d9cd6420b9e91c545",
+      "git_blob_sha1": "542d7d732262aeb99f0ed88d5e84a45a17556329",
+      "license": "MIT",
+      "modifications": []
+    }
+  },
+  "authored": {
+    "PassiveContract.js": {
+      "path": "config/shell/PassiveContract.js",
+      "sha256": "d4afcb734b839a5634ceecc4f3428a08f0d0deb8f994a6ee86c68784a8a4e21d"
+    },
+    "PassiveBarApi.qml": {
+      "path": "config/shell/PassiveBarApi.qml",
+      "sha256": "ab396be101b028f6b021280496b1960558665ebedc081c93fb9e9e119fb18a05"
+    },
+    "Commons/Style.qml": {
+      "path": "config/shell/PassiveStyle.qml",
+      "sha256": "020a6cd4ad510b59517f565d6631fd7f56fae41bfb74ff29958ff0b54a5eff61"
+    }
+  },
+  "module_maps": {
+    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\n",
+    "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\n"
+  },
+  "notice_paths": [
+    "licenses/Omarchy-MIT.txt",
+    "vendor/omarchy/LICENSE"
+  ],
+  "review": [
+    "Both original files were read completely and match the pinned public Git blobs. Root MIT applies; no additional per-file notices. Preserve both complete upstream notices; contents unchanged.",
+    "Original spacer is geometry-only. Base exposes setting/broadcast helpers but has no startup hook, process, file IO, service, IPC, font or theme probe. Its Style fallback must not resolve to the original Style.",
+    "Only the authored passive Style adapter is exported as qs.Commons.Style; only the unchanged base is exported as qs.Ui.BarWidget. No original Commons/qmldir, Style, Color, I18n, registry or other UI is staged.",
+    "The API supplies readonly vertical/barSize views over a frozen validated data snapshot. snapshotJson remains constructor-owner input, not an untrusted live configuration interface. This is not an OS sandbox.",
+    "Probe instrumentation adds a constructor marker to the authored Style adapter only, to detect an unexpected fallback. No upstream content is instrumented or patched."
+  ],
+  "limits": [
+    "No window or rendering. QtQuick Item geometry only in the established contained runtime.",
+    "No original bar, clock/calendar, shared startup, command routes, services, auth, helpers, fonts/assets or host integration are admitted.",
+    "This sealed namespace is an explicit incomplete adaptation, not stock Commons/Style behavior or original-shell parity.",
+    "The production guard/catalog is unchanged and empty. Source import is not permission for activation, graphics, deployment or publication."
+  ]
+}

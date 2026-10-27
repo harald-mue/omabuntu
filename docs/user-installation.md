@@ -5,13 +5,12 @@
 The local installer, standalone installed manager, release packager, integrity
 checks and rollback/recovery are implemented. Tests deploy only into private
 workspace fixtures. Preparing a bundle is not installation or desktop approval.
-The user approved host apply. The latest recorded deployment is
-`20261025-local.23` at `~/.local/share/omabuntu`, started manually via
-`~/.local/bin/omabuntu`; its previous release is `.22`. This is a historical
-deployment record, not a live status query. Use `omabuntu status` to check
-the selected version and owned running process. No login autostart or
-service supervision has been configured. hyprpaper was separately started
-with approval for the session; the shell manager does not manage it.
+Real login autostart, workspace persistence and wallpaper splash removal have
+been user-confirmed on the development target. Use `omabuntu status` and
+`omabuntu verify` for the actual selected release/process; no historical release
+name in documentation is a live status query. Login autostart is a separately
+approved user unit without crash supervision. hyprpaper activation is separate;
+the shell manager does not manage that daemon.
 The selected original panels remain the reviewed trial shell, not the original
 full shell startup. Screen locking is a separate security gate; see
 [lock readiness](lock-readiness.md). Do not describe this as a fully accepted or
@@ -27,17 +26,143 @@ unit already exists). It follows the enabled `hyprpaper.service` pattern:
 `PartOf/Requires/After=graphical-session.target`,
 `ConditionEnvironment=WAYLAND_DISPLAY`, `Slice=session.slice`,
 `WantedBy=graphical-session.target`, and runs `%h/.local/bin/omabuntu start`
-once per login. The uwsm-managed session imports `HYPRLAND_INSTANCE_SIGNATURE`,
-`XDG_CURRENT_DESKTOP` and `WAYLAND_DISPLAY` into the user manager environment,
-so the manager's own Hyprland validation passes unchanged. There is
-intentionally no `Restart=` directive: this is pure autostart, not supervision,
-and a dead shell stays down until manually started. The unit hands off and
-goes inactive; the manager's `running.json` record remains the source of truth,
-and the shell still ends at logout through `PartOf`. Stop the shell mid-session
-with `omabuntu stop`, never `systemctl --user stop` (stopping the unit would
-kill the process group). Enabling is a distinct approval step and never starts
-the service; rollback is `tools/deploy_autostart.py remove` plus
+once per login. Before that command, `ExecStartPre` runs
+`omabuntu-shell-wait.py` from the same systemd user directory. Hyprland 0.56.2
+imports `WAYLAND_DISPLAY` before it writes `hyprland.lock`, and `hyprctl
+instances -j` can print a lone `]` instead of a JSON list during that window.
+The readiness helper and current manager poll until the matching live instance
+is listed (40 attempts, 0.25 seconds apart). Invalid JSON is not ready, not a
+shell failure. This is not a lifetime limit and does not restart a shell that
+exits later. The UWSM-managed session imports `HYPRLAND_INSTANCE_SIGNATURE`,
+`XDG_CURRENT_DESKTOP` and `WAYLAND_DISPLAY` into the user manager environment.
+There is intentionally no `Restart=` directive: this is pure autostart, not supervision,
+and a dead shell stays down until manually started. The unit uses `Type=oneshot` and
+`RemainAfterExit=yes`: it stays `active (exited)` after the launcher finishes,
+so systemd does not immediately terminate the shell's control group. This is
+not shell-health monitoring; use `omabuntu status` to check the owned process.
+The shell ends at logout through `PartOf` and normal control-group cleanup.
+Use `omabuntu stop` for an identity-checked manual shell stop; stopping the
+unit instead terminates its whole control group. After a manual shell stop,
+`omabuntu start` still works, but the existing unit does not supervise that
+new process. A fresh login is required to verify any new autostart deployment; the corrected
+path has been user-confirmed on the development target. Enabling is a distinct
+approval step and never starts the service; rollback is `tools/deploy_autostart.py remove` plus
 `systemctl --user daemon-reload`.
+
+### Historical repair: release integrity (plan 021)
+
+A login passed the readiness helper but failed the launcher
+with `Release identity, scope or integrity differs`. Do not add retries or
+ignore integrity failures to hide this error. The subsequently approved read-only
+comparison confirms exactly three extra Python bytecode cache files and no
+missing or changed manifested files. The installed manifest matches the original
+packaged manifest, and the previous release is intact.
+
+A regression fixture reproduces a new cause in the plan 020 startup path:
+wallpaper restore invokes a Python helper that imports sibling modules without
+`PYTHONDONTWRITEBYTECODE=1`, adding cache files to a sealed release when its
+helper directory is writable. The next start correctly rejects those extra
+files. The source fix disables bytecode for this invocation, passes the actual
+state directory and reports bounded added/missing/changed filenames on integrity
+failure. It never excludes caches from verification or re-signs altered files.
+
+The separately approved repair is complete: backed up the exact extra cache
+files, removed only those additions, verified the original manifest unchanged
+and installed a fresh corrected immutable release through the normal transaction
+flow. A compatibility regression caught an overly strict check on legacy
+`current/` directory modes: startup now preserves those child-directory modes
+under the private owned state parent, still rejecting symlinks and foreign
+ownership. No installed source was patched and no preferences were chmodded.
+
+The corrected shell starts, restores its recorded wallpaper and passes strict
+release verification after an Omabuntu-only stop/start without creating bytecode.
+The rollback selector points to the independently verified last-known-working
+older release, not the failed intermediate repair candidate. Private backup and
+verification evidence remains under ignored `work/`. The installed managed
+snippet, login unit and readiness helper match their reviewed templates; no
+config reload or systemd change was needed. A real subsequent login was user-confirmed, separately from the unit tests.
+Private deployment timestamps and process records remain under ignored `work/`.
+
+For future integrity failures, the normal install path can also reject a
+corrupted current/previous selector; do not delete files, rewrite manifests or
+bypass that guard blindly. Compare and back up the exact delta first.
+
+## Installer-managed Hyprland settings (plan 018)
+
+Hyprland draws a random startup splash ("Thanks raf!" and others), an optional
+logo background and a twice-a-year donation nag in its own background pass.
+Those compositor settings are independent of hyprpaper 0.8.4's own splash:
+the wallpaper daemon fetches the same text from Hyprland and draws it over each
+wallpaper by default. This explains why the message remained visible despite
+`misc:disable_splash_rendering = true` and a transparent compositor splash color.
+The separate wallpaper setting below is necessary; repeatedly changing the
+compositor flags cannot control that other renderer.
+
+The reviewed file is `config/hypr/omabuntu-managed.lua`; it contains those
+settings, a guarded title-bar plugin registration (plan 020: `hl.plugin.load`
+during the config load, because a `hyprland.start` handler only queues a path
+no later pass reads; the load triggers one config reload), and a loader that
+re-registers saved `scrolling` workspace rules from
+`current/workspace-layouts.txt` before the first window opens. No binds,
+autostart or monitors. The supported installer step is:
+
+```sh
+make hypr-settings
+```
+
+It plans first, then writes `~/.config/hypr/omabuntu-managed.lua`, backs up an
+existing file, and appends exactly one `require("omabuntu-managed")` line to
+`~/.config/hypr/hyprland.lua` (also backed up first). Repeated runs change
+nothing. It refuses a differently spelled reference or a duplicate include
+instead of guessing. It never reloads Hyprland, touches systemd or starts a
+session; the settings apply at the next Hyprland start.
+
+Rollback is `make hypr-settings-remove`: it removes the exact managed block and
+the snippet, and leaves the rest of `hyprland.lua` unchanged. A running session
+is unaffected until it restarts.
+
+### Separate wallpaper splash setting (plan 022)
+
+The authored template `config/hypr/hyprpaper.conf` contains:
+
+```ini
+splash = false
+```
+
+This is a **hyprpaper** setting, not a Lua field in `hl.config`. Official
+hyprpaper v0.8.4, commit `20fc0fa6c2056c388a4cd69cb394a9f989dd27c0`, defaults it
+to enabled in `src/config/ConfigManager.cpp:57`; `src/ui/UI.cpp:56-116` retrieves
+`/splash` and creates the separate overlay. See the
+[pinned renderer source](https://github.com/hyprwm/hyprpaper/blob/20fc0fa6c2056c388a4cd69cb394a9f989dd27c0/src/ui/UI.cpp#L56-L116).
+
+New local bundles record the template under `config/hypr/hyprpaper.conf`, but
+packaging, installing a release and `make hypr-settings` do **not** deploy this
+wallpaper config or restart its service. Deployment remains separately approved:
+review `~/.config/hypr/hyprpaper.conf` (or the daemon's actual XDG/explicit config
+path), back up an existing file or record its absence, and preserve unrelated
+wallpaper settings. Copy the minimal template only when no existing config needs
+merging. Record the current wallpaper mappings before activation.
+
+The observed service has no reload action. After explicit approval, restart only
+hyprpaper. If the saved background matches the current live mappings, reapply it
+using the installed packaged helper with bytecode writes disabled and the actual
+Omabuntu state directory. Otherwise preserve and restore the exact active
+per-output mappings through the reviewed wallpaper IPC; do not replace the user's
+current image with stale saved state or rewrite that state as part of a splash
+fix. The wallpaper may briefly disappear; no compositor or shell restart is
+necessary.
+Rollback restores the previous config bytes/mode or removes only the newly
+created file when it was absent, then separately approves daemon restart and
+wallpaper restoration. Template tests and source evidence are not visual
+acceptance; confirm the text has disappeared after the approved live change.
+
+The approved target deployment created the previously absent config, restarted
+only hyprpaper and restored the original mappings on all three monitors. No
+service errors were reported, shell identity and application geometry remained
+unchanged, and release integrity still passes. The background record was older
+than the actual active image, so this deployment preserved the live mappings
+without rewriting the record. The user subsequently confirmed that the splash
+text has disappeared; visual acceptance for this change is complete.
 
 ## Prerequisites and installer scope
 
@@ -68,7 +193,7 @@ For Style > Theme / Background in particular:
   package is `6.10.2-1` from Ubuntu `resolute/universe`. Restart the managed
   shell after installing the plugin if it has already cached its formats.
 - The helper uses the current per-monitor wallpaper IPC and has a legacy
-  fallback. Release `.23` contains that correction and removes the
+  fallback. It includes that correction and removes the
   unconditional "no daemon approved" picker message.
 
 Review, do not blindly replay, these package operations on each target:
@@ -114,10 +239,17 @@ After source/contract/QML review and tests:
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 tools/package_user.py --version <new-local-version>
+python3 tools/package_user.py --version <new-local-version> --build-dir work/builds/<build-id>
 python3 tools/check_user_release.py work/user-releases/<new-local-version>
 python3 tools/user_install.py plan work/user-releases/<new-local-version>
 ```
+
+Choose the exact verified build produced by the approved runtime builder;
+`--build-dir` is required and has no machine-specific default. An asset-free
+checkout is supported. Local ignored wallpapers/previews are included only when
+present, so review a private bundle separately before any redistribution.
+The WebP preflight uses an authored tiny probe, not an imported wallpaper.
+See [clean-source verification](clean-source.md).
 
 Version names are unique and cannot be silently reused for different contents.
 The packager validates source seals and the existing build artifact manifest. It
@@ -190,6 +322,71 @@ previous release remains intact. Updates do not auto-restart a desktop process.
 ~/.local/bin/omabuntu start
 ```
 
+From the Git checkout the same three steps plus release preparation are one
+Makefile target, which is the supported local source update:
+
+```sh
+make update VERSION=my-change BUILD_DIR=work/builds/<build-id>
+```
+
+`make install VERSION=...` stops at installation and never starts the shell.
+`make release VERSION=... BUILD_DIR=...` only prepares the bundle under `work/`, and
+`make help` lists every target without side effects.
+
+### Complete live development update
+
+Use this instead of the older `update` target when iterating on source:
+
+```sh
+make dev-update BUILD_DIR=work/builds/<build-id>
+# Optional explicit fresh version; the verified build stage is always required:
+make dev-update VERSION=dev-my-change BUILD_DIR=work/builds/<build-id>
+```
+
+The default version is a fresh UTC timestamp. Even with an explicit version,
+this target always packages current sources; an existing bundle causes a refusal,
+not silent reuse. The sequential steps (also with `make -j`) are:
+
+1. Package a new immutable release, including current shell/QML, packaged Python
+   helpers, manager, assets and a copy of managed Hyprland/systemd templates.
+   Reuse the selected verified runtime build stage; do not rebuild C++ dependencies.
+2. Preflight the bundle and print managed-settings and autostart plans.
+3. Stop the owned Omabuntu shell; abort on failure.
+4. Install via the checkout's current manager, without modifying a sealed release.
+5. Update the managed Hyprland snippet/include with backups and a unified diff.
+6. Update and enable the autostart unit and readiness helper, with backups and
+   user-manager daemon-reload; never start the unit here.
+7. Run `hyprctl reload`, then check `hyprctl configerrors` (bounded commands).
+8. Start the newly installed Omabuntu shell with its session-lifetime grant.
+
+**This is a live configuration reload, not a Hyprland restart.** The compositor,
+login session and applications remain running. Startup hooks do not run again.
+It cannot replace the compositor binary or an already-loaded plugin; those need
+separate reviewed actions. Arbitrary personal Hyprland config, binds, plugin
+artifacts and lock/idle configuration are not synchronized. Wallpaper restoration
+is handled separately by the manager, not by recursively copying repository data. There is no blind recursive copy of all repository files.
+
+The target changes the desktop and enables login autostart: invoke it only when
+those operations are approved. Implementation tests use stubs and do not deploy.
+A failure stops subsequent steps; there is no cross-tool transaction. In particular,
+a failed install/reload can leave the shell stopped or the new release selected.
+Inspect the printed error and backups, fix configuration or use the release rollback
+below, then explicitly `make start`. Release rollback does not undo managed config
+or systemd files; those retain their separate restoration paths.
+
+Individual actions are also available:
+
+| Target | Action |
+| --- | --- |
+| `make hypr-settings-plan` | Read-only managed-settings unified diff |
+| `make hypr-settings` | Back up and deploy managed settings, no reload |
+| `make autostart-plan` | Read-only unit/helper deployment plan |
+| `make autostart` | Back up, deploy and enable unit/helper, no start |
+| `make reload` | Reload Hyprland configuration and check errors |
+| `make restart` | Stop/start only the owned Omabuntu shell |
+| `make hypr-settings-remove` | Remove managed include/snippet with backups |
+| `make autostart-remove` | Remove/disable the autostart unit |
+
 If the new version fails:
 
 ```sh
@@ -220,13 +417,11 @@ restores release selection and the launcher only, not theme/font edits,
 Hyprland configuration, package state or a separately started wallpaper
 daemon. Those require their own backed-up, reviewed restoration steps.
 
-## Autostart is deliberately not enabled
+## The installer does not enable autostart
 
 The target uses UWSM's `wayland-session@hyprland.desktop.target`, with the matching
-`wayland-wm@hyprland.desktop.service`. An eventual user service must be tied to
-that specific session, not GNOME's generic graphical login, and must manage the
-actual child lifetime, imported Wayland environment, single-instance behavior,
-bounded restart rate and clean logout. No service unit or Hyprland startup edit
-is installed by the current installer. Service activation and session-transition
-tests follow daily-use and lock/recovery acceptance, with separate approval and
-backups of existing unit/configuration/enablement state.
+`wayland-wm@hyprland.desktop.service`. The release installer does not install a
+user unit or edit Hyprland startup. The separate reviewed unit described above
+is pure autostart: no `Restart=`, no crash supervision, and no GNOME graphical
+login binding. Replacing that unit, reloading systemd, and the next login check
+remain separate approval steps.

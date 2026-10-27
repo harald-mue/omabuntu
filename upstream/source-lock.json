@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "notes": [
+    "Archives were fetched over HTTPS from exact upstream commits and their root CMake files matched the previously inspected pinned sources.",
+    "Hashes record the reviewed source archives, not an upstream signature or the original Omarchy package patches.",
+    "This lock records source candidates; it does not authorize installation or desktop activation."
+  ],
+  "sources": [
+    {
+      "name": "quickshell",
+      "repository": "https://github.com/quickshell-mirror/quickshell",
+      "commit": "2b4501a282689792b62e94f3fb30d8f512324fe6",
+      "archive_url": "https://codeload.github.com/quickshell-mirror/quickshell/tar.gz/2b4501a282689792b62e94f3fb30d8f512324fe6",
+      "archive_sha256": "e09495c73f8bfbb8637a28e6d73bf84063631b49bb3cb6d3c9702c80dfa78f31",
+      "archive_bytes": 502514,
+      "archive_root": "quickshell-2b4501a282689792b62e94f3fb30d8f512324fe6",
+      "license": "LGPL-3.0-only"
+    },
+    {
+      "name": "cpptrace",
+      "repository": "https://github.com/jeremy-rifkin/cpptrace",
+      "commit": "3db8da80111171c219ab5839905771386bee06b3",
+      "archive_url": "https://codeload.github.com/jeremy-rifkin/cpptrace/tar.gz/3db8da80111171c219ab5839905771386bee06b3",
+      "archive_sha256": "77d689fd7956ff80351a079d83e86a03865dbbe2433b4559cc6cea50bed77390",
+      "archive_bytes": 494386,
+      "archive_root": "cpptrace-3db8da80111171c219ab5839905771386bee06b3",
+      "license": "MIT"
+    }
+  ]
+}

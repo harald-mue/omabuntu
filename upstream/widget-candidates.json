@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "status": "dependency-reviewed-ui-blocked",
+  "source": {
+    "repository": "https://github.com/omacom/omarchy",
+    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
+  },
+  "candidates": [
+    {
+      "id": "omarchy.bar",
+      "source_path": "shell/plugins/bar/Bar.qml",
+      "sha256": "33f359bfba0cd17df13bd331cb8500b5c9d7f8b6a5356ce2b36d7e3c2eca999c",
+      "git_blob_sha1": "2831ab535a631d329f8aa63beb091060e4dba136",
+      "lexical_closure_files": 20,
+      "decision": "blocked-unmodified",
+      "findings": [
+        "Startup applies bar config and dispatches omarchy-bar sync-glass even for the initial opaque look.",
+        "Starts the bar-off shell probe; creates per-screen layer surfaces; exposes registry/custom-QML/command routes.",
+        "Needs reviewed compositor ownership, sealed widget loading, removal/gating of startup commands and all command/IPC paths."
+      ]
+    },
+    {
+      "id": "omarchy.clock",
+      "source_path": "shell/plugins/panels/clock/BarWidget.qml",
+      "sha256": "28ac6687b356472c296ecac02724a95755f4e971c8b419abe1d58725a84248a5",
+      "git_blob_sha1": "b5adcc537b523e0bfeec85979cee66f58f344c59",
+      "lexical_closure_files": 33,
+      "decision": "blocked-unmodified",
+      "findings": [
+        "An always-active Loader prepares the hidden calendar; visible:false is not a loading gate.",
+        "Base widget, Style/Color/I18n and panel UI/IPC form a larger dependency surface.",
+        "Format cycling can persist settings; middle click dispatches the timezone helper. No UI admission yet."
+      ]
+    },
+    {
+      "id": "omarchy.spacer",
+      "source_path": "shell/plugins/bar/widgets/Spacer.qml",
+      "sha256": "85abd1cd06755e57194b86d30df9c31e7521e5c91f5a663d9cd6420b9e91c545",
+      "git_blob_sha1": "542d7d732262aeb99f0ed88d5e84a45a17556329",
+      "lexical_closure_files": 11,
+      "decision": "stock-closure-blocked-sealed-diagnostic-profile-separate",
+      "findings": [
+        "The leaf only computes dimensions, but the stock base defaults to bar:null and falls back to Style.bar.sizeHorizontal.",
+        "Style has startup hyprctl/font probes and file watchers; a fully injected bar API may avoid that binding branch but is not tested.",
+        "Need an atomically injected safe API and/or reviewed passive-token separation, with a minimal sealed module map."
+      ]
+    }
+  ],
+  "imports": [
+    {
+      "repository": "https://github.com/omacom/omarchy",
+      "commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+      "path": "shell/plugins/panels/clock/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/clock/Model.js",
+      "sha256": "101514693517f694203841a4f39fe4c54d9469a2cbf4dd6b0264e6d440adbe75",
+      "git_blob_sha1": "873db9535edc73e220517c848d69733cdd4d1feb",
+      "bytes": 12174,
+      "license": "MIT",
+      "modifications": [],
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/clock/Model.js",
+      "notice_paths": [
+        "licenses/Omarchy-MIT.txt",
+        "vendor/omarchy/LICENSE"
+      ],
+      "approved_scope": "pure-date-and-format-functions-only",
+      "dependency_files": [],
+      "review": "Complete file manually reviewed: date/number/array/string math and guarded CommonJS export only; no QML objects, Qt/Quickshell, local imports, commands, file/network/service APIs. No separate copyright/license notice in the file. Root MIT notice applies; no modifications."
+    }
+  ],
+  "related_import_manifests": ["upstream/spacer-candidate.json"],
+  "limits": [
+    "Lexical closure counts are conservative source references, not eager objects, exact QML type resolution, or complete dynamic dependencies.",
+    "This manifest's imports list covers only the unchanged clock model; additional original spacer/base imports and the authored passive compatibility closure are reviewed separately in spacer-candidate.json. No production catalog admission.",
+    "Production catalog remains empty. Original shell, service ownership, real UI/Color imports and graphical/security acceptance are not approved."
+  ]
+}

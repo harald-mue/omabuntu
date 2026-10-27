@@ -87,13 +87,12 @@ deployed to `~/.config/systemd/user/` after approval:
   `PartOf=graphical-session.target`, `Requires=graphical-session.target`,
   `After=graphical-session.target`, `ConditionEnvironment=WAYLAND_DISPLAY`,
   `Slice=session.slice`, `WantedBy=graphical-session.target`.
-- `Type=oneshot` for the manager invocation is not suitable because the
-  manager exits after `start()` returns while the child Quickshell process
-  keeps running; the unit must use `Type=oneshot` + `RemainAfterExit=no`
-  semantics deliberately, or better, be a `Type=oneshot` unit whose only job
-  is to hand the process off (the manager already backgrounds Quickshell with
-  `start_new_session=True` and owns the `running.json` identity record).
-  The exact Type decision is part of implementation review.
+- Corrected by plan 013 after the first login test failed: use `Type=oneshot`
+  and `RemainAfterExit=yes`. The manager exits after startup, but its shell
+  must remain in the unit's live control group. `RemainAfterExit=no` caused
+  immediate deactivation and shell termination. `start_new_session=True`
+  does not escape systemd control-group cleanup. Active (exited) confirms
+  launcher completion only; use `omabuntu status` for shell health.
 - `Restart` decision (open, needs user confirmation before implementation):
   - Option A (default, pure autostart): no `Restart=` directive. The shell
     starts once per login; if it dies, it stays down until the user starts it
@@ -142,7 +141,8 @@ deployed to `~/.config/systemd/user/` after approval:
       omabuntu-shell.service (enable only; do not start it manually).
       Deployed: `enabled`, `inactive`, nothing started.
 - [ ] Verify at the user's next login: status running, log clean, unit state
-      consistent.
+      consistent. The 2026-10-26 20:59 login failed before the shell started;
+      the instance-lock race is plan 014.
 - [ ] Verify rollback once (disable + remove; next login leaves the shell
       down; manual start still works).
 - [ ] Update `WORKLOG.md` with the deployment record and rollback state.

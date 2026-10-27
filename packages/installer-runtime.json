@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "name": "omabuntu-local-bundle",
+  "target": {"ubuntu": "26.04", "hyprland": "0.56.2", "qt": "6.10.2"},
+  "groups": {
+    "runtime": [
+      "python3", "bubblewrap", "fontconfig", "procps",
+      "libqt6core6t64", "qt6-wayland", "qt6-svg-plugins",
+      "qt6-image-formats-plugins", "qml6-module-qtquick",
+      "qml6-module-qtquick-controls", "qml6-module-qtquick-layouts",
+      "qml6-module-qtquick-shapes", "qml6-module-qtquick-effects",
+      "qml6-module-qtquick-window", "qml6-module-qtquick-templates",
+      "qml6-module-qtqml-models", "qml6-module-qt-labs-folderlistmodel",
+      "libxkbcommon-tools"
+    ],
+    "wallpaper": ["hyprpaper"]
+  },
+  "limitations": [
+    "A pre-existing compatible Hyprland session and its native desktop services are required.",
+    "This is a feature prerequisite list, not a clean-target-validated ELF dependency lockfile.",
+    "The bundle runtime linkage and QML imports must pass isolated checks before deployment.",
+    "Nerd Font glyphs and native desktop behavior still need separate acceptance."
+  ]
+}

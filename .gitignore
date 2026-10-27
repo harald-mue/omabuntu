@@ -1,0 +1,33 @@
+# Private machine data and generated output
+/work/
+/target/
+/target-backups/
+/snapshot/
+/inventory/
+/analysis/
+/transfer/
+/.env
+/.env.*
+/config/local/
+
+# Local-only image assets; redistribution rights are not cleared
+/config/menu/backgrounds/
+/config/menu/themes-previews/
+
+# Local backups and partially downloaded files
+*.bak
+*.bak-*
+*.part
+
+# Python and editor output
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "status": "research-metadata-not-a-build-input",
+  "reference_package": "quickshell 0.3.2.r7.g2b4501a-1",
+  "upstream_commit": "2b4501a282689792b62e94f3fb30d8f512324fe6",
+  "packaging_repository": "https://github.com/omacom/omarchy-pkgs",
+  "packaging_commit": "2be7cd983944f50612338124ec6725da95dceb2e",
+  "pkgbuild": {
+    "url": "https://raw.githubusercontent.com/omacom/omarchy-pkgs/2be7cd983944f50612338124ec6725da95dceb2e/pkgbuilds/quickshell/PKGBUILD",
+    "sha256": "e871efd5b0705d16226b4e8cd0b9ed99269129a62cc4590583df5581c25ab6aa",
+    "evidence": "Exact byte hash matches pkgbuild_sha256sum in the original captured .BUILDINFO. The matching recipe has pkgrel=1; the current default branch does not match."
+  },
+  "patch": {
+    "name": "load_qtquick_611.patch",
+    "url": "https://raw.githubusercontent.com/omacom/omarchy-pkgs/2be7cd983944f50612338124ec6725da95dceb2e/pkgbuilds/quickshell/load_qtquick_611.patch",
+    "sha256": "23b65d205d825f11a1cd8501acbc6e50250d09a6ce607e2ff8b3cf5d438bd0ce",
+    "evidence": "Downloaded bytes match the SHA-256 entry in the matching PKGBUILD.",
+    "activation": "//@ pragma OmarchyLoadPatch in the root QML file",
+    "effect": "Rewrite unversioned QtQuick imports to QtQuick 6.11; extend scanner/interceptor coverage to local dynamically loaded and lower-case QML files.",
+    "upstream_rationale": "Avoid the new QtQuick Color singleton introduced with Qt 6.12 shadowing Omarchy's Color singleton.",
+    "target_decision": "Not applied. The target uses Qt 6.10.2; requesting QtQuick 6.11 is not an appropriate compatibility patch for this target. Full original shell behavior is still untested."
+  },
+  "arch_transaction_hook": {
+    "name": "quickshell-check.hook",
+    "url": "https://raw.githubusercontent.com/omacom/omarchy-pkgs/2be7cd983944f50612338124ec6725da95dceb2e/pkgbuilds/quickshell/quickshell-check.hook",
+    "sha256": "8543e21aeaaa5441b73a679160e7601a957f16c433e8d6bd9257e80bd0e94083",
+    "evidence": "Downloaded bytes match the SHA-256 entry in the matching PKGBUILD.",
+    "target_decision": "Do not install or translate this ALPM hook into Ubuntu package-manager policy. Managed runtime compatibility checks require a separately reviewed packaging design."
+  },
+  "original_cmake_arguments": [
+    "CMAKE_BUILD_TYPE=RelWithDebInfo",
+    "DISTRIBUTOR=Omarchy",
+    "CRASH_REPORTER=Off",
+    "CMAKE_INSTALL_PREFIX=/usr",
+    "INSTALL_QML_PREFIX=lib/qt6/qml"
+  ],
+  "limitations": [
+    "No PKGBUILD, patch command, Arch hook, or reference executable was executed.",
+    "This establishes a matching recorded recipe and patch provenance, not signed authenticity or byte-identical original binaries.",
+    "The Ubuntu build intentionally differs in Qt/toolchain, prefix, distributor, build type, dependency handling, and absence of this patch.",
+    "The original Omarchy shell revision, source/license completeness, assets, and safe integration still need independent review."
+  ]
+}

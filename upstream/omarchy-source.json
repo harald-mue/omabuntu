@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "status": "source-and-license-pinned-not-runtime-approved",
+  "repository": "https://github.com/omacom/omarchy",
+  "observed_tag": "v4.5.0-rc1",
+  "commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+  "reference_package": "omarchy 4.5.0rc1-1",
+  "license": {
+    "spdx": "MIT",
+    "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/LICENSE",
+    "sha256": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+    "git_blob_sha1": "f12cfa766c55541c9d8e008e310c95a721e70a97",
+    "notice_path": "licenses/Omarchy-MIT.txt",
+    "copyright": "Copyright (c) David Heinemeier Hansson"
+  },
+  "reference_comparison": {
+    "method": "Compare Git blob hashes of captured regular-file bytes and passive symlink targets against the non-truncated recursive tree at the pinned commit; record SHA-256 for every compared local entry in private evidence.",
+    "shell_entries": 249,
+    "shell_entries_matched": 249,
+    "helper_entries": 538,
+    "helper_entries_matched": 536,
+    "unmatched_helper_entries": [
+      "bin/omarchy-nvim-refresh",
+      "bin/omarchy-nvim-setup"
+    ],
+    "unmatched_status": "Absent in the pinned source tree; packaging/supplemental origin unresolved. Not approved for import or execution."
+  },
+  "component_license_findings": [
+    {
+      "path": "shell/plugins/notifications/Service.qml",
+      "origin": "https://github.com/omacom/omapager",
+      "notice": "Copyright (c) 2026 Neil Jagdish Patel; MIT License",
+      "status": "Preserve this additional attribution. Complete derived-component notice/revision evidence remains a gate before importing notification code; root MIT alone is insufficient."
+    },
+    {
+      "path": "shell/plugins/panels/elsewhen/manifest.json",
+      "notice": "Manifest identifies Jason Fried as author and MIT as license.",
+      "status": "Retain component metadata and review applicable notices before importing this panel."
+    },
+    {
+      "path": "shell/plugins/agents/assets/*.svg",
+      "status": "Six branded SVG assets are present. Asset origins, permissions and trademark implications are not cleared by the root MIT notice. No assets imported."
+    },
+    {
+      "path": "shell/plugins/emojis/emojis.json",
+      "status": "Dataset provenance must be established separately before redistribution. No dataset or font files imported."
+    }
+  ],
+  "version_file": {
+    "path": "version",
+    "value": "4.0.0.alpha",
+    "sha256": "9d1aaeb0c16104d678742c04d6a8700fed365e7eb65a8eaef5fb3845ddf634e3",
+    "note": "Both the pinned source and captured version file contain this literal value. Do not infer package/release identity from this file alone."
+  },
+  "package_recipe": {
+    "recorded_pkgbuild_sha256": "74b8677c82084e19ea828c74e4e2856ee85507f78c4a406f9e92928b500681cb",
+    "status": "not-matched",
+    "note": "A bounded default-branch history search did not match the captured recipe hash. Source pinning uses the complete captured shell byte comparison, not an invented matching PKGBUILD."
+  },
+  "limitations": [
+    "This source pin does not approve original shell/plugins/helpers, installers, package recipes or service execution. Pure-code imports need separate review.",
+    "Reviewed imports are tracked separately in widget-candidates.json, spacer-candidate.json and clock-preview.json. Included sources are the clock model, sealed spacer/base files, the clock label, and the clock calendar parent. The sealed runnable label is a derived read-only extraction. The live calendar is a separate derived extraction recorded in clock-preview.json; the unmodified IPC parent is not admitted. No full shell, helpers, assets, fonts or datasets are admitted by this pin.",
+    "Root MIT coverage is not blanket clearance for bundled fonts, icons, images, dependencies, or third-party components. Review them individually before redistribution.",
+    "Git tree/blob comparison via HTTPS is content evidence, not signed attestation or a byte-reproducible original package build.",
+    "The full source archive exceeded the conservative download bound and was not saved or extracted; targeted pinned tree/blob inspection was used instead."
+  ]
+}

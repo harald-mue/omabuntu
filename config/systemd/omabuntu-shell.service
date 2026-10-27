@@ -3,9 +3,12 @@
 # tools/deploy_autostart.py. Enabled only after explicit user approval.
 # No Restart directive: the shell starts once per login and is never a
 # supervisor. The manager's running.json record stays the source of truth
-# for the owned process; use `omabuntu stop`, not `systemctl --user stop`,
-# to end the shell mid-session (stopping the unit would kill the process
-# group at logout through PartOf, which is the intended session lifetime).
+# for the owned process. Active (exited) only confirms launcher completion.
+# RemainAfterExit keeps the shell's control group alive after the manager
+# exits; stopping this unit terminates that group, including at logout.
+# Use `omabuntu stop` for an identity-checked manual shell stop.
+# ExecStartPre only waits until the live instance lock is listed. It is not
+# a shell lifetime and it does not restart a shell that exits later.
 [Unit]
 Description=Omabuntu shell login autostart hand-off
 PartOf=graphical-session.target
@@ -15,7 +18,8 @@ ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
 Type=oneshot
-RemainAfterExit=no
+RemainAfterExit=yes
+ExecStartPre=/usr/bin/python3 %h/.config/systemd/user/omabuntu-shell-wait.py
 ExecStart=%h/.local/bin/omabuntu start
 Slice=session.slice
 
