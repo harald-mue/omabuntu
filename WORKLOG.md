@@ -96,3 +96,19 @@ must not be described as fresh-machine, visual or security acceptance.
   and license bytes. Its known upstream whitespace is the only diff-check
   exception; hooks and source verification are not bypassed.
 - Remote creation, push and publication remain separate from this local commit.
+
+## Approved GitHub history integration (plan 026)
+
+- After the subsequent push approval, found an independent GitHub initial commit
+  containing only an MIT license. The user explicitly approved preserving both
+  histories with a merge rather than replacing either branch history.
+- Resolved the sole LICENSE add/add conflict by retaining the copyright notices
+  for Harald Müller and Omabuntu contributors. MIT permission/disclaimer and all
+  third-party licenses remain unchanged.
+- Prepared a normal merge commit and fast-forward push using the requested
+  process-local author/committer identity. No force push, history rewrite,
+  repository visibility change, binary release or desktop deployment is part
+  of this operation. All 542 unit tests and clean-source verification pass;
+  the 296-file text-only candidate excludes images, binaries and private work.
+  Actual commit/push outcomes are recorded privately and in Git; validation
+  precedes execution.
