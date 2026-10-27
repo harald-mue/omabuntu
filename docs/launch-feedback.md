@@ -16,9 +16,10 @@ it with the rest of the shell.
 
 ## Behavior
 
-The notice waits 2000 ms. It appears only when the toplevel count has not
-increased and the active toplevel is still the one recorded at launch. It
-closes when either of those changes, and after 15000 ms even if no window
+The notice waits 1000 ms. Omarchy waits 2000 ms; the shorter delay is a
+local choice. It appears only when the toplevel count has not increased and
+the active toplevel is still the one recorded at launch. It closes when
+either of those changes, and after 15000 ms even if no window
 appears. A second launch replaces the tracked baseline. The glyph is U+F14DE,
 the same character Omarchy sends to its OSD.
 
@@ -36,7 +37,9 @@ catalog; `%1` is replaced in the overlay, not by a catalog loader.
 - Programs started by a key binding do not show the notice. Omarchy does not
   show it for those either, because they do not call `AppLibrary.launch()`.
 - The dock icon pulse is unchanged and separate.
-- The running bar does not pick this up until a separately approved restart.
+- The approved bar restart now serves the one-second delay. Hyprland was
+  not reloaded.
 
-Source fidelity here is the timing, the copy, and the click-through overlay.
-It is not visual acceptance of the live session.
+Source fidelity here is the copy and the click-through overlay. The show
+delay is one second rather than Omarchy's two. It is not visual acceptance
+of the live session.

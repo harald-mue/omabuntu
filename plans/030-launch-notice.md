@@ -59,3 +59,8 @@ a separate animation.
 - [x] Add the overlay and wire it to the grid and the dock.
 - [x] Add the English strings, the review hashes, and unit checks.
 - [x] Document the notice and the exclusions.
+
+## Follow-up
+
+The show delay was later set to 1000 ms at the user's request. Omarchy's
+source still uses 2000 ms. The fifteen-second limit is unchanged.

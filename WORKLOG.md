@@ -51,6 +51,9 @@ ignored `work/`. Historical Git objects are not changed by editing this file.
   delayed "Launching …" notice. It appears only when no window has arrived
   after two seconds, passes clicks through, and is not a notification. The
   approved bar restart serves this notice, and the user confirmed it.
+- The launch notice now waits one second instead of two. The fifteen-second
+  limit is unchanged. The approved bar restart serves this delay. Hyprland
+  was not reloaded.
 - A real login and workspace persistence were user-confirmed. Disabled
   hyprpaper's independent splash and obtained visual confirmation; the
   compositor's splash flag alone does not control the wallpaper daemon.

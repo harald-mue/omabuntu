@@ -6,8 +6,9 @@ import qs.Commons as Commons
 
 // Delayed launch notice shared by the app grid and the floating dock.
 // Omarchy's AppLibrary waits two seconds and then asks its OSD for glyph
-// U+F14DE plus "Launching <name>…". A new toplevel or a changed active
-// toplevel clears it, and it never stays longer than fifteen seconds.
+// U+F14DE plus "Launching <name>…". This overlay waits one second. A new
+// toplevel or a changed active toplevel clears it, and it never stays
+// longer than fifteen seconds.
 // This surface draws only that message. It takes no keyboard or pointer
 // input and starts no process.
 PanelWindow {
@@ -96,7 +97,7 @@ PanelWindow {
 
   Timer {
     id: launchDelay
-    interval: 2000
+    interval: 1000
     onTriggered: {
       if (root.windowArrived()) return
       root.shown = true

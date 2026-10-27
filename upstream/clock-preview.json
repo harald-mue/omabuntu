@@ -648,7 +648,7 @@
     },
     "LaunchFeedback.qml": {
       "path": "config/shell/preview/LaunchFeedback.qml",
-      "sha256": "fdf58d0782e9272b4ae57445fa1fa467c3e1bb1dad1618fdfe0e8ab48be8fa4e"
+      "sha256": "06c3d4a40047d055a6794ce7c15de6063a1c49b41248b4026a55d5192a149a28"
     },
     "KeybindingsMenu.qml": {
       "path": "config/shell/preview/KeybindingsMenu.qml",

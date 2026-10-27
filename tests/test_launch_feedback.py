@@ -12,9 +12,10 @@ class LaunchFeedbackTests(unittest.TestCase):
     def notice(self):
         return (ROOT / "config/shell/preview/LaunchFeedback.qml").read_text()
 
-    def test_notice_matches_the_two_second_osd_rule(self):
+    def test_notice_waits_one_second_then_closes(self):
         text = self.notice()
-        self.assertIn("interval: 2000", text)
+        self.assertIn("interval: 1000", text)
+        self.assertNotIn("interval: 2000", text)
         self.assertIn("interval: 15000", text)
         self.assertIn("toplevelCount() > root.launchToplevelCount", text)
         self.assertIn("Hyprland.activeToplevel !== root.launchActiveToplevel", text)

@@ -61,7 +61,7 @@ No original Style, Color, translations service or shell startup is activated.
   matching, minimization/restore policy and the screen-remap component are
   excluded. The context menu closes on selection, workspace change, or an
   outside click through the upstream `HyprlandFocusGrab`.
-- **Launch notice:** the app grid and the dock share the delayed "Launching …"
+- **Launch notice:** the app grid and the dock share the one-second "Launching …"
   overlay documented in `docs/launch-feedback.md`. It is not a notification
   daemon and not the dock icon pulse. A source change reaches the running bar
   only through a separately approved restart.
