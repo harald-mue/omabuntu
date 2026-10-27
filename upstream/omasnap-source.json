@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "pinned-not-built",
+  "repository": "https://github.com/omacom/omasnap",
+  "commit": "a432f40b14598a4a02b89fa0054f9a0ba3662dd4",
+  "version": "1.24.0",
+  "committed_at": "2026-10-27T13:00:22Z",
+  "subject": "Release 1.24.0",
+  "license": {
+    "spdx": "MIT",
+    "copyright": "Copyright (c) 2026 Tobi Lütke",
+    "url": "https://raw.githubusercontent.com/omacom/omasnap/a432f40b14598a4a02b89fa0054f9a0ba3662dd4/LICENSE",
+    "sha256": "846d5dcec97ed522123f0cf4f821dfb300774460a3dc3184c595a29d02bf4a10",
+    "notice_path": "licenses/Omasnap-MIT.txt"
+  },
+  "bundled_notices": [
+    {
+      "name": "Neucha",
+      "spdx": "OFL-1.1",
+      "copyright": "Copyright (c) 2008-2010 by Jovanny Lemonad",
+      "upstream_path": "assets/OFL.txt",
+      "notice_path": "licenses/Omasnap-Neucha-OFL.txt",
+      "sha256": "656a20870fbcb8f559f1c6308c1df90ac93d7cd0279aab49b43a43b5e58534e6"
+    },
+    {
+      "name": "JetBrains Mono",
+      "spdx": "OFL-1.1",
+      "copyright": "Copyright 2020 The JetBrains Mono Project Authors",
+      "upstream_path": "assets/JetBrainsMono-OFL.txt",
+      "notice_path": "licenses/Omasnap-JetBrainsMono-OFL.txt",
+      "sha256": "60d55f23c6ce05a81099a762cb67ca2c9b6ea251c7912720998b4c89ebfd4faa"
+    },
+    {
+      "name": "Inter Display",
+      "spdx": "OFL-1.1",
+      "copyright": "Copyright (c) 2016 The Inter Project Authors",
+      "upstream_path": "assets/Inter-OFL.txt",
+      "notice_path": "licenses/Omasnap-Inter-OFL.txt",
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    },
+    {
+      "name": "Lucide",
+      "spdx": "ISC",
+      "copyright": "Copyright (c) 2026 Lucide Icons and Contributors",
+      "upstream_path": "assets/Lucide-ISC.txt",
+      "notice_path": "licenses/Omasnap-Lucide-ISC.txt",
+      "sha256": "951d2350073e726128abae3f65a45dc0c28089e20a639fc8bfa76bfbbef76d8a"
+    }
+  ],
+  "fonts_note": {
+    "upstream_path": "assets/FONTS.md",
+    "notice_path": "licenses/Omasnap-FONTS.md",
+    "sha256": "32c57548562d6325dd0e878353381a1c23ec10be2729a5b4847ad78d621954e4"
+  },
+  "omarchy_wrapper": {
+    "repository": "https://github.com/omacom/omarchy",
+    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+    "path": "bin/omarchy-capture-screenshot"
+  },
+  "limitations": [
+    "The Omasnap source tree, font files, and icons are not imported. Only the license and provenance notices are kept.",
+    "This pin does not approve a package install, a build, a key binding, or a capture.",
+    "Font file hashes recorded inside the provenance note were not re-downloaded or re-hashed here."
+  ]
+}

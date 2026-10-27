@@ -54,6 +54,19 @@ ignored `work/`. Historical Git objects are not changed by editing this file.
 - The launch notice now waits one second instead of two. The fifteen-second
   limit is unchanged. The approved bar restart serves this delay. Hyprland
   was not reloaded.
+- Plan 031 records an Omasnap screenshot path matching pinned Omarchy:
+  Print and Super+Shift+S launch a reviewed local Omasnap, not grim or
+  Satty. Omasnap 1.24.0 (`a432f40`) is pinned with its MIT, font, and icon
+  notices. `tools/capture_screenshot.py` maps the Omarchy wrapper.
+- The approved build is installed for this user. Print and Super+Shift+S
+  are bound, the Omasnap layer is kept out of screen shares, and Hyprland
+  was reloaded. Layer Shell Qt came from the Ubuntu packages unpacked under
+  the user prefix, not from apt. Nothing was captured.
+- Both screenshot keys reached the wrapper and then exited. The wrapper
+  rejected the process environment, and Hyprland does not export
+  `WAYLAND_DISPLAY`, so Qt fell back to X11. The wrapper now accepts that
+  environment and passes the single Wayland socket through. No new capture
+  and no Hyprland reload.
 - A real login and workspace persistence were user-confirmed. Disabled
   hyprpaper's independent splash and obtained visual confirmation; the
   compositor's splash flag alone does not control the wallpaper daemon.
