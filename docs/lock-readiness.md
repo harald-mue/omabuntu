@@ -119,9 +119,33 @@ in Hyprlock; nothing was captured in a log beyond the PAM prompt text.
 
 Not yet accepted: the wrong-password path (no failed attempt is recorded), long
 idle before locking, output hotplug while locked, DPMS/suspend during lock,
-fingerprint, a lock shortcut, automatic locking, and corporate-policy sign-off for
-the delegated `login` PAM stack. These stay excluded or pending; they are not
+fingerprint, automatic locking, and corporate-policy sign-off for the
+delegated `login` PAM stack. These stay excluded or pending; they are not
 implied by the successful round trip.
+
+## Manual shortcut
+
+On 2026-10-27 the user approved one chord. `SUPER+CTRL+L` in the live
+Hyprland configuration runs `~/.local/bin/omabuntu lock --apply` and nothing
+else. The previous file was copied under ignored `work/lock-shortcut/` before
+the edit. After reload the compositor reports the chord once, with description
+`Lock system`, and reports no config error. The keybindings menu lists that
+row and still refuses to launch it, the same way it treats logout.
+
+The chord was not pressed as part of the first bind. The earlier supervised
+lock remains the acceptance record for actually locking. Idle, lid, screen-off
+and suspend are still not bound.
+
+On the later same-day use, the chord still fired on key press. The first lock
+unlocked. Its log recorded two stray key releases, which is the held chord
+reaching Hyprlock. The second lock reached the password prompt and then
+recorded no authentication and no exit. It stayed the session lock until the
+compositor process was replaced about an hour later and the machine was
+power-cycled. No kernel GPU hang is in that boot's log. The bind now uses
+Hyprland 0.56.2 `release = true`, so the helper starts only after Super, Ctrl
+and L have been released. That reload is not a new lock test. If a lock ever
+stops taking input, switch to the text console with Ctrl+Alt+F3 instead of
+powering the machine off. Do not start a second Hyprlock while one is running.
 
 ## Remaining gates after the supervised test
 
@@ -131,14 +155,13 @@ implied by the successful round trip.
 2. Agree on a corporate-policy check for the `login` PAM stack if the account
    uses a company-managed authentication agent; a local password success is not
    that approval.
-3. Add a manual shortcut or bar action only after acceptance, with a backed-up
-   configuration change and no idle/suspend coupling.
+3. Done for the manual chord above. A bar action is still a separate change.
 4. Automatic idle, screen-off, lid and suspend integration stay separate
    reviewed changes with authentication and recovery re-verified.
 
-Apart from the explicit, user-started `lock --apply` action above, the project
-provides no lock shortcut, idle timer, session-lock object, lock service,
-autostart or suspend command. Use
+The project provides no idle timer, session-lock object, lock service,
+autostart or suspend command. The only lock launcher is the explicit
+`lock --apply` action, now also bound to `SUPER+CTRL+L`. Use
 `python3 tools/lock_readiness.py` for bounded read-only collection; its report
 always marks authentication/recovery as unverified and activation as disallowed.
 Successful prerequisite collection is never a security verdict.

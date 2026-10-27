@@ -175,9 +175,15 @@ Item {
 
   // Restore windows that mapped before the shell/state file was ready, too.
   // Claims are serialized: an open-window burst must not drop all but one.
+  // A window moved onto a floating workspace uses the same claim. A window
+  // this mode floated, moved onto a tiling workspace, is tiled and untagged.
+  // movewindowv2 is posted before the move returns, so that change waits one
+  // millisecond, the same pause as Omarchy's move handler.
   property int claimCascade: 0
   property var claimQueue: []
+  property var moveQueue: []
   readonly property string claimEval: "local id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nlocal target = \"address:%ADDRESS%\"\nlocal window = hl.get_window(target)\nif not window then\n  return\nend\nif window.workspace and tostring(window.workspace.id) ~= id then\n  return\nend\nif window.floating or (window.fullscreen or 0) ~= 0 or window.pinned then\n  return\nend\nhl.dispatch(hl.dsp.window.tag({ tag = \"+\" .. tag, window = target }))\nhl.dispatch(hl.dsp.window.float({ action = \"on\", window = target }))\nlocal cascade = %CASCADE%\nlocal monitor = window.monitor\nif not monitor or not monitor.width then\n  return\nend\nlocal width = math.floor(monitor.width / monitor.scale)\nlocal height = math.floor(monitor.height / monitor.scale)\nif (monitor.transform or 0) % 2 == 1 then\n  width, height = height, width\nend\nlocal reserved = monitor.reserved or {}\nwidth = width - (reserved.left or 0) - (reserved.right or 0)\nheight = height - (reserved.top or 0) - (reserved.bottom or 0)\nhl.dispatch(hl.dsp.window.resize({\n  x = math.min(1100, math.floor(width * 0.64)),\n  y = math.min(760, math.floor(height * 0.68)),\n  relative = false,\n  window = target,\n}))\nhl.dispatch(hl.dsp.window.center({ window = target }))\nhl.dispatch(hl.dsp.window.move({\n  x = cascade * 24 - 48,\n  y = cascade * 24 - 48,\n  relative = true,\n  window = target,\n}))\nif hl.plugin and hl.plugin.hyprbars then\n  hl.config({ plugin = { hyprbars = { enabled = true } } })\n  hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n  hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\nend"
+  readonly property string releaseEval: "local id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nlocal target = \"address:%ADDRESS%\"\nlocal window = hl.get_window(target)\nif not window then\n  return\nend\nif window.workspace and tostring(window.workspace.id) ~= id then\n  return\nend\nlocal function listed(name)\n  return name == tag or name == tag .. \"*\"\nend\nlocal function ours(candidate)\n  for _, other in ipairs(hl.get_windows({ tag = tag })) do\n    if other.address == candidate.address then\n      return true\n    end\n  end\n  local tags = candidate.tags\n  if type(tags) == \"string\" then\n    return listed(tags)\n  end\n  if type(tags) == \"table\" then\n    for _, name in ipairs(tags) do\n      if listed(name) then\n        return true\n      end\n    end\n  end\n  return false\nend\nif not ours(window) or window.pinned then\n  return\nend\nhl.dispatch(hl.dsp.window.tag({ tag = \"-\" .. tag, window = target }))\nhl.dispatch(hl.dsp.window.float({ action = \"off\", window = target }))\nif hl.plugin and hl.plugin.hyprbars then\n  hl.config({ plugin = { hyprbars = { enabled = true } } })\n  hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n  hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\nend"
 
   function restoreFloating() {
     if (!root.liveModes) return
@@ -205,18 +211,48 @@ Item {
     root.drainClaims()
   }
 
+  function releaseWindow(address, workspaceId) {
+    if (!root.liveModes || !(workspaceId >= 1) || TrialDesktopState.isFloating(workspaceId)) return
+    if (!/^0x[0-9a-fA-F]+$/.test(address)) return
+    var queue = root.claimQueue.slice()
+    for (var i = 0; i < queue.length; i++) {
+      if (queue[i].release && queue[i].address === address && queue[i].id === workspaceId) return
+    }
+    queue.push({ address: address, id: workspaceId, release: true })
+    root.claimQueue = queue
+    root.drainClaims()
+  }
+
+  function noteMove(address, workspaceId) {
+    if (!root.liveModes || !(workspaceId >= 1)) return
+    if (!/^0x[0-9a-fA-F]+$/.test(address)) return
+    var pending = root.moveQueue.slice()
+    pending.push({ address: address, id: workspaceId })
+    root.moveQueue = pending
+    moveTimer.restart()
+  }
+
   function drainClaims() {
     if (claimProc.running || !root.liveModes) return
     var queue = root.claimQueue.slice()
     while (queue.length > 0) {
       var claim = queue.shift()
       root.claimQueue = queue
-      if (!TrialDesktopState.isFloating(claim.id)) continue
-      var script = root.claimEval
-        .replace("%ADDRESS%", claim.address)
-        .replace("%ID%", String(claim.id))
-        .replace("%CASCADE%", String(root.claimCascade))
-      root.claimCascade = (root.claimCascade + 1) % 5
+      var floating = TrialDesktopState.isFloating(claim.id)
+      var script = ""
+      if (claim.release) {
+        if (floating) continue
+        script = root.releaseEval
+          .replace("%ADDRESS%", claim.address)
+          .replace("%ID%", String(claim.id))
+      } else {
+        if (!floating) continue
+        script = root.claimEval
+          .replace("%ADDRESS%", claim.address)
+          .replace("%ID%", String(claim.id))
+          .replace("%CASCADE%", String(root.claimCascade))
+        root.claimCascade = (root.claimCascade + 1) % 5
+      }
       claimProc.exec(["hyprctl", "eval", script])
       return
     }
@@ -225,12 +261,40 @@ Item {
   Connections {
     target: Hyprland
     function onRawEvent(event) {
-      if (!event || String(event.name) !== "openwindow") return
-      var data = String(event.data || "").split(",")
-      if (data.length < 2) return
-      var id = parseInt(data[1], 10)
-      if (String(id) !== data[1]) return
-      root.claimWindow("0x" + data[0], id)
+      if (!event) return
+      var name = String(event.name)
+      var raw = String(event.data || "")
+      if (name === "openwindow") {
+        var data = raw.split(",")
+        if (data.length < 2) return
+        var opened = parseInt(data[1], 10)
+        if (String(opened) !== data[1]) return
+        root.claimWindow("0x" + data[0], opened)
+        return
+      }
+      if (name !== "movewindowv2") return
+      var first = raw.indexOf(",")
+      var second = first < 0 ? -1 : raw.indexOf(",", first + 1)
+      if (first < 1 || second < 0) return
+      var idText = raw.slice(first + 1, second)
+      var moved = parseInt(idText, 10)
+      if (String(moved) !== idText) return
+      root.noteMove("0x" + raw.slice(0, first), moved)
+    }
+  }
+
+  Timer {
+    id: moveTimer
+    interval: 1
+    repeat: false
+    onTriggered: function() {
+      var pending = root.moveQueue
+      root.moveQueue = []
+      for (var i = 0; i < pending.length; i++) {
+        var item = pending[i]
+        if (TrialDesktopState.isFloating(item.id)) root.claimWindow(item.address, item.id)
+        else root.releaseWindow(item.address, item.id)
+      }
     }
   }
 

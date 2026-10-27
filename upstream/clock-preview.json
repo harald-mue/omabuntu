@@ -450,7 +450,7 @@
       "license": "MIT",
       "source_modifications": [],
       "stage_transform": "workspace-switcher-v1",
-      "staged_sha256": "d5d543c815335d2415cf10c2e0cc8c48696a92525343e171db3b31a92a489b3e"
+      "staged_sha256": "02dba6612ff520e44f5a3c744d98bb454646b1e4d557d1ebe792cfa2979cbfc9"
     },
     "KeyboardLayout.qml": {
       "path": "shell/plugins/bar/widgets/KeyboardLayout.qml",
@@ -648,7 +648,7 @@
     },
     "KeybindingsMenu.qml": {
       "path": "config/shell/preview/KeybindingsMenu.qml",
-      "sha256": "3adef6d9dbc65dcfba581bc48095aedc00410b5296e0c7e372dcc79c7d619b21"
+      "sha256": "7abc90101be9fbcdb4be87bcdc318b93d325a0c67223e7774431c4287aeacba5"
     },
     "PortTrayHost.qml": {
       "path": "config/shell/preview/PortTrayHost.qml",

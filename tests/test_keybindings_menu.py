@@ -48,6 +48,8 @@ class KeybindingsMenuTests(unittest.TestCase):
         for row in rows:
             self.assertEqual(len(row["label"].split("\u2192", 1)[0]), 36)
             self.assertLessEqual(len(row["label"]), 78)
+            self.assertEqual(row["label"].split("\u2192", 1)[0].rstrip(), row["chord"])
+            self.assertEqual(row["label"].split("\u2192", 1)[1].strip(), row["action"])
 
     def test_rows_keep_omarchy_column_order_and_alternatives(self):
         text = "".join((
@@ -190,12 +192,14 @@ hl.bind("SUPER + 1", hl.dsp.focus({ workspace = 1 }))
         self.assertEqual(unknown.calls, [["hyprctl", "binds"]])
         for innocent in ("ghostty", "uwsm-app -- ghostty", "myreboot", "clock", "block", "killactive"):
             self.assertFalse(menu.session_action(innocent))
-        for blocked in ("hyprlock", "systemctl suspend", "loginctl lock-session", "swayidle", "exit", "hibernate"):
+        for blocked in ("hyprlock", "systemctl suspend", "loginctl lock-session", "swayidle", "exit", "hibernate",
+                        "omabuntu lock --apply", "/home/x/.local/bin/omabuntu lock --apply"):
             self.assertTrue(menu.session_action(blocked), blocked)
 
     def test_configured_session_actions_stay_listed_and_do_not_run(self):
         samples = (
             ("exec", "hyprlock"),
+            ("exec", "/home/x/.local/bin/omabuntu lock --apply"),
             ("exec", "systemctl suspend"),
             ("exec", "loginctl lock-session"),
             ("exec", "swayidle -w"),

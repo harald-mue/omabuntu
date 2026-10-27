@@ -247,8 +247,8 @@ def format_binds(text, lua_rows=None, symbols=None):
             continue
         leads[identity] = row
         merged.append(row)
-    rows = [{"label": f"{row['chord']:<{COLUMN}} \u2192 {row['action']}", "dispatcher": row["dispatcher"],
-             "arg": row["arg"]} for row in merged]
+    rows = [{"label": f"{row['chord']:<{COLUMN}} \u2192 {row['action']}", "chord": row["chord"],
+             "action": row["action"], "dispatcher": row["dispatcher"], "arg": row["arg"]} for row in merged]
     rows.sort(key=lambda row: (_priority(row["label"]), row["label"], row["dispatcher"], row["arg"]))
     return rows
 

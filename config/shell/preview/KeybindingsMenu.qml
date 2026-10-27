@@ -24,13 +24,14 @@ PanelWindow {
   property string pendingKind: ""
   property var pendingExtra: []
   property var entries: []
+  property var visibleEntries: []
   readonly property int cardWidth: Math.min(800, width - 80)
   readonly property int cardHeight: Math.min(500, height - 80)
   readonly property int borderWidth: 2
   readonly property int contentMargin: 18
   readonly property int headerHeight: 36
   readonly property int headerSpacing: 10
-  readonly property int rowHeight: 50
+  readonly property int rowHeight: 32
   readonly property int cornerRadius: 8
   readonly property color menuText: "#cacccc"
   readonly property color menuBackground: "#101315"
@@ -66,24 +67,31 @@ PanelWindow {
 
   function rebuild() {
     var query = root.filterText.toLowerCase()
-    visibleRows.clear()
+    var next = []
     for (var i = 0; i < root.entries.length; ++i) {
       var row = root.entries[i]
       if (!row || query && String(row.label || "").toLowerCase().indexOf(query) < 0) continue
-      visibleRows.append({ label: String(row.label || ""), dispatcher: String(row.dispatcher || ""),
-                           arg: String(row.arg || "") })
+      var label = String(row.label || "")
+      var chord = String(row.chord || "")
+      var action = String(row.action || "")
+      var cut = label.indexOf(" \u2192 ")
+      if (!chord && cut >= 0) chord = label.slice(0, cut).trim()
+      if (!action && cut >= 0) action = label.slice(cut + 3).trim()
+      next.push({ label: label, chord: chord, action: action,
+                  dispatcher: String(row.dispatcher || ""), arg: String(row.arg || "") })
     }
-    root.matchCount = visibleRows.count
+    root.visibleEntries = next
+    root.matchCount = next.length
     root.selected = 0
-    root.selectedLabel = visibleRows.count > 0 ? visibleRows.get(0).label : ""
-    Qt.callLater(function() { if (visibleRows.count > 0) resultList.positionViewAtBeginning() })
+    root.selectedLabel = next.length > 0 ? next[0].label : ""
+    Qt.callLater(function() { if (root.visibleEntries.length > 0) resultList.positionViewAtBeginning() })
   }
 
   function moveSelection(delta) {
-    if (visibleRows.count === 0) return
-    var next = Math.max(0, Math.min(visibleRows.count - 1, root.selected + delta))
+    if (root.visibleEntries.length === 0) return
+    var next = Math.max(0, Math.min(root.visibleEntries.length - 1, root.selected + delta))
     root.selected = next
-    root.selectedLabel = visibleRows.get(next).label
+    root.selectedLabel = root.visibleEntries[next].label
     resultList.positionViewAtIndex(next, ListView.Contain)
   }
 
@@ -113,8 +121,8 @@ PanelWindow {
   }
 
   function activate() {
-    if (visibleRows.count === 0) return
-    var row = visibleRows.get(root.selected)
+    if (root.visibleEntries.length === 0) return
+    var row = root.visibleEntries[root.selected]
     if (!row || !row.dispatcher) { root.note = "This binding has no action."; return }
     root.activatedDispatcher = row.dispatcher
     root.activatedArg = row.arg
@@ -173,9 +181,8 @@ PanelWindow {
     root.screen = root.focusedScreen()
     root.filterText = ""
     root.note = ""
-    root.entries = []
-    root.rebuild()
     root.shown = true
+    root.rebuild()
     root.queryHelper("list", [])
     Qt.callLater(function() { if (root.shown) keyCatcher.forceActiveFocus() })
   }
@@ -188,8 +195,6 @@ PanelWindow {
   }
 
   onFilterTextChanged: if (root.shown) root.rebuild()
-
-  ListModel { id: visibleRows }
 
   GlobalShortcut {
     appid: "omabuntu"
@@ -261,28 +266,45 @@ PanelWindow {
         id: resultList
         width: parent.width
         height: parent.height - root.headerHeight - parent.spacing
-        model: visibleRows
+        model: root.visibleEntries
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         delegate: Rectangle {
           required property int index
           required property string label
+          required property string chord
+          required property string action
           required property string dispatcher
           required property string arg
           width: resultList.width
           height: root.rowHeight
           radius: root.cornerRadius
           color: index === root.selected ? Qt.rgba(0.792, 0.800, 0.800, 0.08) : "transparent"
-          Text {
-            anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
-            verticalAlignment: Text.AlignVCenter
-            text: label
-            color: root.menuText
-            font.family: root.rowFont
-            font.pixelSize: 18
-            elide: Text.ElideRight
+          Row {
+            x: 8
+            width: parent.width - 16
+            height: parent.height
+            spacing: 16
+            Text {
+              width: Math.min(340, (parent.width - parent.spacing) * 0.46)
+              height: parent.height
+              verticalAlignment: Text.AlignVCenter
+              text: chord
+              color: root.menuText
+              font.family: "JetBrainsMono Nerd Font"
+              font.pixelSize: 15
+              elide: Text.ElideRight
+            }
+            Text {
+              width: parent.width - Math.min(340, (parent.width - parent.spacing) * 0.46) - parent.spacing
+              height: parent.height
+              verticalAlignment: Text.AlignVCenter
+              text: action
+              color: root.menuText
+              font.family: root.rowFont
+              font.pixelSize: 15
+              elide: Text.ElideRight
+            }
           }
           MouseArea {
             anchors.fill: parent

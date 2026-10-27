@@ -84,6 +84,30 @@ class WorkspaceModeTests(unittest.TestCase):
         self.assertIn('queue.push({ address: address, id: workspaceId })', mirror)
         self.assertIn('onExited: root.drainClaims()', mirror)
 
+    def test_release_eval_tiles_only_a_window_the_mode_floated(self):
+        script = workspace_modes.release_program("0x5cf298f0d4c0", 4)
+        self.assertIn('local target = "address:0x5cf298f0d4c0"', script)
+        self.assertIn('local id = "4"', script)
+        self.assertIn('tostring(window.workspace.id) ~= id', script)
+        self.assertIn('hl.dsp.window.tag({ tag = "-" .. tag, window = target })', script)
+        self.assertIn('hl.dsp.window.float({ action = "off", window = target })', script)
+        self.assertLess(script.index('tag = "-"'), script.index('action = "off"'))
+        self.assertIn('window.pinned', script)
+        self.assertIn('omabuntu-hyprbars-show-floated', script)
+        for forbidden in ("omarchy-", "hyprctl", "reload", "titlebars", "notify", "exec", "os.execute"):
+            self.assertNotIn(forbidden, script)
+        with self.assertRaises(ValueError):
+            workspace_modes.release_program("5cf298f0d4c0", 4)
+        with self.assertRaises(ValueError):
+            workspace_modes.release_program("0x5cf298f0d4c0", 0)
+        mirror = (ROOT / "config/shell/preview/WorkspaceSwitcher.qml").read_text()
+        self.assertIn('"movewindowv2"', mirror)
+        self.assertIn("function releaseWindow(address, workspaceId)", mirror)
+        self.assertIn("function noteMove(address, workspaceId)", mirror)
+        self.assertIn("interval: 1", mirror)
+        self.assertIn("queue.push({ address: address, id: workspaceId, release: true })", mirror)
+        self.assertEqual(mirror.count('claimProc.exec(["hyprctl", "eval", script])'), 1)
+
     def test_switcher_keeps_the_original_glyph_function(self):
         source = workspace_modes.WIDGET.read_bytes()
         derived = workspace_modes.derive_workspaces(source).decode()

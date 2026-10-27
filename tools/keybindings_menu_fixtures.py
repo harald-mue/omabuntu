@@ -77,15 +77,14 @@ ShellRoot {
   id: test
   property var menu: null
   function require(value, message) { if (!value) throw new Error(message); }
-  function findArrow(item) {
-    if (!item) return "";
-    if (item.text && String(item.text).indexOf("\u2192") >= 0) return String(item.text);
+  function findText(item, expected) {
+    if (!item || !expected) return false;
+    if (item.text && String(item.text) === expected) return true;
     var children = item.children || [];
     for (var i = 0; i < children.length; ++i) {
-      var found = findArrow(children[i]);
-      if (found) return found;
+      if (findText(children[i], expected)) return true;
     }
-    return "";
+    return false;
   }
   function fail(error) { console.error("OMABUNTU_KEYS_ASSERT", String(error)); Qt.exit(42); }
   Timer { interval: 50; running: true; onTriggered: {
@@ -106,8 +105,10 @@ ShellRoot {
     try {
       require(menu.shown && menu.matchCount === 3, "open lists the bindings");
       require(menu.selectedLabel.split("\u2192")[0].length === 36, "chord column");
-      var rendered = findArrow(menu.contentItem);
-      require(rendered.split("\u2192")[0].length === 36, "rendered chord column");
+      var row = menu.visibleEntries[0];
+      require(row.chord === "SUPER + W" && row.action === "Close window", "two columns");
+      require(findText(menu.contentItem, row.chord), "rendered chord column");
+      require(findText(menu.contentItem, row.action), "rendered action column");
       menu.handleKey({ key: Qt.Key_Down, text: "" });
       require(menu.selected === 1 && menu.selectedLabel.indexOf("Launch terminal") >= 0, "down moves");
       var letters = "close";

@@ -51,8 +51,12 @@ that still have no label are hidden, as is the Copilot duplicate `code:201`.
 Only Close window, Calculator, Toggle scratchpad, and Move window to scratchpad
 share a row, and only when both chords run the same command and the combined
 chord is at most 35 characters. The first chord leads. Other repeated labels
-stay separate. Each row is a 35-character chord field, ` → `, then the
-description, and is at most 78 characters. Order follows Omarchy's description
+stay separate. The helper label keeps a 35-character chord field, ` → `,
+then the description, at most 78 characters. The card draws those as two
+columns: the chord in JetBrainsMono Nerd Font, the description in the selected
+UI font. Adwaita Sans is proportional, so one padded line does not line up.
+The list is replaced in one step, and the previous rows stay visible until the
+new list arrives. Order follows Omarchy's description
 priority, not the alphabet, and that order is applied before any translation.
 
 `code:` names use `xkbcli compile-keymap` when that tool is installed. The
@@ -75,7 +79,7 @@ in the list it just read. It also refuses session-ending commands even when
 they are configured: `uwsm stop`, `systemctl`, `loginctl`, `shutdown`,
 `reboot`, `poweroff`, `halt`, `hyprlock`, `swaylock`, `swayidle`, and the
 words lock, suspend, idle, hibernate, exit, and logout. Those rows stay in
-the list. The card says "Session actions stay on their own keys."
+the list, including the approved `SUPER+CTRL+L` lock chord. The card says "Session actions stay on their own keys."
 
 An empty `exec`, `lua`, or `sendshortcut` argument is not launched. A command
 that is not in the list just read is not launched.

@@ -7,7 +7,8 @@ can reload Hyprland to load the titlebar plugin. None of that is staged.
 Dwindle and scrolling use Hyprland's own workspace_rule layout field. Floating
 is not a Hyprland layout: only tiled, unpinned, non-fullscreen windows are
 tagged, floated, and placed at Omarchy's centered size. Only those tags are
-tiled again on the way out. The title-bar plugin is not loaded by this eval.
+tiled again on the way out, including when that window is moved onto a tiling
+workspace. The title-bar plugin is not loaded by this eval.
 The applied mode is persisted to the state directory (plan 020) so the next
 config load re-registers tiled rules and the shell restores floating modes.
 """
@@ -186,6 +187,55 @@ if hl.plugin and hl.plugin.hyprbars then
 end
 """
 
+# Omarchy's tile_for_mode: a window moved onto a tiling workspace gives up the
+# floating this mode gave it. A window floated on its own has no tag and stays
+# floating. A pinned window is left alone, because tiling it would unpin it.
+# The move event is delivered before Hyprland finishes the move, so the shell
+# waits one millisecond before running this, matching that handler's oneshot.
+RELEASE = """local id = "%ID%"
+local tag = "omabuntu-mode-floated"
+local target = "address:%ADDRESS%"
+local window = hl.get_window(target)
+if not window then
+  return
+end
+if window.workspace and tostring(window.workspace.id) ~= id then
+  return
+end
+local function listed(name)
+  return name == tag or name == tag .. "*"
+end
+local function ours(candidate)
+  for _, other in ipairs(hl.get_windows({ tag = tag })) do
+    if other.address == candidate.address then
+      return true
+    end
+  end
+  local tags = candidate.tags
+  if type(tags) == "string" then
+    return listed(tags)
+  end
+  if type(tags) == "table" then
+    for _, name in ipairs(tags) do
+      if listed(name) then
+        return true
+      end
+    end
+  end
+  return false
+end
+if not ours(window) or window.pinned then
+  return
+end
+hl.dispatch(hl.dsp.window.tag({ tag = "-" .. tag, window = target }))
+hl.dispatch(hl.dsp.window.float({ action = "off", window = target }))
+if hl.plugin and hl.plugin.hyprbars then
+  hl.config({ plugin = { hyprbars = { enabled = true } } })
+  hl.window_rule({ name = "omabuntu-hyprbars-hide", enabled = true })
+  hl.window_rule({ name = "omabuntu-hyprbars-show-floated", enabled = true })
+end
+"""
+
 
 def between(text, start, end):
     if text.count(start) != 1 or text.count(end) != 1:
@@ -253,6 +303,22 @@ def claim_program(address, workspace_id, cascade=0):
     for forbidden in ("omarchy-", "hyprctl", "reload", "titlebars", "notify", "exec", "os.execute"):
         if forbidden in script:
             raise ValueError("Workspace claim contains an excluded Omarchy route")
+    return script
+
+
+def release_program(address, workspace_id):
+    """Eval script that tiles one window this mode floated, after it leaves."""
+    if type(workspace_id) is not int or isinstance(workspace_id, bool) or not 1 <= workspace_id <= 2147483647:
+        raise ValueError("Workspace id is not a positive Hyprland id")
+    if not isinstance(address, str) or not address.startswith("0x") or len(address) <= 2:
+        raise ValueError("Window address is not a Hyprland address")
+    for placeholder in ("%ID%", "%ADDRESS%"):
+        if placeholder not in RELEASE:
+            raise ValueError("Workspace release placeholders differ")
+    script = RELEASE.replace("%ID%", str(workspace_id)).replace("%ADDRESS%", address)
+    for forbidden in ("omarchy-", "hyprctl", "reload", "titlebars", "notify", "exec", "os.execute"):
+        if forbidden in script:
+            raise ValueError("Workspace release contains an excluded Omarchy route")
     return script
 
 
@@ -447,9 +513,15 @@ Item {{
 
   // Restore windows that mapped before the shell/state file was ready, too.
   // Claims are serialized: an open-window burst must not drop all but one.
+  // A window moved onto a floating workspace uses the same claim. A window
+  // this mode floated, moved onto a tiling workspace, is tiled and untagged.
+  // movewindowv2 is posted before the move returns, so that change waits one
+  // millisecond, the same pause as Omarchy's move handler.
   property int claimCascade: 0
   property var claimQueue: []
+  property var moveQueue: []
   readonly property string claimEval: {json.dumps(CLAIM.rstrip())}
+  readonly property string releaseEval: {json.dumps(RELEASE.rstrip())}
 
   function restoreFloating() {{
     if (!root.liveModes) return
@@ -477,18 +549,48 @@ Item {{
     root.drainClaims()
   }}
 
+  function releaseWindow(address, workspaceId) {{
+    if (!root.liveModes || !(workspaceId >= 1) || TrialDesktopState.isFloating(workspaceId)) return
+    if (!/^0x[0-9a-fA-F]+$/.test(address)) return
+    var queue = root.claimQueue.slice()
+    for (var i = 0; i < queue.length; i++) {{
+      if (queue[i].release && queue[i].address === address && queue[i].id === workspaceId) return
+    }}
+    queue.push({{ address: address, id: workspaceId, release: true }})
+    root.claimQueue = queue
+    root.drainClaims()
+  }}
+
+  function noteMove(address, workspaceId) {{
+    if (!root.liveModes || !(workspaceId >= 1)) return
+    if (!/^0x[0-9a-fA-F]+$/.test(address)) return
+    var pending = root.moveQueue.slice()
+    pending.push({{ address: address, id: workspaceId }})
+    root.moveQueue = pending
+    moveTimer.restart()
+  }}
+
   function drainClaims() {{
     if (claimProc.running || !root.liveModes) return
     var queue = root.claimQueue.slice()
     while (queue.length > 0) {{
       var claim = queue.shift()
       root.claimQueue = queue
-      if (!TrialDesktopState.isFloating(claim.id)) continue
-      var script = root.claimEval
-        .replace("%ADDRESS%", claim.address)
-        .replace("%ID%", String(claim.id))
-        .replace("%CASCADE%", String(root.claimCascade))
-      root.claimCascade = (root.claimCascade + 1) % 5
+      var floating = TrialDesktopState.isFloating(claim.id)
+      var script = ""
+      if (claim.release) {{
+        if (floating) continue
+        script = root.releaseEval
+          .replace("%ADDRESS%", claim.address)
+          .replace("%ID%", String(claim.id))
+      }} else {{
+        if (!floating) continue
+        script = root.claimEval
+          .replace("%ADDRESS%", claim.address)
+          .replace("%ID%", String(claim.id))
+          .replace("%CASCADE%", String(root.claimCascade))
+        root.claimCascade = (root.claimCascade + 1) % 5
+      }}
       claimProc.exec(["hyprctl", "eval", script])
       return
     }}
@@ -497,12 +599,40 @@ Item {{
   Connections {{
     target: Hyprland
     function onRawEvent(event) {{
-      if (!event || String(event.name) !== "openwindow") return
-      var data = String(event.data || "").split(",")
-      if (data.length < 2) return
-      var id = parseInt(data[1], 10)
-      if (String(id) !== data[1]) return
-      root.claimWindow("0x" + data[0], id)
+      if (!event) return
+      var name = String(event.name)
+      var raw = String(event.data || "")
+      if (name === "openwindow") {{
+        var data = raw.split(",")
+        if (data.length < 2) return
+        var opened = parseInt(data[1], 10)
+        if (String(opened) !== data[1]) return
+        root.claimWindow("0x" + data[0], opened)
+        return
+      }}
+      if (name !== "movewindowv2") return
+      var first = raw.indexOf(",")
+      var second = first < 0 ? -1 : raw.indexOf(",", first + 1)
+      if (first < 1 || second < 0) return
+      var idText = raw.slice(first + 1, second)
+      var moved = parseInt(idText, 10)
+      if (String(moved) !== idText) return
+      root.noteMove("0x" + raw.slice(0, first), moved)
+    }}
+  }}
+
+  Timer {{
+    id: moveTimer
+    interval: 1
+    repeat: false
+    onTriggered: function() {{
+      var pending = root.moveQueue
+      root.moveQueue = []
+      for (var i = 0; i < pending.length; i++) {{
+        var item = pending[i]
+        if (TrialDesktopState.isFloating(item.id)) root.claimWindow(item.address, item.id)
+        else root.releaseWindow(item.address, item.id)
+      }}
     }}
   }}
 

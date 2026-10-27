@@ -35,6 +35,18 @@ ignored `work/`. Historical Git objects are not changed by editing this file.
   helper bytecode from invalidating installed releases.
 - Added atomic per-workspace mode persistence, executable Lua regressions,
   delayed-state restore and serialized floating-window claims.
+- Added the approved manual screen-lock chord `SUPER+CTRL+L`. It runs the
+  installed `lock --apply` helper once, on key release, so the held chord is
+  not delivered to Hyprlock. Super+K lists that row and does not launch it.
+  Idle and suspend stay unbound. The two-column keybindings card is included
+  in the approved shell update below.
+- A window moved between a floating and a tiling workspace is arranged the way
+  Omarchy's move handler does: the mode's own floated window is tiled again on
+  the way out, and a tiled window dragged onto a floating workspace is claimed.
+  A window floated on its own stays floating. Fullscreen, click-to-focus, and
+  the second floating-workspace tag stay excluded. The approved bar restart now
+  serves this shell, including the two-column Super+K card. Hyprland was not
+  reloaded.
 - A real login and workspace persistence were user-confirmed. Disabled
   hyprpaper's independent splash and obtained visual confirmation; the
   compositor's splash flag alone does not control the wallpaper daemon.

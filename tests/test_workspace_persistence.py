@@ -94,3 +94,57 @@ hl.workspace_rule = function(rule) restored = rule.workspace .. ":" .. rule.layo
     def test_claim_program_compiles_and_ignores_a_vanished_window(self):
         self.execute(workspace_modes.claim_program('0x123', 1),
                      'hl.get_window = function(_) return nil end')
+
+    def test_release_tiles_only_windows_the_mode_floated(self):
+        log = self.state.parent / 'release-calls.txt'
+
+        def run(body, address='0xabc'):
+            extra = '''
+calls = assert(io.open(%s, "w"))
+window = {
+  address = "0xabc",
+  workspace = { id = 4 },
+  pinned = false,
+  tags = { "omabuntu-mode-floated" },
+}
+hl = {
+  get_window = function(selector)
+    if selector == "address:0xabc" then return window end
+    return nil
+  end,
+  get_windows = function(filter)
+    if filter and filter.tag == "omabuntu-mode-floated" and window.listed then
+      return { window }
+    end
+    return {}
+  end,
+  dispatch = function(_) end,
+  dsp = { window = {
+    float = function(spec)
+      calls:write("float " .. tostring(spec.action) .. "\\n")
+      calls:flush()
+      return spec
+    end,
+    tag = function(spec)
+      calls:write("tag " .. tostring(spec.tag) .. "\\n")
+      calls:flush()
+      return spec
+    end,
+  } },
+}
+window.listed = true
+%s
+''' % (json.dumps(str(log)), body)
+            self.execute(workspace_modes.release_program(address, 4) + '\ncalls:close()\n', extra)
+            text = log.read_text() if log.exists() else ''
+            log.unlink(missing_ok=True)
+            return text
+
+        tiled = 'tag -omabuntu-mode-floated\nfloat off\n'
+        self.assertEqual(run(''), tiled)
+        self.assertEqual(run('window.listed = false\nwindow.tags = { "omabuntu-mode-floated*" }'), tiled)
+        self.assertEqual(run('window.listed = false\nwindow.tags = "omabuntu-mode-floated"'), tiled)
+        self.assertEqual(run('window.pinned = true'), '')
+        self.assertEqual(run('window.workspace.id = 2'), '')
+        self.assertEqual(run('window.listed = false\nwindow.tags = {}'), '')
+        self.assertEqual(run('', address='0xdef'), '')

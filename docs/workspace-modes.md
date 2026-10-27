@@ -40,6 +40,33 @@ positions, so the windows do not stack exactly. Windows that were already
 floating, fullscreen, or pinned keep their own size. New windows on a floating
 workspace join the same placement path; the eval itself loads no title-bar plugin.
 
+A window moved from one workspace to another is arranged after the move lands.
+Hyprland 0.56.2 posts `movewindowv2` as `{address},{id},{name}` before
+`moveToWorkspace` returns. The shell waits one millisecond, the same pause as
+Omarchy's `window.move_to_workspace` handler, then uses the destination id.
+A tiled window arriving on a floating workspace takes the existing claim path.
+A window that leaves for a tiling workspace is tiled and untagged only when it
+carries `omabuntu-mode-floated` and is not pinned. A window floated on its own,
+with Super+T or its own rule, keeps floating. Special workspaces, whose ids are
+negative, are left alone, as in Omarchy's `arrange()`.
+
+Still different from that Omarchy module, and not part of this move:
+
+- Omarchy also tags every window on a floating workspace and hangs title bars,
+  shadows, and full opacity on that second tag. This port only tags windows
+  the mode itself floated, then refreshes the existing named title-bar rules.
+- New windows there float from the first frame by a window rule, excluding
+  modals and apps that float on their own. Here a new window is claimed after
+  `openwindow`, so it can appear tiled for a moment. There is no catalog of
+  apps that float on their own.
+- Leaving fullscreen on a floating workspace does not float the window again.
+- Other maximized windows on a floating workspace are not cleared.
+- `follow_mouse` is not switched to click-to-focus while a floating workspace
+  is active.
+- Floating is not the default for workspaces without a saved mode. Dwindle is.
+- Per-monitor blocks of ten, Omarchy notifications, and the original shell
+  refresh stay excluded.
+
 A press on the active symbol applies the next layout once and changes the
 symbol immediately. Presses that arrive while that call is still running are
 kept as the latest layout and sent when the call ends, rather than ignored.
@@ -87,6 +114,8 @@ The shell reads `OMABUNTU_STATE_HOME` (set by the manager), with an
 Successful presses update its saved-mode map immediately. Loading saved state
 updates the active glyph; floating restore scans windows already mapped when
 the shell or state file becomes ready, not just future `openwindow` events.
+A later move uses `movewindowv2`: the same claim when the destination is
+floating, and a release eval when a tagged window arrives on a tiling workspace.
 Claims are queued and rechecked against the current floating grant so simultaneous
 window opens are not dropped and revoked workspaces do not consume old claims.
 The isolated QML fixture tests delayed state loading and queued claims without
