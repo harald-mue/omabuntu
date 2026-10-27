@@ -47,6 +47,10 @@ ignored `work/`. Historical Git objects are not changed by editing this file.
   the second floating-workspace tag stay excluded. The approved bar restart now
   serves this shell, including the two-column Super+K card. Hyprland was not
   reloaded.
+- App launches from the app grid and the floating dock now arm Omarchy's
+  delayed "Launching …" notice. It appears only when no window has arrived
+  after two seconds, passes clicks through, and is not a notification. The
+  approved bar restart serves this notice, and the user confirmed it.
 - A real login and workspace persistence were user-confirmed. Disabled
   hyprpaper's independent splash and obtained visual confirmation; the
   compositor's splash flag alone does not control the wallpaper daemon.

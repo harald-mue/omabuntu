@@ -10,6 +10,7 @@ import "Port/DockModel.js" as Model
 Scope {
   id: root
   property var openApps: null
+  property var launchFeedback: null
   readonly property var prefs: preferences
   DockState { id: preferences }
   readonly property string position: prefs.position
@@ -116,6 +117,7 @@ Scope {
     var next = Object.assign({}, launches)
     next[item.key] = { at: Date.now(), windows: item.windows.length }
     launches = next
+    if (root.launchFeedback) root.launchFeedback.begin(String(entry.name || ""))
     entry.execute()
   }
   function isFloating(id) { return TrialDesktopState.isFloating(id) }

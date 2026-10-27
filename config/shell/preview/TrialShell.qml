@@ -13,6 +13,7 @@ ShellRoot {
   property var panel: null
   property var launcher: null
   property var dock: null
+  property var launchFeedback: null
   property var keybindings: null
   property var commandMenu: null
   property var imagePicker: null
@@ -29,6 +30,7 @@ ShellRoot {
       launcher.destroy();
       launcher = null;
     }
+    if (launchFeedback !== null) { launchFeedback.destroy(); launchFeedback = null; }
     if (panel !== null) {
       var surfaces = panel.instances;
       if (surfaces) {
@@ -73,6 +75,16 @@ ShellRoot {
     dockFactory.destroy();
     if (!dock) { console.error("OMABUNTU_TRIAL_DOCK_CREATE_FAILED"); Qt.exit(43); return; }
     launcher.dock = dock;
+    var launchFactory = Qt.createComponent(Qt.resolvedUrl("LaunchFeedback.qml"), Component.PreferSynchronous);
+    if (launchFactory.status !== Component.Ready) {
+      console.error("OMABUNTU_TRIAL_LAUNCH_FAILED", launchFactory.errorString());
+      launchFactory.destroy(); Qt.exit(43); return;
+    }
+    launchFeedback = launchFactory.createObject(root);
+    launchFactory.destroy();
+    if (!launchFeedback) { console.error("OMABUNTU_TRIAL_LAUNCH_CREATE_FAILED"); Qt.exit(43); return; }
+    launcher.launchFeedback = launchFeedback;
+    dock.launchFeedback = launchFeedback;
     var keysFactory = Qt.createComponent(Qt.resolvedUrl("KeybindingsMenu.qml"), Component.PreferSynchronous);
     if (keysFactory.status !== Component.Ready) {
       console.error("OMABUNTU_TRIAL_KEYS_FAILED", keysFactory.errorString());

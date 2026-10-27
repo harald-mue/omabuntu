@@ -110,6 +110,7 @@ AUTHORED["Commons/BluetoothDiscovery.qml"] = "config/shell/preview/BluetoothDisc
 AUTHORED["Commons/InputMethodState.qml"] = "config/shell/preview/InputMethodState.qml"
 AUTHORED["DockState.qml"] = "config/shell/preview/DockState.qml"
 AUTHORED["CommandMenu.qml"] = "config/shell/preview/CommandMenu.qml"
+AUTHORED["LaunchFeedback.qml"] = "config/shell/preview/LaunchFeedback.qml"
 AUTHORED["ImagePicker.qml"] = "config/shell/preview/ImagePicker.qml"
 AUTHORED["ImagePickerModel.js"] = "config/shell/preview/ImagePickerModel.js"
 AUTHORED["MenuModel.js"] = "config/shell/preview/MenuModel.js"

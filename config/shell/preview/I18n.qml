@@ -178,7 +178,9 @@ QtObject {
                   "dock.positionTop": "Top", "dock.positionBottom": "Bottom",
                   "dock.positionLeft": "Left", "dock.positionRight": "Right",
                   "dock.newWindow": "New window", "dock.keepInDock": "Keep in dock",
-                  "dock.removeFromDock": "Remove from dock", "dock.quit": "Quit"};
+                  "dock.removeFromDock": "Remove from dock", "dock.quit": "Quit",
+                  "appLibrary.launching": "Launching %1\u2026",
+                  "appLibrary.launchingApp": "Launching application\u2026"};
     return labels[key] || fallback || key;
   }
 }

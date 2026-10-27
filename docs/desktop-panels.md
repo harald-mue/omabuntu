@@ -61,6 +61,10 @@ No original Style, Color, translations service or shell startup is activated.
   matching, minimization/restore policy and the screen-remap component are
   excluded. The context menu closes on selection, workspace change, or an
   outside click through the upstream `HyprlandFocusGrab`.
+- **Launch notice:** the app grid and the dock share the delayed "Launching …"
+  overlay documented in `docs/launch-feedback.md`. It is not a notification
+  daemon and not the dock icon pulse. A source change reaches the running bar
+  only through a separately approved restart.
 - **Clock:** left click opens the original calendar popup (month grid, ISO
   weeks, year progress, birth-year rail, week-start toggle, keyboard and
   wheel month stepping). Right click cycles the label format. Both choices

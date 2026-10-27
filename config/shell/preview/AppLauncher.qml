@@ -7,7 +7,8 @@ import qs.Commons as Commons
 // Visual layout follows Omarchy AppGrid.qml at the pinned 4.5 RC: a centered
 // card, a search line, 56px icons, at most seven columns and four visible
 // rows. It does not load that file. There is no drag-to-dock, uninstall,
-// context menu, or helper. A selection starts DesktopEntry.execute().
+// context menu, or helper. A selection starts DesktopEntry.execute() and,
+// when the shell attached one, the shared launch notice.
 PanelWindow {
   id: root
   property int selected: 0
@@ -15,6 +16,7 @@ PanelWindow {
   property string filterText: ""
   // Set by TrialShell: the dock that previews an app dragged out of this panel.
   property var dock: null
+  property var launchFeedback: null
   property bool dragging: false
   property var dragEntry: null
   property point dragPoint
@@ -99,6 +101,7 @@ PanelWindow {
     var index = Math.max(0, Math.min(root.selected, results.count - 1))
     var entry = DesktopEntries.byId(results.get(index).entryId)
     if (!entry) return
+    if (root.launchFeedback) root.launchFeedback.begin(String(results.get(index).name || ""))
     entry.execute()
     root.close()
   }

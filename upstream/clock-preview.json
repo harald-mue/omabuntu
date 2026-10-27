@@ -620,7 +620,7 @@
     },
     "Commons/I18n.qml": {
       "path": "config/shell/preview/I18n.qml",
-      "sha256": "bf89ac9b50d2ef75d461860c1e028aae18c3394d0305d1bbc93f65a93e449bb5"
+      "sha256": "cc3ecc1e836a21ac586f4adadbe2acc1fb63c94cf100cd5724cb5f854b4b9fc5"
     },
     "PreviewContent.qml": {
       "path": "config/shell/preview/PreviewContent.qml",
@@ -632,7 +632,7 @@
     },
     "TrialShell.qml": {
       "path": "config/shell/preview/TrialShell.qml",
-      "sha256": "cd7bbf587856a7c620b4037ba942cd38f2b63c1e9babf694e788a61d5a759d0c"
+      "sha256": "cadb6d8251d2de62f1e41c4fba7122febd0d9a7f0125bb134f8cf6584220e2ef"
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
@@ -644,7 +644,11 @@
     },
     "AppLauncher.qml": {
       "path": "config/shell/preview/AppLauncher.qml",
-      "sha256": "7e00e7f05d8227e1e4cf53fed56d581eddb334c2156a34a8c752c31548bb9789"
+      "sha256": "cfae1ca11247ffe8aa2ea2853cad607c9d59b4144345dc4f64c51afabade9bdd"
+    },
+    "LaunchFeedback.qml": {
+      "path": "config/shell/preview/LaunchFeedback.qml",
+      "sha256": "fdf58d0782e9272b4ae57445fa1fa467c3e1bb1dad1618fdfe0e8ab48be8fa4e"
     },
     "KeybindingsMenu.qml": {
       "path": "config/shell/preview/KeybindingsMenu.qml",
@@ -704,7 +708,7 @@
     },
     "FloatingDock.qml": {
       "path": "config/shell/preview/FloatingDock.qml",
-      "sha256": "bfc81929850773f316dc1a930df43720cbdec21a349627b0dfdce9c337092f6f"
+      "sha256": "72167a2e1453fa6f094581412840c897418bb040a052f447d8a30717f0ed4697"
     },
     "Commons/TrialDesktopState.qml": {
       "path": "config/shell/preview/TrialDesktopState.qml",
