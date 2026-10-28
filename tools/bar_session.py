@@ -98,7 +98,9 @@ def start(parent, candidate):
                OMABUNTU_KEYBINDINGS_HELPER=str(ROOT / "tools" / "keybindings_menu.py"),
                OMABUNTU_MENU_HELPER=str(ROOT / "tools" / "menu_model.py"),
                OMABUNTU_MENU_DEFINITIONS=str(ROOT / "config/shell/omabuntu-menu.jsonc"),
-               OMABUNTU_MENU_THEMES=str(ROOT / "config/menu/themes.json"))
+               OMABUNTU_MENU_THEMES=str(ROOT / "config/menu/themes.json"),
+               OMABUNTU_ELSEWHEN_HELPER=str(ROOT / "tools" / "elsewhen_probe.py"),
+               OMABUNTU_ELSEWHEN_DIR=str(probe / "Elsewhen"))
     env.setdefault("DBUS_SESSION_BUS_ADDRESS", "unix:path=" + runtime_dir + "/bus")
     command = [str(runtime / "bin/quickshell"), "--no-color", "--path", str(probe / "TrialShell.qml")]
     with (base / "output.log").open("x") as log:

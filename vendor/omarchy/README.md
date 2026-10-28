@@ -41,9 +41,14 @@ Selected unchanged files from commit 03ff1eff3812933f7088484533784d2f63eaf19a:
 - shell/plugins/dock/{DockWindow.qml,DockModel.js}: unchanged dock window parent
   and pure grouping/order model; the unsafe dock service is not imported.
 
+Elsewhen (`shell/plugins/panels/elsewhen/`, Jason Fried, MIT) is vendored for
+the world-clock panel. The staged copy is derived by tools/elsewhen_frontend.py:
+cities stay in the process, and weather fetch, GitHub profiles, notifications
+and system timezone changes are removed. Offsets use tools/elsewhen_probe.py.
+
 The deterministic derivations are recorded in upstream/clock-preview.json and
 implemented in tools/audio_frontend.py, tools/network_frontend.py,
-tools/desktop_frontends.py and tools/workspace_modes.py. See
+tools/desktop_frontends.py, tools/workspace_modes.py and tools/elsewhen_frontend.py. See
 [desktop panel boundaries](../../docs/desktop-panels.md) for backend adaptations
 and excluded features. A generated mirror is not an independently
 authored layout. See docs/audio-output-port.md for exact retained markup,

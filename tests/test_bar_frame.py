@@ -54,13 +54,15 @@ class BarFrameTests(unittest.TestCase):
         self.assertNotIn("WlrKeyboardFocus.Exclusive", text)
         self.assertIn('readonly property int barSize: 26', text)
 
-    def test_left_adapter_has_no_absolute_title_apps_positions(self):
+    def test_left_adapter_is_workspaces_only(self):
         text = (ROOT / "config/shell/preview/LiveStatus.qml").read_text()
         self.assertNotIn("leftMargin: 224", text)
         self.assertNotIn("leftMargin: 268", text)
         self.assertNotIn("parent.width / 2 - 288", text)
-        self.assertIn("Text.PlainText", text)
-        self.assertIn("Math.min(title.implicitWidth, 280)", text)
+        self.assertNotIn('text: "Apps"', text)
+        self.assertNotIn("windowTitle", text)
+        self.assertNotIn("activeToplevel", text)
+        self.assertIn("WorkspaceSwitcher {", text)
         self.assertIn("hl.dsp.focus({ workspace = ", text)
         self.assertIn("if (id < 1 || id > 6) return", text)
 

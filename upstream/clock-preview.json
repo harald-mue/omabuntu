@@ -607,12 +607,276 @@
       "source_modifications": [],
       "stage_transform": "none",
       "staged_sha256": "d7d1dbb871e3fc2eff454775750811b80f54259ab51ca4e5653ac7f589285c87"
+    },
+    "Ui/Panel.qml": {
+      "path": "shell/Ui/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/Panel.qml",
+      "bytes": 1921,
+      "sha256": "aa268bb8597d1fe2acc775bab8e10e79f66dcfb71a3f051a6facd79c76ecd060",
+      "git_blob_sha1": "2f8c31ab7dcab14d72309317893a8132ee4f79e6",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "elsewhen-base-panel-v1",
+      "staged_sha256": "0af4e9e417a1059be0ca231148549071839b5883fde5b695353355eb6704db66"
+    },
+    "Ui/PanelController.qml": {
+      "path": "shell/Ui/PanelController.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/PanelController.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/PanelController.qml",
+      "bytes": 436,
+      "sha256": "4c08895559a2a7634f6513cb08eda6e05f6ac0bf3d940085229d594b2f383108",
+      "git_blob_sha1": "c386640b7a3ca7104cb23dad2ec04a1659f65ade",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "4c08895559a2a7634f6513cb08eda6e05f6ac0bf3d940085229d594b2f383108"
+    },
+    "Elsewhen/Arc.js": {
+      "path": "shell/plugins/panels/elsewhen/Arc.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/Arc.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/Arc.js",
+      "bytes": 1736,
+      "sha256": "b9d2046868e68f8551bce8a2921cae9cbb546f323fe93f672667e09685daf014",
+      "git_blob_sha1": "922e5cf0a3f8f29235ce77f665e63e0c3c2d5e1b",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "b9d2046868e68f8551bce8a2921cae9cbb546f323fe93f672667e09685daf014"
+    },
+    "Elsewhen/ArcText.qml": {
+      "path": "shell/plugins/panels/elsewhen/ArcText.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/ArcText.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/ArcText.qml",
+      "bytes": 3058,
+      "sha256": "3d787c9650553aaba1eb05842de9757bf08abf0f5218bd42db1c86500dd4e3d2",
+      "git_blob_sha1": "2d4a8611e6d299449c0e184337997525790ece8a",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "3d787c9650553aaba1eb05842de9757bf08abf0f5218bd42db1c86500dd4e3d2"
+    },
+    "Elsewhen/Avatar.qml": {
+      "path": "shell/plugins/panels/elsewhen/Avatar.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/Avatar.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/Avatar.qml",
+      "bytes": 2276,
+      "sha256": "13146573e02ef4ccc4147abd728611990a587ec3f5f09cce6ff0f8aba61d94bd",
+      "git_blob_sha1": "b3acd3f570480b6bb52b62118b689359bc26434c",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "13146573e02ef4ccc4147abd728611990a587ec3f5f09cce6ff0f8aba61d94bd"
+    },
+    "Elsewhen/CityMatches.qml": {
+      "path": "shell/plugins/panels/elsewhen/CityMatches.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/CityMatches.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/CityMatches.qml",
+      "bytes": 3524,
+      "sha256": "5f142966d4263f715ace80e2b853a510b84502be5dff3f56997bdd8d0aa70207",
+      "git_blob_sha1": "f62c74340f44ad05e7652cf30b83efbe1fa19709",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "5f142966d4263f715ace80e2b853a510b84502be5dff3f56997bdd8d0aa70207"
+    },
+    "Elsewhen/CityRow.qml": {
+      "path": "shell/plugins/panels/elsewhen/CityRow.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/CityRow.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/CityRow.qml",
+      "bytes": 16214,
+      "sha256": "b3691d4eb95de0ab857bbd4480914d7e02210b817ba9e595b3e9a3da92b0fcd5",
+      "git_blob_sha1": "908ef292bca23c4dbf3155372a525e3b15ed03ff",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "b3691d4eb95de0ab857bbd4480914d7e02210b817ba9e595b3e9a3da92b0fcd5"
+    },
+    "Elsewhen/CitySearch.qml": {
+      "path": "shell/plugins/panels/elsewhen/CitySearch.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/CitySearch.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/CitySearch.qml",
+      "bytes": 4338,
+      "sha256": "651d2624c21f6e88b16d813990b206e6c7ad296bb059e363f2272e4e9db2aa2e",
+      "git_blob_sha1": "c6d1f48ee6b8531bf773bd6956e9bb42cf1d1468",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "651d2624c21f6e88b16d813990b206e6c7ad296bb059e363f2272e4e9db2aa2e"
+    },
+    "Elsewhen/DaylightStrip.qml": {
+      "path": "shell/plugins/panels/elsewhen/DaylightStrip.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/DaylightStrip.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/DaylightStrip.qml",
+      "bytes": 8538,
+      "sha256": "6dc85bee90f1e15ed70fb65a7ee535964b80dec1deacb649e18ba0c75bec4bb6",
+      "git_blob_sha1": "205ad9d2cc6c0b0e31e933110489b3e50b665fbf",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "6dc85bee90f1e15ed70fb65a7ee535964b80dec1deacb649e18ba0c75bec4bb6"
+    },
+    "Elsewhen/GlobeFooter.qml": {
+      "path": "shell/plugins/panels/elsewhen/GlobeFooter.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/GlobeFooter.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/GlobeFooter.qml",
+      "bytes": 3971,
+      "sha256": "a1a320e19df71eedcca8b6916db93a62da8afabf3db15f16369a0b1198d61d6d",
+      "git_blob_sha1": "5523d5274c00f0a6bbf87573525c7439bb1b731c",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "a1a320e19df71eedcca8b6916db93a62da8afabf3db15f16369a0b1198d61d6d"
+    },
+    "Elsewhen/GlobeModel.js": {
+      "path": "shell/plugins/panels/elsewhen/GlobeModel.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/GlobeModel.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/GlobeModel.js",
+      "bytes": 10554,
+      "sha256": "18d1609e5b7c978709bed63d3178712cc2d934d7106ce8d00adf9a6e431af957",
+      "git_blob_sha1": "979db4c67404ed59ce9d90c121bcc1573b0f98ee",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "18d1609e5b7c978709bed63d3178712cc2d934d7106ce8d00adf9a6e431af957"
+    },
+    "Elsewhen/Greetings.js": {
+      "path": "shell/plugins/panels/elsewhen/Greetings.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/Greetings.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/Greetings.js",
+      "bytes": 51215,
+      "sha256": "d65ca5ab3ccf96ad38d7e5e1543a6a50164c32d342792ef34c1d9987a93b9afa",
+      "git_blob_sha1": "a8245ff05c4e55ab55c259f3f310cfb0fdeb4e3e",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "d65ca5ab3ccf96ad38d7e5e1543a6a50164c32d342792ef34c1d9987a93b9afa"
+    },
+    "Elsewhen/HeroTitle.qml": {
+      "path": "shell/plugins/panels/elsewhen/HeroTitle.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/HeroTitle.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/HeroTitle.qml",
+      "bytes": 4621,
+      "sha256": "22218a8ce8250f11ae147ce2e73e8275e2418e56a23c06b43d92fe71f4fda6b5",
+      "git_blob_sha1": "2c5f22a9e0c2781087c8012a2664fa1f694ed195",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "22218a8ce8250f11ae147ce2e73e8275e2418e56a23c06b43d92fe71f4fda6b5"
+    },
+    "Elsewhen/MoonDot.qml": {
+      "path": "shell/plugins/panels/elsewhen/MoonDot.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/MoonDot.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/MoonDot.qml",
+      "bytes": 1254,
+      "sha256": "dc0eff75871eac3e3b99067b92093bb28eeb667ce5b261b34261b8f5340d7378",
+      "git_blob_sha1": "8f654e6147f4dc11db3757b6819aef239e3c163f",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "dc0eff75871eac3e3b99067b92093bb28eeb667ce5b261b34261b8f5340d7378"
+    },
+    "Elsewhen/Sun.js": {
+      "path": "shell/plugins/panels/elsewhen/Sun.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/Sun.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/Sun.js",
+      "bytes": 3593,
+      "sha256": "0b083eb24757513bfd06e4929aa85b41b9802a3212ad9575c5fa92a4676179bf",
+      "git_blob_sha1": "c7edf9b2f4a7426727b1fa1acddeb8eeb4d87a15",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "0b083eb24757513bfd06e4929aa85b41b9802a3212ad9575c5fa92a4676179bf"
+    },
+    "Elsewhen/cities.json": {
+      "path": "shell/plugins/panels/elsewhen/cities.json",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/cities.json",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/cities.json",
+      "bytes": 3238,
+      "sha256": "6e6127b929286d37b0adac0d2d1038a9bf9f32a8fc7e0a492bf8142286a9ad9a",
+      "git_blob_sha1": "90ef4e642725f536f642b0026b00189e7c549949",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "6e6127b929286d37b0adac0d2d1038a9bf9f32a8fc7e0a492bf8142286a9ad9a"
+    },
+    "Elsewhen/manifest.json": {
+      "path": "shell/plugins/panels/elsewhen/manifest.json",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/manifest.json",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/manifest.json",
+      "bytes": 1572,
+      "sha256": "c71ac75bf10be5c2c67c91f5899acfd90fa7d3ab2d374330dc47a8b9a3fdd3ac",
+      "git_blob_sha1": "3530aec49160f4f7cfbfa7776bfe9c9481f8d13c",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "c71ac75bf10be5c2c67c91f5899acfd90fa7d3ab2d374330dc47a8b9a3fdd3ac"
+    },
+    "Elsewhen/world.json": {
+      "path": "shell/plugins/panels/elsewhen/world.json",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/world.json",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/world.json",
+      "bytes": 14837,
+      "sha256": "b2aa85ab1f671ca76f1514b6f9e92b9f19ca2b0897b7b903abb7d31e44687ee6",
+      "git_blob_sha1": "63f3f1653d120039645f1e5e98d38d7e14a52815",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "b2aa85ab1f671ca76f1514b6f9e92b9f19ca2b0897b7b903abb7d31e44687ee6"
+    },
+    "Elsewhen/ElsewhenPanel.qml": {
+      "path": "shell/plugins/panels/elsewhen/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/Panel.qml",
+      "bytes": 50710,
+      "sha256": "2a357c056109ca074622292d5083b2a1d372097d428a5ed805e5dda786d21d01",
+      "git_blob_sha1": "445840481a0956018ef2730fe6bba711355655d3",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "elsewhen-panel-v1",
+      "staged_sha256": "1f98c9f47af39a50545b768c5d22904db6cca09396a6c10c5c9cd47e80dae674"
+    },
+    "Elsewhen/Model.js": {
+      "path": "shell/plugins/panels/elsewhen/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/Model.js",
+      "bytes": 52661,
+      "sha256": "669cbfe9b28e65bea3673a003f771c1130a9ff0a8df1767dd385cf381f864c84",
+      "git_blob_sha1": "71fc46230e5708242823fcf1fcbf2ecfaa1c6e56",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "elsewhen-model-v1",
+      "staged_sha256": "2aa5a9712e0d36e28eb47847d89fda4aa149fc3378ac0e3a8762d78ce1169312"
+    },
+    "Elsewhen/Globe.qml": {
+      "path": "shell/plugins/panels/elsewhen/Globe.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/Globe.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/Globe.qml",
+      "bytes": 24083,
+      "sha256": "1b11bee9a7778b2068f07880fabd3e16a6769a96569562155ab14915919bd942",
+      "git_blob_sha1": "6f5c1d07ad810979af35d7dcab477964e575ae1f",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "elsewhen-globe-v1",
+      "staged_sha256": "077478e6fbac69131e7f5f8303e7a7610a630e506402ec58cc6058a7101dd829"
+    },
+    "Elsewhen/MiniGlobe.qml": {
+      "path": "shell/plugins/panels/elsewhen/MiniGlobe.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/elsewhen/MiniGlobe.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/elsewhen/MiniGlobe.qml",
+      "bytes": 4609,
+      "sha256": "83820872f03eba4c0e54bab2dd5636eeb66413aaa6dd261a33bdbeea52f42195",
+      "git_blob_sha1": "932f8aac02ccd8c6feb84001cd135f2c6f000554",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "elsewhen-miniglobe-v1",
+      "staged_sha256": "817d763b85877d6b4dd85429584b07ef2c4424f92c5537d194432a35c7582ef9"
     }
   },
   "authored": {
     "Commons/Style.qml": {
       "path": "config/shell/preview/Style.qml",
-      "sha256": "0be9fc9ed8c316d3c2177f75722b4c571ec423f6aa59c7db2bde187cf72fe646"
+      "sha256": "37899f2755b6804bde479c28ad2ebf4c57a12b9504e82f1c3d50b23709d7ad63"
     },
     "Commons/Color.qml": {
       "path": "config/shell/preview/Color.qml",
@@ -620,7 +884,7 @@
     },
     "Commons/I18n.qml": {
       "path": "config/shell/preview/I18n.qml",
-      "sha256": "cc3ecc1e836a21ac586f4adadbe2acc1fb63c94cf100cd5724cb5f854b4b9fc5"
+      "sha256": "bd3ac0a66f209799db25b6607461811894a614d795092c9188dfcc0c03050a71"
     },
     "PreviewContent.qml": {
       "path": "config/shell/preview/PreviewContent.qml",
@@ -632,15 +896,15 @@
     },
     "TrialShell.qml": {
       "path": "config/shell/preview/TrialShell.qml",
-      "sha256": "cadb6d8251d2de62f1e41c4fba7122febd0d9a7f0125bb134f8cf6584220e2ef"
+      "sha256": "0299b7af91ed9e1153354f6fa0386311d83125dd4446b13e178bdb4243ebb310"
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "2222ad57de829477fb1e6fe4c3c756f8b5d859a028aeee3ea6e5eabec15dc283"
+      "sha256": "f175b00b230fd22fab24a7dea3cc3a8b490c5cdff559ee192c0c6f0b49da2a51"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
-      "sha256": "81bb06e39b4eb7d2ed00bcb714914904961aa702798cbace9e58a24ed2c3e30a"
+      "sha256": "6129c05584d499c366572a5ab5f594fc8158739357901cac1e921a3341f93b52"
     },
     "AppLauncher.qml": {
       "path": "config/shell/preview/AppLauncher.qml",
@@ -756,8 +1020,9 @@
     }
   },
   "module_maps": {
-    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\n",
+    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\nPanel 1.0 Panel.qml\nPanelController 1.0 PanelController.qml\n",
     "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\nsingleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\nsingleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n",
+    "Elsewhen/qmldir": "ArcText 1.0 ArcText.qml\nAvatar 1.0 Avatar.qml\nCityMatches 1.0 CityMatches.qml\nCityRow 1.0 CityRow.qml\nCitySearch 1.0 CitySearch.qml\nDaylightStrip 1.0 DaylightStrip.qml\nElsewhenPanel 1.0 ElsewhenPanel.qml\nGlobe 1.0 Globe.qml\nGlobeFooter 1.0 GlobeFooter.qml\nHeroTitle 1.0 HeroTitle.qml\nMiniGlobe 1.0 MiniGlobe.qml\nMoonDot 1.0 MoonDot.qml\n",
     "Port/qmldir": "Tray 1.0 Tray.qml\n"
   },
   "notice_paths": [
@@ -770,7 +1035,8 @@
     "WidgetButton and OpticalGlyph unchanged. No registration API; tooltip compatibility callbacks are explicitly inert. Parent/button pointer input disabled; no timezone action or shell.run route.",
     "Commons has only authored passive Style/Color/I18n, no original singleton, watcher, process, catalog or font asset. Fixed palette and 12px monospace remain diagnostic adaptations. Panel labels and the clock format locale use the pinned English catalog: en-US. This is not full theme or locale-file loading.",
     "TrialShell defaults denied; exact finite grant before its fixed panel URL; sticky revoke on input change. No arbitrary QML/path/catalog/command. The panel uses pinned Quickshell Variants.model so each connected screen gets one non-focusable bar. A visible Wayland trial stays separately approved; production catalog remains empty.",
-    "Clock calendar is a separate derivation (clock-calendar-v1 and clock-calendar-host-v1) of the pinned Panel.qml and BarWidget.qml. The sealed ClockLabel stays read-only. The live trial opens the original month grid. Shell IPC, the timezone helper, and configuration writes are not admitted; week start, label format, and birth year stay in session memory."
+    "Clock calendar is a separate derivation (clock-calendar-v1 and clock-calendar-host-v1) of the pinned Panel.qml and BarWidget.qml. The sealed ClockLabel stays read-only. The live trial opens the original month grid. Shell IPC, the timezone helper, and configuration writes are not admitted; week start, label format, and birth year stay in session memory.",
+    "Elsewhen is a derived original panel (Jason Fried, MIT) on centerEnd. Cities stay in the process. Weather fetch, GitHub profiles, notifications and system timezone changes are excluded. Offsets use the read-only helper."
   ],
   "limits": [
     "Authored frame, not original Bar.qml. The sealed preview label stays read-only. The live trial calendar is the derived original popup without IPC, configuration writes, or the privileged timezone picker.",

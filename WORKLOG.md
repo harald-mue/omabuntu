@@ -5,6 +5,22 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## Elsewhen world clock (plan 038)
+
+- Staged Jason Fried's Elsewhen panel to the right of the clock. Cities stay in
+  the running process. Open-Meteo, GitHub profiles, notification delivery,
+  system timezone changes and IPC registration are not included. Zone offsets
+  use a read-only helper. The panel's own QML types are registered together.
+  The recorded bar was restarted onto this panel.
+
+## Left bar matches Omarchy (plan 037)
+
+- Removed the authored Apps button and the focused-window title from the left
+  bar. The left side is the menu mark and the workspace switcher. The app grid
+  remains on the command menu and the floating dock. The recorded bar was
+  stopped, the three installed shell files and their integrity entries were
+  replaced from a private backup, and the bar was started again.
+
 ## Keyboard-layout visibility (plan 036)
 
 - Removed the `alwaysShow` splice. The preview keyboard-layout widget is again

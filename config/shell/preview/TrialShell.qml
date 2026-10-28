@@ -65,7 +65,6 @@ ShellRoot {
     launcher = appsFactory.createObject(root);
     appsFactory.destroy();
     if (!launcher) { console.error("OMABUNTU_TRIAL_APPS_CREATE_FAILED"); Qt.exit(43); return; }
-    panel.openApps = function() { launcher.toggle(); };
     var dockFactory = Qt.createComponent(Qt.resolvedUrl("FloatingDock.qml"), Component.PreferSynchronous);
     if (dockFactory.status !== Component.Ready) {
       console.error("OMABUNTU_TRIAL_DOCK_FAILED", dockFactory.errorString());

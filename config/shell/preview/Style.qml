@@ -44,6 +44,8 @@ QtObject {
     readonly property int sm: 4
     readonly property int md: 6
     readonly property int xl: 10
+    readonly property int lg: 8
+    readonly property int panelGap: 14
     readonly property int rowGap: 8
     readonly property int rowPaddingX: 12
     readonly property int labelGap: 4
@@ -56,6 +58,7 @@ QtObject {
     readonly property int iconCanvas: 26
     readonly property int iconSize: 12
     readonly property int iconFont: 12
+    readonly property int statusSlot: 21
   }
   function alpha(color, opacity) { return Qt.rgba(color.r, color.g, color.b, opacity); }
   function normalStateColor(foreground, accent, urgent) { return foreground; }

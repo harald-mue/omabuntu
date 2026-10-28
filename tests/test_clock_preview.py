@@ -33,6 +33,7 @@ class ClockPreviewTests(unittest.TestCase):
                  "config/shell/preview/KeyboardLayout.qml",
                  "config/shell/preview/CalendarPanel.qml",
                  "config/shell/preview/ClockControlView.qml",
+                 *("config/shell/preview/" + name for name in checker.ELSEWHEN_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.DESKTOP_TRANSFORMS),
                  *("vendor/omarchy/" + source for source in checker.UPSTREAM.values())]
         for name in names:
@@ -209,12 +210,14 @@ class ClockPreviewTests(unittest.TestCase):
         self.assertIn("exclusiveZone: 0", apps)
         self.assertIn("WlrKeyboardFocus.OnDemand", text)
         self.assertNotIn("WlrKeyboardFocus.Exclusive", text)
-        self.assertIn("openApps: bars.openApps", text)
+        self.assertNotIn("openApps: bars.openApps", text)
         # Menu button first in the left section; keyboard layout between the
         # tray and Bluetooth, in Omarchy's default order.
         self.assertLess(text.index("MenuButton {"), text.index("LiveStatus {"))
         self.assertLess(text.index("PortTrayHost {"), text.index("KeyboardLayout {"))
         self.assertLess(text.index("KeyboardLayout {"), text.index("BluetoothControlView {"))
+        self.assertLess(text.index("ClockControlView {"), text.index("ElsewhenPanel {"))
+        self.assertIn("centerEndContent:", text)
         self.assertIn("openMenu: bars.openMenu", text)
         # Background looks and the hidden-bar park, as upstream Bar.qml.
         self.assertIn('look === "opaque" || look === "glassy" || look === "none"', text)
@@ -229,6 +232,8 @@ class ClockPreviewTests(unittest.TestCase):
         self.assertIn('Hyprland.dispatch("hl.dsp.focus({ workspace = "', live)
         self.assertIn('Hyprland.dispatch("workspace "', live)
         self.assertIn("WorkspaceSwitcher {", live)
+        self.assertNotIn('text: "Apps"', live)
+        self.assertNotIn("windowTitle", live)
         self.assertIn("model: 6", switcher)
         self.assertNotIn('slot.workspaceId === 10 ? "0"', switcher)
         self.assertIn("function modeGlyph", switcher)
@@ -270,6 +275,24 @@ class ClockPreviewTests(unittest.TestCase):
         self.assertTrue(checker.classify("assertion-control", 42, failed))
         self.assertFalse(checker.classify("assertion-control", 0, failed))
         self.assertFalse(checker.classify("assertion-control", 42, failed + checker.MARKER + "::assertion-control\n"))
+
+    def test_elsewhen_drops_network_and_timezone_changes(self):
+        files, _ = checker.verified_sources(self.root)
+        for name in checker.ELSEWHEN_TRANSFORMS:
+            text = files[name].decode()
+            for bad in ("curl", "sudo", "open-meteo.com", "github.com",
+                        "omarchy-notification", "updateEntryInline", "set-timezone", "OMARCHY_PATH", "ShellIpc"):
+                self.assertNotIn(bad, text, name)
+        panel = files["Elsewhen/ElsewhenPanel.qml"].decode()
+        self.assertIn('"/usr/bin/python3"', panel)
+        self.assertIn('"zones"', panel)
+        self.assertNotIn("FileView", panel)
+        listing = files["Elsewhen/qmldir"].decode()
+        for name in ("ElsewhenPanel", "CityRow", "CitySearch", "Globe", "MiniGlobe", "HeroTitle"):
+            self.assertIn(name + " 1.0 " + name + ".qml\n", listing)
+        model = files["Elsewhen/Model.js"].decode()
+        self.assertIn("function probeCommand(helper, ids, withLocal)", model)
+        self.assertIn("function timezoneCommand() { return [] }", model)
 
     def test_image_inspector_rejects_non_png(self):
         path = self.root / "frame.png"

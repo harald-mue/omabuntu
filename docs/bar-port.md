@@ -110,7 +110,8 @@ unit was edited. ~/.config/hypr/hyprland.lua retains its October 22 timestamp.
 | Keyboard layout | Original widget vendored byte-identically (single reviewed visibility deviation), mounted between tray and Bluetooth; xkb cycling through the allowlisted run | xkbcli briefs need an optional package decision (fallback label is the description's first word); input-method (fcitx) indicator deliberately not ported |
 | Clock/calendar | Derived original calendar on left click; sealed label stays read-only | Native click acceptance. No timezone helper, shell.json writes, IPC, or calendar hotkey |
 | Indicators/menu | Menu button at the left edge: original BarIconButton with the extracted U+E900 mark, left click opens the command menu's root route, right click opens a terminal | Native click acceptance; no Arch package or system-management routes
-| Weather/Elsewhen/agents | Not implemented | Dependency, notices, network/provider and asset decisions |
+| Elsewhen | Original panel derived to the right of the clock; cities stay in the process | Native open/click acceptance. No weather fetch, GitHub profiles, notifications, or system timezone change |
+| Weather/agents | Not implemented | Dependency, notices, network/provider and asset decisions |
 | Updates | Arch route excluded | Ubuntu-native, reviewed status/actions if agreed; never pacman or Omarchy migrations |
 
 The completion request is not treated as permission to change login, install

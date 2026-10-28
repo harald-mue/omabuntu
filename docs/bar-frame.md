@@ -3,7 +3,7 @@
 This is a geometry port from the pinned original Bar.qml, **not full original
 bar/theme/registry acceptance**. It replaces the authored full-width overlays
 with a left section, independently centered group and right section. It keeps
-original centerBegin/centerEnd positioning for future admitted components.
+original centerBegin/centerEnd positioning. The world clock occupies centerEnd.
 
 ## Source and boundaries
 
@@ -36,11 +36,11 @@ Explicit adaptations/exclusions:
   derivation, instead of placing the sealed PreviewContent frame behind a second
   full-width LiveStatus overlay. PreviewContent remains unchanged for historical
   sealed rendering/regression tests.
-- LiveStatus is now a content-sized row of existing global workspace slots,
-  Apps and a plain-text elided title, with a live width budget and 280px title
-  cap. Fixed x offsets 224/268 and the ad-hoc half-screen subtraction are gone.
-  Apps and the title remain authored adapters. Workspace slots now use the
-  derived Omarchy glyph switcher; see [workspace modes](workspace-modes.md).
+- LiveStatus is a content-sized row of the global workspace slots, with a
+  live width budget. Omarchy's left side is the menu plus workspaces, so the
+  authored Apps button and focused-window title are not part of the bar. The
+  app grid stays on the command menu and the floating dock. Workspace slots
+  use the derived Omarchy glyph switcher; see [workspace modes](workspace-modes.md).
   Monitor-block policy remains unported.
 - Colors and passive theme tokens are not the full original theme service.
 

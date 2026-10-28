@@ -32,6 +32,14 @@ Do not extend root-license assumptions to unrelated images, fonts, datasets or
 components. Unimported components discussed in historical audits are not claimed
 as licensed imports by this inventory.
 
+### Elsewhen world clock
+
+- Included path: [vendor/omarchy/shell/plugins/panels/elsewhen](vendor/omarchy/shell/plugins/panels/elsewhen).
+- Upstream: https://github.com/omacom/omarchy at pinned commit `03ff1eff3812933f7088484533784d2f63eaf19a`.
+- Author: Jason Fried. Component manifest: `manifest.json` (Elsewhen 1.1.0, MIT).
+- License: MIT. The Omarchy root notice in [licenses/Omarchy-MIT.txt](licenses/Omarchy-MIT.txt) also covers this tree. This component notice does not extend to branded agent SVGs or the separate notification service.
+- The staged panel keeps the original layout and drops Open-Meteo requests, GitHub profile requests, notification delivery and system timezone changes. `world.json` and `cities.json` are data for the drawn globe, not image assets.
+
 ### Project Nayuki QR Code generator
 
 - Included file: [tools/qrcodegen.py](tools/qrcodegen.py).

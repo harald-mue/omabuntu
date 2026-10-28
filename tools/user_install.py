@@ -88,6 +88,7 @@ BASELINE = ('manager.py', 'runtime/bin/quickshell', 'shell/TrialShell.qml',
             'licenses/Quickshell-LGPL.txt', 'licenses/Quickshell-GPL.txt', 'licenses/cpptrace-MIT.txt')
 INCOMING = BASELINE + ('helpers/menu_model.py', 'helpers/menu_common.py', 'helpers/theme_backend.py',
                        'helpers/font_backend.py', 'helpers/background_backend.py', 'helpers/power_actions.py',
+                       'helpers/elsewhen_probe.py',
                        'shell/omabuntu-menu.jsonc', 'menu/themes.json')
 
 
@@ -506,6 +507,8 @@ class Installation:
                    OMABUNTU_MENU_HELPER=str(release / 'helpers/menu_model.py'),
                    OMABUNTU_MENU_DEFINITIONS=str(release / 'shell/omabuntu-menu.jsonc'),
                    OMABUNTU_MENU_THEMES=str(release / 'menu/themes.json'),
+                   OMABUNTU_ELSEWHEN_HELPER=str(release / 'helpers/elsewhen_probe.py'),
+                   OMABUNTU_ELSEWHEN_DIR=str(release / 'shell/Elsewhen'),
                    OMABUNTU_STATE_HOME=str(self.state), PYTHONDONTWRITEBYTECODE='1')
         env.setdefault('DBUS_SESSION_BUS_ADDRESS', 'unix:path=' + str(runtime_dir / 'bus'))
         args = [str(release / 'runtime/bin/quickshell'), '--no-color', '--path', str(release / 'shell/TrialShell.qml')]

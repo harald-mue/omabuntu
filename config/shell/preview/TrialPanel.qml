@@ -5,13 +5,13 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "Elsewhen"
 import "BarRun.js" as BarRun
 
 // One top bar per screen, with source-derived original section geometry.
 // Registry, gestures, theme IO and per-monitor workspace policy are not loaded.
 Variants {
   id: bars
-  property var openApps: null
   // Left-edge menu button route opener, wired by TrialShell to CommandMenu.
   property var openMenu: null
   // Session copy of the clock entry. Replacing it updates every screen that
@@ -166,7 +166,6 @@ Variants {
             openMenu: bars.openMenu
           }
           LiveStatus {
-            openApps: bars.openApps
             liveModes: true
             maximumWidth: Math.max(0, frame.centerStart - 16 - menuButton.implicitWidth)
           }
@@ -176,6 +175,11 @@ Variants {
         ClockControlView {
           bar: clockBar
           settings: bars.clockSettings
+        }
+      }
+      centerEndContent: Component {
+        ElsewhenPanel {
+          bar: clockBar
         }
       }
       rightContent: Component {

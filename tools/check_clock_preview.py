@@ -23,6 +23,7 @@ import network_frontend
 import workspace_modes
 import desktop_frontends
 import clock_frontend
+import elsewhen_frontend
 
 builder = check_runtime.builder
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,6 +70,26 @@ UPSTREAM = {
     "KeyboardLayoutModel.js": "shell/plugins/bar/widgets/KeyboardLayoutModel.js",
     "Commons/Util.qml": "shell/Commons/Util.qml",
     "Commons/InputDevices.qml": "shell/Commons/InputDevices.qml",
+    "Ui/Panel.qml": "shell/Ui/Panel.qml",
+    "Ui/PanelController.qml": "shell/Ui/PanelController.qml",
+}
+ELSEWHEN_PLAIN = (
+    "Arc.js", "ArcText.qml", "Avatar.qml", "CityMatches.qml", "CityRow.qml", "CitySearch.qml",
+    "DaylightStrip.qml", "GlobeFooter.qml", "GlobeModel.js", "Greetings.js", "HeroTitle.qml",
+    "MoonDot.qml", "Sun.js", "cities.json", "manifest.json", "world.json",
+)
+for _name in ELSEWHEN_PLAIN:
+    UPSTREAM["Elsewhen/" + _name] = "shell/plugins/panels/elsewhen/" + _name
+UPSTREAM["Elsewhen/ElsewhenPanel.qml"] = "shell/plugins/panels/elsewhen/Panel.qml"
+UPSTREAM["Elsewhen/Model.js"] = "shell/plugins/panels/elsewhen/Model.js"
+UPSTREAM["Elsewhen/Globe.qml"] = "shell/plugins/panels/elsewhen/Globe.qml"
+UPSTREAM["Elsewhen/MiniGlobe.qml"] = "shell/plugins/panels/elsewhen/MiniGlobe.qml"
+ELSEWHEN_TRANSFORMS = {
+    "Elsewhen/ElsewhenPanel.qml": ("elsewhen-panel-v1", elsewhen_frontend.derive_panel),
+    "Elsewhen/Model.js": ("elsewhen-model-v1", elsewhen_frontend.derive_model),
+    "Elsewhen/Globe.qml": ("elsewhen-globe-v1", elsewhen_frontend.derive_globe),
+    "Elsewhen/MiniGlobe.qml": ("elsewhen-miniglobe-v1", elsewhen_frontend.derive_miniglobe),
+    "Ui/Panel.qml": ("elsewhen-base-panel-v1", elsewhen_frontend.derive_base_panel),
 }
 DESKTOP_UPSTREAM = {
     "BluetoothControlView.qml": "shell/plugins/panels/bluetooth/Panel.qml",
@@ -120,7 +141,11 @@ MAPS = {"Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.
         "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\n"}
 MAPS["Ui/qmldir"] += "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "PopupCard", "BarIconButton", "BarIconContent", "IconContentBounds", "Button", "BorderSurface", "BorderOverlay", "PanelSlider", "KeyboardPanel", "PanelKeyCatcher",
-    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField"))
+    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField", "Panel", "PanelController"))
+MAPS["Elsewhen/qmldir"] = "".join(name + " 1.0 " + name + ".qml\n" for name in (
+    "ArcText", "Avatar", "CityMatches", "CityRow", "CitySearch", "DaylightStrip",
+    "ElsewhenPanel", "Globe", "GlobeFooter", "HeroTitle", "MiniGlobe", "MoonDot"))
+
 MAPS["Commons/qmldir"] += "singleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\n"
 MAPS["Commons/qmldir"] += "singleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n"
 MAPS["Port/qmldir"] = "Tray 1.0 Tray.qml\n"
@@ -190,6 +215,8 @@ def verified_sources(root):
                      "WorkspaceSwitcher.qml": "workspace-switcher-v1"}.get(target, "none")
         if target in DESKTOP_TRANSFORMS:
             transform = DESKTOP_TRANSFORMS[target][0]
+        if target in ELSEWHEN_TRANSFORMS:
+            transform = ELSEWHEN_TRANSFORMS[target][0]
         if (not isinstance(record, dict) or record.get("path") != source_path or record.get("vendor_path") != vendor
                 or record.get("license") != "MIT" or record.get("source_modifications") != []
                 or record.get("stage_transform") != transform
@@ -210,6 +237,7 @@ def verified_sources(root):
                       "clock-calendar-v1": clock_frontend.derive_calendar,
                       "clock-calendar-host-v1": clock_frontend.derive_host}
         transforms.update({key: fn for key, fn in DESKTOP_TRANSFORMS.values()})
+        transforms.update({key: fn for key, fn in ELSEWHEN_TRANSFORMS.values()})
         files[target] = transforms[transform](data) if transform != "none" else data
         if target in DESKTOP_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
             raise builder.BuildError("Generated desktop frontend mirror differs")
@@ -221,6 +249,8 @@ def verified_sources(root):
             raise builder.BuildError("Generated workspace switcher mirror differs")
         if target == "KeyboardLayout.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/KeyboardLayout.qml", 65536):
             raise builder.BuildError("Generated keyboard layout mirror differs")
+        if target in ELSEWHEN_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 131072):
+            raise builder.BuildError("Generated elsewhen mirror differs")
         if target in ("CalendarPanel.qml", "ClockControlView.qml") and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
             raise builder.BuildError("Generated clock calendar mirror differs")
         if hashlib.sha256(files[target]).hexdigest() != record.get("staged_sha256"):

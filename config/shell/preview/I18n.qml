@@ -180,7 +180,45 @@ QtObject {
                   "dock.newWindow": "New window", "dock.keepInDock": "Keep in dock",
                   "dock.removeFromDock": "Remove from dock", "dock.quit": "Quit",
                   "appLibrary.launching": "Launching %1\u2026",
-                  "appLibrary.launchingApp": "Launching application\u2026"};
+                  "appLibrary.launchingApp": "Launching application\u2026",
+                  "common.noMatches": "No matches",
+                  "elsewhen.addCity": "+  Add a city",
+                  "elsewhen.badgeHome": "home",
+                  "elsewhen.badgeTracked": "tracked",
+                  "elsewhen.clock": "Clock",
+                  "elsewhen.dateFormat": "ddd MMM d",
+                  "elsewhen.daysShort": "%1d",
+                  "elsewhen.editPeople": "Who's here",
+                  "elsewhen.here": "It's %1 here",
+                  "elsewhen.hereIn": "It's %1 here in %2",
+                  "elsewhen.hoursShort": "%1h",
+                  "elsewhen.jumpToCity": "Jump to a city",
+                  "elsewhen.loadingCities": "Loading cities\u2026",
+                  "elsewhen.loadingZones": "Loading zones\u2026",
+                  "elsewhen.minutesShort": "%1m",
+                  "elsewhen.peoplePlaceholder": "Names or @github handles, comma separated",
+                  "elsewhen.remove": "Remove",
+                  "elsewhen.searchCities": "Search cities\u2026",
+                  "elsewhen.searchingPlaces": "Searching places\u2026",
+                  "elsewhen.sunriseAt": "Sunrise %1",
+                  "elsewhen.sunsetAt": "Sunset %1",
+                  "elsewhen.timezoneChanged": "Now in %1, and the clock is on %2",
+                  "elsewhen.timezoneFailed": "Couldn't move the clock to %1",
+                  "elsewhen.tomorrow": "Tomorrow",
+                  "elsewhen.whereAreYou": "Where are you?",
+                  "elsewhen.world": "World",
+                  "elsewhen.worldClock": "World clock",
+                  "elsewhen.yesterday": "Yesterday"};
     return labels[key] || fallback || key;
+  }
+  function tn(key, count, fallback) {
+    var forms = {
+      "elsewhen.daysAhead": {"one": "+%1 day", "other": "+%1 days"},
+      "elsewhen.daysBehind": {"one": "-%1 day", "other": "-%1 days"}
+    };
+    var table = forms[key];
+    if (!table && fallback && fallback.one !== undefined) table = fallback;
+    if (!table) return t(key, "");
+    return Number(count) === 1 ? (table.one || table.other) : (table.other || table.one);
   }
 }

@@ -56,7 +56,8 @@ No original Style, Color, translations service or shell startup is activated.
   Restarting the bar clears grants; cycle the workspace mode again to grant it.
   Installed desktop entries launch via `DesktopEntry.execute()`; native Wayland
   toplevel handles activate/close windows. Position, autohide, pinning and order
-  are session-local. The existing trial app grid opens from Apps. Omarchy helper
+  are session-local. The existing trial app grid opens from the command menu
+  and the floating dock, not from the top bar. Omarchy helper
   execution, persistent pins, app-grid drag handoff, launch pulse, custom TUI
   matching, minimization/restore policy and the screen-remap component are
   excluded. The context menu closes on selection, workspace change, or an
