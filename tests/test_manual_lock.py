@@ -59,6 +59,30 @@ class ManualLockTests(unittest.TestCase):
             self.assertEqual(lock_session.main(['--release', str(self.release)]), 0)
         run.assert_not_called()
 
+    def test_applied_locker_has_no_lifetime_limit_and_records_exit(self):
+        directory = Path(self.temp.name) / 'lock-state'
+        directory.mkdir()
+        info = {'binary': '/usr/bin/hyprlock', 'config': 'x', 'display': 'wayland-1'}
+        for returncode in (0, 1):
+            with self.subTest(returncode=returncode):
+                log = directory / 'output.log'
+                if log.exists():
+                    log.unlink()
+                with patch.object(lock_session.os, 'getuid', return_value=1000), \
+                     patch.object(lock_session, 'preflight', return_value=info), \
+                     patch.object(lock_session, 'state_directory', return_value=directory), \
+                     patch.object(lock_session.subprocess, 'run',
+                                  return_value=subprocess.CompletedProcess([], returncode)) as run, \
+                     patch('builtins.print'):
+                    self.assertEqual(lock_session.main(['--release', str(self.release), '--apply']),
+                                     0 if returncode == 0 else 1)
+                run.assert_called_once()
+                self.assertIsNone(run.call_args.kwargs.get('timeout'))
+                self.assertEqual(run.call_args.args[0], ['/usr/bin/hyprlock', '--config', 'x'])
+                self.assertEqual(run.call_args.kwargs['stdin'], subprocess.DEVNULL)
+                self.assertEqual(json.loads((directory / 'result.json').read_text()), {
+                    'returncode': returncode, 'status': 'exited' if returncode == 0 else 'failed'})
+
     def test_wrong_version_or_missing_binary_is_rejected(self):
         env = {'XDG_CURRENT_DESKTOP': 'Hyprland', 'HYPRLAND_INSTANCE_SIGNATURE': 'sig', 'WAYLAND_DISPLAY': 'wayland-1'}
         with patch.dict(os.environ, env, clear=True), patch.object(lock_session.shutil, 'which', return_value=None):

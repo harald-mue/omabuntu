@@ -86,9 +86,10 @@ def main(argv=None):
     command = [info['binary'], '--config', info['config']]
     (directory / 'command.json').write_text(json.dumps({'command': command, 'expected': 'v0.9.6',
                                                         'recovery': 'local TTY login, verified by the user'}, indent=2) + '\n')
+    # The requested lock lasts until it exits; only preflight probes are timed.
     with (directory / 'output.log').open('x') as log:
         result = subprocess.run(command, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
-                                timeout=1800, check=False)
+                                check=False)
     (directory / 'result.json').write_text(json.dumps({
         'returncode': result.returncode,
         'status': 'exited' if result.returncode == 0 else 'failed'}, indent=2) + '\n')

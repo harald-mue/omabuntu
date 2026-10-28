@@ -165,3 +165,21 @@ autostart or suspend command. The only lock launcher is the explicit
 `python3 tools/lock_readiness.py` for bounded read-only collection; its report
 always marks authentication/recovery as unverified and activation as disallowed.
 Successful prerequisite collection is never a security verdict.
+
+## Locker lifetime correction (plan 035)
+
+The manual-lock helper previously passed `timeout=1800` to `subprocess.run`
+for Hyprlock itself. Python terminates the child at that deadline, leaving
+Hyprland's session lock active without its lockscreen client. The timeout
+exception also bypassed the normal completion report. This was an orchestration
+bug, not evidence of an authentication failure.
+
+The actual locker now has no artificial lifetime limit. Preflight probes retain
+their short timeouts. Mocked regression coverage checks the absence of a locker
+deadline and both successful and failed process-exit reports without starting
+Hyprlock. The active local helper and its integrity entry were backed up and
+updated narrowly, and full installed-release integrity verification passed.
+No running component was restarted and no authentication or security settings
+were changed. Historical incomplete logs are consistent with the bug but do
+not independently prove the termination cause of each incident. No new live
+lock/unlock or long-duration acceptance test has been performed.

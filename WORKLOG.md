@@ -5,6 +5,21 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## Screen-lock lifetime correction (plan 035)
+
+- Removed the 30-minute subprocess timeout from the actual Hyprlock invocation;
+  bounded preflight probes and all session, version and configuration checks
+  remain unchanged. The explicit lock now lasts until the process exits.
+- Demonstrated the new mocked regression failing against the old timer, then
+  passing after the fix, including successful and failed completion reports.
+  All 566 unit tests pass without activating a screen lock.
+- Backed up and narrowly updated the active installed helper and its integrity
+  manifest entry; full installed-release verification passed. Private prior
+  state and recovery copies remain under ignored `work/`.
+- No lock activation, live authentication test, process restart, selector change,
+  PAM/security-policy change or commit. Historical incomplete lock records fit
+  the defect but do not prove every incident's cause.
+
 ## Ubuntu-native foundation
 
 - Added read-only doctor reports, capability mapping, package planning and
