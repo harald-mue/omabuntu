@@ -16,7 +16,6 @@ import zlib
 
 import audit_widgets
 import audio_frontend
-import keyboard_frontend
 import check_runtime
 import tooltip_port
 import bar_frame
@@ -188,8 +187,7 @@ def verified_sources(root):
                      "BarTooltip.qml": "bar-tooltip-window-v1", "BarTooltipHost.qml": "bar-tooltip-host-v1",
                      "BarFrame.qml": "fixed-horizontal-sections-v1",
                      "NetworkControlView.qml": "network-control-frontend-v1",
-                     "WorkspaceSwitcher.qml": "workspace-switcher-v1",
-                     "KeyboardLayout.qml": "keyboard-layout-widget-v1"}.get(target, "none")
+                     "WorkspaceSwitcher.qml": "workspace-switcher-v1"}.get(target, "none")
         if target in DESKTOP_TRANSFORMS:
             transform = DESKTOP_TRANSFORMS[target][0]
         if (not isinstance(record, dict) or record.get("path") != source_path or record.get("vendor_path") != vendor
@@ -209,7 +207,6 @@ def verified_sources(root):
                       "fixed-horizontal-sections-v1": bar_frame.derive_frame,
                       "network-control-frontend-v1": network_frontend.derive_network,
                       "workspace-switcher-v1": workspace_modes.derive_workspaces,
-                      "keyboard-layout-widget-v1": keyboard_frontend.derive_keyboard_layout,
                       "clock-calendar-v1": clock_frontend.derive_calendar,
                       "clock-calendar-host-v1": clock_frontend.derive_host}
         transforms.update({key: fn for key, fn in DESKTOP_TRANSFORMS.values()})

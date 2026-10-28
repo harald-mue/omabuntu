@@ -184,7 +184,6 @@ Variants {
           PortTrayHost { id: trayHost; popoutState: barBus; width: implicitWidth; height: implicitHeight }
           KeyboardLayout {
             bar: clockBar
-            settings: ({ alwaysShow: true })
             width: implicitWidth
             height: implicitHeight
           }

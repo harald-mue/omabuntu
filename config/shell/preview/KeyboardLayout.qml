@@ -251,10 +251,7 @@ BarWidget {
     onTriggered: root.refresh()
   }
 
-  // Omabuntu splice (keyboard-layout-widget-v1): single-layout seats keep
-  // the label on the bar. Upstream hides a one-layout, one-method seat; the
-  // ``alwaysShow`` setting (default true) restores upstream behavior when false.
-  visible: inputLabel !== "" && (KeyboardLayoutModel.showIndicator(layoutLabel, multipleLayouts, multipleInputs) || root.setting("alwaysShow", true))
+  visible: inputLabel !== "" && KeyboardLayoutModel.showIndicator(layoutLabel, multipleLayouts, multipleInputs)
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 

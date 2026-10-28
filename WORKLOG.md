@@ -5,6 +5,14 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## Keyboard-layout visibility (plan 036)
+
+- Removed the `alwaysShow` splice. The preview keyboard-layout widget is again
+  a byte copy of pinned Omarchy `03ff1eff`, so a single layout and a single
+  input method hide the label. The widget stays mounted between the tray and
+  Bluetooth. The active shell copies were backed up and replaced; the running
+  bar was not restarted. No second layout, input method or commit.
+
 ## Screen-lock lifetime correction (plan 035)
 
 - Removed the 30-minute subprocess timeout from the actual Hyprlock invocation;

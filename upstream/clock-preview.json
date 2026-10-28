@@ -461,8 +461,8 @@
       "git_blob_sha1": "48f3c6511438fd73090b6243d43d282c7dcdc875",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "keyboard-layout-widget-v1",
-      "staged_sha256": "6d5347819364737077a34ad5e385401e943bda886380fca191adb7dce7e46c49"
+      "stage_transform": "none",
+      "staged_sha256": "3717d02d5dfd43892283706a7bee78c85ba4f6c51202badd45a25dd96f521992"
     },
     "KeyboardLayoutModel.js": {
       "path": "shell/plugins/bar/widgets/KeyboardLayoutModel.js",
@@ -636,7 +636,7 @@
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "4c3885a6e1e43546817a7857feb991fca2f75027b1a7af149523693e9c2d4fd8"
+      "sha256": "2222ad57de829477fb1e6fe4c3c756f8b5d859a028aeee3ea6e5eabec15dc283"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",

@@ -72,19 +72,14 @@ class KeyboardLayoutTests(unittest.TestCase):
         self.assertEqual(record["sha256"], hashlib.sha256(self.parent).hexdigest())
         self.assertEqual(record["source_modifications"], [])
 
-    def test_mirror_is_the_reviewed_splice_of_the_parent(self):
-        with patch.object(sys, "path", [str(ROOT / "tools"), *sys.path]):
-            import keyboard_frontend
-        self.assertEqual(self.mirror, keyboard_frontend.derive_keyboard_layout(self.parent))
-        parent_text, mirror_text = self.parent.decode(), self.mirror.decode()
-        # Exactly one reviewed deviation: the alwaysShow visibility setting.
-        self.assertNotIn("alwaysShow", parent_text)
-        self.assertEqual(mirror_text.count("alwaysShow"), 2)
-        self.assertIn('root.setting("alwaysShow", true)', mirror_text)
-        # The upstream parent otherwise stays intact, model included.
-        for witness in ("KeyboardLayoutModel.showIndicator(layoutLabel, multipleLayouts, multipleInputs)",
-                        "hyprctl switchxkblayout", "cycleLayout", "xkbcli list --load-exotic"):
-            self.assertEqual(parent_text.count(witness), mirror_text.count(witness))
+    def test_mirror_matches_the_vendored_parent(self):
+        self.assertEqual(self.mirror, self.parent)
+        text = self.parent.decode()
+        self.assertNotIn("alwaysShow", text)
+        self.assertIn('visible: inputLabel !== "" && KeyboardLayoutModel.showIndicator(layoutLabel, multipleLayouts, multipleInputs)', text)
+        record = json.loads(read("upstream/clock-preview.json"))["upstream"]["KeyboardLayout.qml"]
+        self.assertEqual(record["stage_transform"], "none")
+        self.assertEqual(record["staged_sha256"], record["sha256"])
 
     def test_restricted_input_method_state_spawns_nothing(self):
         text = read("config/shell/preview/InputMethodState.qml")
