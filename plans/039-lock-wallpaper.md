@@ -25,3 +25,4 @@ No lock activation, authentication attempt, PAM edit, fingerprint, idle timer, s
 - [x] Cover the config and the symlink with unit tests.
 - [x] Update the readiness note, capability matrix, and work log.
 - [x] Run the unit suite. Do not install the release and do not lock the session.
+- [x] After a later request, back up and replace the active release copies of the lock config and background helper. Integrity verification passed. No lock was started.

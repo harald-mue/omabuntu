@@ -195,5 +195,6 @@ the tilde itself. There is no screenshot path and no reload command.
 `background.json` stays the menu record. `set` and `restore` update the symlink
 only after the existing directory allowlist accepts the still. A regular file
 already at the link path is left untouched. The current recorded still was published to that symlink. The active
-installed release was not replaced by this source change, and no lock was
-started.
+release copies of `lock/hyprlock.conf` and `helpers/background_backend.py`
+were later backed up and replaced, and installed integrity verification
+passed. No lock was started.
