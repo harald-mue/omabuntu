@@ -450,7 +450,7 @@
       "license": "MIT",
       "source_modifications": [],
       "stage_transform": "workspace-switcher-v1",
-      "staged_sha256": "02dba6612ff520e44f5a3c744d98bb454646b1e4d557d1ebe792cfa2979cbfc9"
+      "staged_sha256": "45e37aaca0b3cf395eee69731ed5ac1e9441cca9851309d54038f0c2502956d4"
     },
     "KeyboardLayout.qml": {
       "path": "shell/plugins/bar/widgets/KeyboardLayout.qml",

@@ -5,10 +5,11 @@ The vendor widget and toggle script stay unchanged and are not executed.
 Omarchy's toggle evals o.workspace_mode, notifies through omarchy helpers, and
 can reload Hyprland to load the titlebar plugin. None of that is staged.
 Dwindle and scrolling use Hyprland's own workspace_rule layout field. Floating
-is not a Hyprland layout: only tiled, unpinned, non-fullscreen windows are
-tagged, floated, and placed at Omarchy's centered size. Only those tags are
-tiled again on the way out, including when that window is moved onto a tiling
-workspace. The title-bar plugin is not loaded by this eval.
+is not a Hyprland layout: all members receive a presentation tag, while only
+tiled, non-fullscreen windows receive an ownership tag, are floated and placed
+at Omarchy's centered size. Only owned, unpinned windows are tiled on the way
+out; all departing windows lose their presentation tag. The title-bar plugin
+is not loaded by this eval.
 The applied mode is persisted to the state directory (plan 020) so the next
 config load re-registers tiled rules and the shell restores floating modes.
 """
@@ -58,8 +59,8 @@ local function place(window)
     window = window,
   }))
 end
--- This plugin revision has no workspace tag. The named rules hide bars on
--- every window and show them again only for this tag. Refreshing the named
+-- This plugin revision has no workspace_tag option. The named rules hide bars
+-- on every window and show them for workspace membership. Refreshing the named
 -- rules recomputes that after a tag change without turning bars off globally.
 local function refreshFloatedBars()
   if hl.plugin and hl.plugin.hyprbars then
@@ -71,7 +72,8 @@ end
 if mode == "floating" then
   local claiming = {}
   for _, window in ipairs(hl.get_workspace_windows(id)) do
-    if not window.floating and (window.fullscreen or 0) == 0 and not window.pinned then
+    hl.dispatch(hl.dsp.window.tag({ tag = "+omabuntu-floating-workspace", window = window }))
+    if not window.floating and (window.fullscreen or 0) == 0 then
       hl.dispatch(hl.dsp.window.tag({ tag = "+" .. tag, window = window }))
       table.insert(claiming, window)
     end
@@ -83,11 +85,15 @@ if mode == "floating" then
   refreshFloatedBars()
 else
   hl.workspace_rule({ workspace = id, layout = mode })
+  local mine = {}
   for _, window in ipairs(hl.get_windows({ tag = tag })) do
-    local workspace = window.workspace and tostring(window.workspace.id) or ""
-    if workspace == id and not window.pinned then
-      hl.dispatch(hl.dsp.window.float({ action = "off", window = window }))
+    mine[window.address] = true
+  end
+  for _, window in ipairs(hl.get_workspace_windows(id)) do
+    hl.dispatch(hl.dsp.window.tag({ tag = "-omabuntu-floating-workspace", window = window }))
+    if mine[window.address] and not window.pinned then
       hl.dispatch(hl.dsp.window.tag({ tag = "-" .. tag, window = window }))
+      hl.dispatch(hl.dsp.window.float({ action = "off", window = window }))
     end
   end
   refreshFloatedBars()
@@ -149,11 +155,21 @@ end
 if window.workspace and tostring(window.workspace.id) ~= id then
   return
 end
-if window.floating or (window.fullscreen or 0) ~= 0 or window.pinned then
+local function refreshFloatedBars()
+  if hl.plugin and hl.plugin.hyprbars then
+    hl.config({ plugin = { hyprbars = { enabled = true } } })
+    hl.window_rule({ name = "omabuntu-hyprbars-hide", enabled = true })
+    hl.window_rule({ name = "omabuntu-hyprbars-show-floated", enabled = true })
+  end
+end
+hl.dispatch(hl.dsp.window.tag({ tag = "+omabuntu-floating-workspace", window = target }))
+if window.floating or (window.fullscreen or 0) ~= 0 then
+  refreshFloatedBars()
   return
 end
 hl.dispatch(hl.dsp.window.tag({ tag = "+" .. tag, window = target }))
 hl.dispatch(hl.dsp.window.float({ action = "on", window = target }))
+refreshFloatedBars()
 local cascade = %CASCADE%
 local monitor = window.monitor
 if not monitor or not monitor.width then
@@ -180,11 +196,6 @@ hl.dispatch(hl.dsp.window.move({
   relative = true,
   window = target,
 }))
-if hl.plugin and hl.plugin.hyprbars then
-  hl.config({ plugin = { hyprbars = { enabled = true } } })
-  hl.window_rule({ name = "omabuntu-hyprbars-hide", enabled = true })
-  hl.window_rule({ name = "omabuntu-hyprbars-show-floated", enabled = true })
-end
 """
 
 # Omarchy's tile_for_mode: a window moved onto a tiling workspace gives up the
@@ -224,11 +235,11 @@ local function ours(candidate)
   end
   return false
 end
-if not ours(window) or window.pinned then
-  return
+hl.dispatch(hl.dsp.window.tag({ tag = "-omabuntu-floating-workspace", window = target }))
+if ours(window) and not window.pinned then
+  hl.dispatch(hl.dsp.window.tag({ tag = "-" .. tag, window = target }))
+  hl.dispatch(hl.dsp.window.float({ action = "off", window = target }))
 end
-hl.dispatch(hl.dsp.window.tag({ tag = "-" .. tag, window = target }))
-hl.dispatch(hl.dsp.window.float({ action = "off", window = target }))
 if hl.plugin and hl.plugin.hyprbars then
   hl.config({ plugin = { hyprbars = { enabled = true } } })
   hl.window_rule({ name = "omabuntu-hyprbars-hide", enabled = true })
@@ -520,6 +531,7 @@ Item {{
   property int claimCascade: 0
   property var claimQueue: []
   property var moveQueue: []
+  property var retileQueue: []
   readonly property string claimEval: {json.dumps(CLAIM.rstrip())}
   readonly property string releaseEval: {json.dumps(RELEASE.rstrip())}
 
@@ -529,16 +541,24 @@ Item {{
     for (var i = 0; i < tops.length; i++) {{
       var workspace = tops[i].workspace
       if (!workspace) continue
-      var ipc = tops[i].lastIpcObject
-      if (ipc && ipc.floating) continue
       var address = String(tops[i].address || "")
       if (address.slice(0, 2) !== "0x") address = "0x" + address
       root.claimWindow(address, workspace.id)
     }}
   }}
 
+  function claimAllowed(workspaceId) {{
+    if (!root.liveModes || !(workspaceId >= 1) || !TrialDesktopState.isFloating(workspaceId)) return false
+    // A switch away from floating emits its own floating-off events before
+    // the async apply/save finishes. Do not undo that approved mode change.
+    if (applyProc.running && applyProc.requestId === workspaceId && applyProc.requestMode !== "floating") return false
+    if (applyProc.running && applyProc.queuedSerial > applyProc.requestSerial &&
+        applyProc.queuedId === workspaceId && applyProc.queuedMode !== "floating") return false
+    return true
+  }}
+
   function claimWindow(address, workspaceId) {{
-    if (!root.liveModes || !(workspaceId >= 1) || !TrialDesktopState.isFloating(workspaceId)) return
+    if (!root.claimAllowed(workspaceId)) return
     if (!/^0x[0-9a-fA-F]+$/.test(address)) return
     var queue = root.claimQueue.slice()
     for (var i = 0; i < queue.length; i++) {{
@@ -570,6 +590,29 @@ Item {{
     moveTimer.restart()
   }}
 
+  // Hyprland temporarily floats tiled drag targets, then tiles them at drop.
+  // Approved policy: correct any retile on a floating workspace, including a
+  // manual toggle. State-one events are ignored to avoid a corrective loop.
+  function noteRetile(address) {{
+    if (!root.liveModes || !/^0x[0-9a-fA-F]+$/.test(address)) return
+    var tops = Hyprland.toplevels.values
+    for (var i = 0; i < tops.length; i++) {{
+      var candidate = String(tops[i].address || "")
+      if (candidate.slice(0, 2) !== "0x") candidate = "0x" + candidate
+      if (candidate !== address) continue
+      var workspace = tops[i].workspace
+      if (!workspace || !root.claimAllowed(workspace.id)) return
+      var queue = root.retileQueue.slice()
+      for (var j = 0; j < queue.length; j++) {{
+        if (queue[j].address === address && queue[j].id === workspace.id) return
+      }}
+      queue.push({{ address: address, id: workspace.id }})
+      root.retileQueue = queue
+      retileTimer.restart()
+      return
+    }}
+  }}
+
   function drainClaims() {{
     if (claimProc.running || !root.liveModes) return
     var queue = root.claimQueue.slice()
@@ -584,7 +627,7 @@ Item {{
           .replace("%ADDRESS%", claim.address)
           .replace("%ID%", String(claim.id))
       }} else {{
-        if (!floating) continue
+        if (!root.claimAllowed(claim.id)) continue
         script = root.claimEval
           .replace("%ADDRESS%", claim.address)
           .replace("%ID%", String(claim.id))
@@ -602,6 +645,19 @@ Item {{
       if (!event) return
       var name = String(event.name)
       var raw = String(event.data || "")
+      if (name === "changefloatingmode") {{
+        var state = raw.split(",")
+        if (state.length === 2 && state[1] === "0" && /^[0-9a-fA-F]+$/.test(state[0]))
+          root.noteRetile("0x" + state[0])
+        return
+      }}
+      // The fullscreen socket event has only 0/1, not a window address. It
+      // covers maximization too. Recheck candidates after the change lands;
+      // the Lua claim decides from live state, never an IPC snapshot or focus.
+      if (name === "fullscreen") {{
+        if (root.liveModes && (raw === "0" || raw === "1")) fullscreenTimer.restart()
+        return
+      }}
       if (name === "openwindow") {{
         var data = raw.split(",")
         if (data.length < 2) return
@@ -619,6 +675,27 @@ Item {{
       if (String(moved) !== idText) return
       root.noteMove("0x" + raw.slice(0, first), moved)
     }}
+  }}
+
+  Timer {{
+    id: retileTimer
+    interval: 1
+    repeat: false
+    onTriggered: function() {{
+      var pending = root.retileQueue
+      root.retileQueue = []
+      for (var i = 0; i < pending.length; i++) {{
+        var item = pending[i]
+        root.claimWindow(item.address, item.id)
+      }}
+    }}
+  }}
+
+  Timer {{
+    id: fullscreenTimer
+    interval: 1
+    repeat: false
+    onTriggered: root.restoreFloating()
   }}
 
   Timer {{

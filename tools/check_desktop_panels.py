@@ -21,6 +21,8 @@ import "FixtureHyprland"
 ShellRoot {
   id: test
   property var views: []
+  property var workspaceSwitcher: null
+  Timer { interval: 2000; running: true; onTriggered: { console.error("DESKTOP_COMPILE_FAILED: fixture did not finish"); Qt.exit(45); } }
   Window { width: 1200; height: 800; visible: true; Item { id: surface; anchors.fill: parent } }
   QtObject {
     id: bar
@@ -137,7 +139,7 @@ ShellRoot {
       ws.fixtureBusy = true;
       Hyprland.toplevels.values = [
         {address:"0x123", workspace:{id:1}, lastIpcObject:{floating:false}},
-        {address:"0x456", workspace:{id:1}, lastIpcObject:{floating:false}},
+        {address:"0x456", workspace:{id:1}, lastIpcObject:{floating:true}},
         {address:"0x789", workspace:{id:2}, lastIpcObject:{floating:false}}];
       // State may arrive after both the switcher and application windows.
       TrialDesktopState.applySaved("1 floating\\n2 scrolling\\n");
@@ -151,6 +153,136 @@ ShellRoot {
       if (TrialDesktopState.savedMode(1) !== undefined || ws.activeMode !== "dwindle") throw new Error("Default mode stale");
       TrialDesktopState.applySaved("");
       console.log("OMABUNTU_WORKSPACE_RESTORE_OK");
+      test.workspaceSwitcher = ws;
+      ws.fixtureBusy = true;
+      TrialDesktopState.applySaved("1 floating\\n2 scrolling\\n");
+      ws.claimQueue = [];
+      ws.fixtureClaims = [];
+      Hyprland.rawEvent({name:"fullscreen", data:"0"});
+      Hyprland.rawEvent({name:"fullscreen", data:"1"});
+      if (ws.claimQueue.length !== 0) throw new Error("Fullscreen arrangement must be delayed");
+      checkFullscreen.start();
+    }
+  }
+  Timer {
+    id: checkFullscreen; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 2) throw new Error("Fullscreen event did not queue floating-workspace candidates");
+      ws.fixtureBusy = false;
+      ws.drainClaims(); ws.drainClaims();
+      if (ws.fixtureClaims.length !== 2 || ws.claimQueue.length !== 0) throw new Error("Fullscreen queue lost candidates");
+      for (var i = 0; i < ws.fixtureClaims.length; i++) {
+        if (ws.fixtureClaims[i].indexOf('local id = "1"') < 0) throw new Error("Fullscreen arrangement touched tiled workspace");
+      }
+      ws.fixtureBusy = true;
+      Hyprland.rawEvent({name:"fullscreen", data:"0"});
+      TrialDesktopState.applied(1, "dwindle");
+      checkRevoked.start();
+    }
+  }
+  Timer {
+    id: checkRevoked; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 0) throw new Error("Revoked floating grant consumed a fullscreen event");
+      console.log("OMABUNTU_WORKSPACE_FULLSCREEN_OK");
+      Hyprland.toplevels.values = [
+        {address:"0x123", workspace:{id:2}, lastIpcObject:{floating:false}},
+        {address:"0x456", workspace:{id:1}, lastIpcObject:{floating:true}},
+        {address:"0x789", workspace:{id:2}, lastIpcObject:{floating:false}},
+        {address:"0x999", workspace:{id:-99}, lastIpcObject:{floating:false}}];
+      TrialDesktopState.applySaved("1 floating\\n2 scrolling\\n");
+      ws.claimQueue = []; ws.fixtureClaims = [];
+      Hyprland.rawEvent({name:"changefloatingmode", data:"123,1"});
+      if (ws.claimQueue.length !== 0) throw new Error("Floating-on event must not claim");
+      Hyprland.toplevels.values[0].workspace = {id:1};
+      Hyprland.rawEvent({name:"movewindowv2", data:"123,1,1"});
+      checkDragMove.start();
+    }
+  }
+  Timer {
+    id: checkDragMove; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 1) throw new Error("Recorded drag move not queued");
+      ws.fixtureBusy = false; ws.drainClaims(); ws.fixtureBusy = true;
+      ws.fixtureClaims = [];
+      // The native drop occurs later than the move, with no second move event.
+      Hyprland.rawEvent({name:"changefloatingmode", data:"123,0"});
+      Hyprland.rawEvent({name:"changefloatingmode", data:"123,0"});
+      Hyprland.rawEvent({name:"changefloatingmode", data:"456,1"});
+      Hyprland.rawEvent({name:"changefloatingmode", data:"789,0"});
+      Hyprland.rawEvent({name:"changefloatingmode", data:"999,0"});
+      Hyprland.rawEvent({name:"changefloatingmode", data:"aaa,0"});
+      Hyprland.rawEvent({name:"changefloatingmode", data:"not-hex,0"});
+      Hyprland.rawEvent({name:"changefloatingmode", data:"123,0,extra"});
+      if (ws.claimQueue.length !== 0) throw new Error("Retile correction must be delayed");
+      checkDragDrop.start();
+    }
+  }
+  Timer {
+    id: checkDragDrop; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 1 || ws.claimQueue[0].address !== "0x123")
+        throw new Error("Drop did not queue one addressed floating-workspace correction");
+      ws.fixtureBusy = false; ws.drainClaims(); ws.fixtureBusy = true;
+      if (ws.fixtureClaims.length !== 1 || ws.fixtureClaims[0].indexOf("address:0x123") < 0)
+        throw new Error("Drop correction lost serialized claim");
+      ws.fixtureClaims = [];
+      // This manual retile is intentionally corrected under the approved policy.
+      Hyprland.rawEvent({name:"changefloatingmode", data:"456,0"});
+      checkManualRetile.start();
+    }
+  }
+  Timer {
+    id: checkManualRetile; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 1 || ws.claimQueue[0].address !== "0x456")
+        throw new Error("Manual retile did not follow approved workspace policy");
+      ws.claimQueue = [];
+      ws.liveModes = false;
+      Hyprland.rawEvent({name:"changefloatingmode", data:"123,0"});
+      checkDisabledRetile.start();
+    }
+  }
+  Timer {
+    id: checkDisabledRetile; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 0) throw new Error("Disabled policy queued a correction");
+      ws.liveModes = true;
+      ws.claimQueue = [];
+      ws.fixtureApplying = true;
+      ws.fixtureApplyId = 1;
+      ws.fixtureApplyMode = "dwindle";
+      Hyprland.rawEvent({name:"changefloatingmode", data:"123,0"});
+      checkModeSwitchRetile.start();
+    }
+  }
+  Timer {
+    id: checkModeSwitchRetile; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 0) throw new Error("Retile correction undid an in-flight workspace mode switch");
+      ws.claimQueue = [{address:"0x123", id:1}];
+      ws.fixtureBusy = false; ws.drainClaims(); ws.fixtureBusy = true;
+      if (ws.claimQueue.length !== 0 || ws.fixtureClaims.length !== 0)
+        throw new Error("An old queued claim undid the workspace mode switch");
+      ws.fixtureApplying = false;
+      Hyprland.rawEvent({name:"changefloatingmode", data:"123,0"});
+      TrialDesktopState.applied(1, "dwindle");
+      checkRevokedRetile.start();
+    }
+  }
+  Timer {
+    id: checkRevokedRetile; interval: 50
+    onTriggered: {
+      var ws = test.workspaceSwitcher;
+      if (ws.claimQueue.length !== 0) throw new Error("Revoked grant queued a retile correction");
+      console.log("OMABUNTU_WORKSPACE_RETILE_OK");
       console.log("OMABUNTU_DESKTOP_COMPILE_OK"); Qt.quit();
     }
   }
@@ -180,6 +312,10 @@ def run(root, build):
             # Exercise state/queue logic without executing compositor commands.
             data = data.replace(b'id: root', b'id: root\n  property bool fixtureBusy: false\n  property var fixtureClaims: []', 1)
             data = data.replace(b'claimProc.running', b'root.fixtureBusy')
+            data = data.replace(b'id: root\n', b'id: root\n  property bool fixtureApplying: false\n  property int fixtureApplyId: -1\n  property string fixtureApplyMode: ""\n', 1)
+            data = data.replace(b'applyProc.running', b'root.fixtureApplying')
+            data = data.replace(b'applyProc.requestId', b'root.fixtureApplyId')
+            data = data.replace(b'applyProc.requestMode', b'root.fixtureApplyMode')
             data = data.replace(b'claimProc.exec(["hyprctl", "eval", script])',
                                 b'root.fixtureClaims = root.fixtureClaims.concat([script])')
         if name == 'DockWindow.qml':
@@ -198,7 +334,7 @@ def run(root, build):
     fake = case / 'probe/FixtureHyprland'
     fake.mkdir()
     (fake / 'qmldir').write_text('singleton Hyprland 1.0 Hyprland.qml\nHyprlandFocusGrab 1.0 FocusGrab.qml\n')
-    (fake / 'Hyprland.qml').write_text('pragma Singleton\nimport QtQml\nQtObject { property QtObject toplevels: QtObject { property var values: [] }; property var workspaces: ({values:[]}); property var focusedWorkspace: null; signal rawEvent(var event); function monitorFor(screen) { return null; } }')
+    (fake / 'Hyprland.qml').write_text('pragma Singleton\nimport QtQml\nQtObject { property QtObject toplevels: QtObject { property var values: [] }; property var workspaces: ({values:[]}); property var focusedWorkspace: null; signal rawEvent(var event); function refreshWorkspaces() {} function refreshToplevels() {} function monitorFor(screen) { return null; } }')
     (fake / 'FocusGrab.qml').write_text('import QtQuick\nItem { property bool active: false; property var windows: []; signal cleared() }\n')
     fake = case / 'probe/FixtureBluetooth'
     fake.mkdir()
@@ -240,7 +376,7 @@ QtObject {
     ok = (result.returncode == 0 and 'OMABUNTU_DESKTOP_COMPILE_OK' in text
           and not any(marker in text for marker in ('DESKTOP_COMPILE_FAILED', 'DESKTOP_CREATE_FAILED', 'TypeError:', 'ReferenceError:', 'Cannot assign', 'Unable to assign', 'Binding loop')))
     report = {'status': 'isolated-compile-passed' if ok else ('timeout' if result.returncode == 124 else 'failed'), 'returncode': result.returncode,
-              'limits': 'Compilation and original panel construction with synthetic layer ownership, BlueZ and UPower. Mock action routing, shared discovery leases, dock provenance, the derived calendar grid, late workspace-state loading and serialized floating claims are tested. No native device actions, popup/focus or visual acceptance.'}
+              'limits': 'Compilation and original panel construction with synthetic layer ownership, BlueZ and UPower. Mock action routing, shared discovery leases, dock provenance, the derived calendar grid, late workspace-state loading, fullscreen restore scheduling, the native drag event sequence, addressed retile policy, serialized claims and workspace-mode-switch suppression are tested. No native device actions, popup/focus or visual acceptance.'}
     (case / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(case / 'report.json')
     if not ok:

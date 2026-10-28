@@ -62,6 +62,7 @@ class WorkspaceModeTests(unittest.TestCase):
         self.assertIn('local cascade = 2', script)
         self.assertIn('cascade * 24 - 48', script)
         self.assertIn('omabuntu-mode-floated', script)
+        self.assertIn('+omabuntu-floating-workspace', script)
         self.assertIn('omabuntu-hyprbars-show-floated', script)
         self.assertIn('hl.dsp.window.float({ action = "on", window = target })', script)
         for forbidden in ("omarchy-", "hyprctl", "reload", "titlebars", "notify", "exec", "os.execute"):
@@ -79,6 +80,7 @@ class WorkspaceModeTests(unittest.TestCase):
         self.assertIn('TrialDesktopState.savedMode(String(id))', mirror)
         self.assertIn('if (saved) return saved', mirror)
         self.assertIn('function restoreFloating()', mirror)
+        self.assertNotIn('if (ipc && ipc.floating) continue', mirror)
         self.assertIn('function onSavedModesChanged()', mirror)
         self.assertIn('function onValuesChanged()', mirror)
         self.assertIn('queue.push({ address: address, id: workspaceId })', mirror)
@@ -93,6 +95,7 @@ class WorkspaceModeTests(unittest.TestCase):
         self.assertIn('hl.dsp.window.float({ action = "off", window = target })', script)
         self.assertLess(script.index('tag = "-"'), script.index('action = "off"'))
         self.assertIn('window.pinned', script)
+        self.assertIn('-omabuntu-floating-workspace', script)
         self.assertIn('omabuntu-hyprbars-show-floated', script)
         for forbidden in ("omarchy-", "hyprctl", "reload", "titlebars", "notify", "exec", "os.execute"):
             self.assertNotIn(forbidden, script)
@@ -106,6 +109,25 @@ class WorkspaceModeTests(unittest.TestCase):
         self.assertIn("function noteMove(address, workspaceId)", mirror)
         self.assertIn("interval: 1", mirror)
         self.assertIn("queue.push({ address: address, id: workspaceId, release: true })", mirror)
+        self.assertEqual(mirror.count('claimProc.exec(["hyprctl", "eval", script])'), 1)
+
+    def test_fullscreen_events_schedule_a_delayed_live_state_rescan(self):
+        mirror = workspace_modes.derive_workspaces(workspace_modes.WIDGET.read_bytes()).decode()
+        self.assertIn('if (name === "fullscreen")', mirror)
+        self.assertIn('(raw === "0" || raw === "1")', mirror)
+        self.assertIn('fullscreenTimer.restart()', mirror)
+        self.assertIn('id: fullscreenTimer\n    interval: 1\n    repeat: false\n    onTriggered: root.restoreFloating()', mirror)
+        self.assertNotIn('activeToplevel', mirror)
+
+    def test_retiled_windows_use_an_addressed_delayed_claim(self):
+        mirror = workspace_modes.derive_workspaces(workspace_modes.WIDGET.read_bytes()).decode()
+        self.assertIn('if (name === "changefloatingmode")', mirror)
+        self.assertIn('state.length === 2 && state[1] === "0"', mirror)
+        self.assertIn('function noteRetile(address)', mirror)
+        self.assertIn('!root.claimAllowed(workspace.id)', mirror)
+        self.assertIn('applyProc.requestId === workspaceId && applyProc.requestMode !== "floating"', mirror)
+        self.assertIn('id: retileTimer\n    interval: 1\n    repeat: false', mirror)
+        self.assertIn('root.claimWindow(item.address, item.id)', mirror)
         self.assertEqual(mirror.count('claimProc.exec(["hyprctl", "eval", script])'), 1)
 
     def test_switcher_keeps_the_original_glyph_function(self):

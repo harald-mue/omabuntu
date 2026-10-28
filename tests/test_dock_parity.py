@@ -200,7 +200,8 @@ class HyprbarsBuildTests(unittest.TestCase):
         text = (ROOT / 'config/hypr/hyprbars.lua').read_text()
         show = text.split('name = "omabuntu-hyprbars-show-floated",', 1)[1].split('})', 1)[0]
         self.assertRegex(show, r'match\s*=\s*\{[^}]*class\s*=\s*"\.\*"')
-        self.assertIn('tag = "omabuntu-mode-floated"', show)
+        self.assertIn('tag = "omabuntu-floating-workspace"', show)
+        self.assertNotIn('tag = "omabuntu-mode-floated"', show)
         self.assertEqual(show.count('["hyprbars:no_bar"]'), 1)
 
     def test_titlebar_snippet_is_not_installed_and_only_quotes_dispatchers(self):
@@ -209,7 +210,7 @@ class HyprbarsBuildTests(unittest.TestCase):
         self.assertIn('hl.plugin.hyprbars', text)
         self.assertIn('add_button', text)
         self.assertIn('omabuntu-hyprbars-hide', text)
-        self.assertIn('omabuntu-mode-floated', text)
+        self.assertIn('omabuntu-floating-workspace', text)
         self.assertLess(text.index('omabuntu-hyprbars-hide'), text.index('omabuntu-hyprbars-show-floated'))
         self.assertIn('hl.dsp.window.close', text)
         self.assertIn('hl.dsp.window.fullscreen', text)

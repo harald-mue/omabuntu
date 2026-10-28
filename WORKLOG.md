@@ -43,10 +43,57 @@ ignored `work/`. Historical Git objects are not changed by editing this file.
 - A window moved between a floating and a tiling workspace is arranged the way
   Omarchy's move handler does: the mode's own floated window is tiled again on
   the way out, and a tiled window dragged onto a floating workspace is claimed.
-  A window floated on its own stays floating. Fullscreen, click-to-focus, and
-  the second floating-workspace tag stay excluded. The approved bar restart now
+  A window floated on its own stays floating. Fullscreen-exit arranging and
+  click-to-focus stay excluded. The approved bar restart now
   serves this shell, including the two-column Super+K card. Hyprland was not
   reloaded.
+- Plan 032 prepares Omarchy's separate floating-workspace membership tag.
+  Already-floating arrivals receive the titlebar without acquiring mode ownership;
+  all departures lose membership, but only owned, unpinned windows are tiled.
+  Workspace toggles and startup restore follow the same distinction. The pinned
+  hyprbars compatibility rule now matches membership. Executable Lua regressions
+  cover already-floating/fullscreen/pinned arrivals, unowned departures and whole
+  workspace changes. The approved local update is now installed: the owned shell
+  was restarted and the backed-up titlebar configuration reloaded without changing
+  autostart or plugin binaries. A malformed empty-argv process record was reconciled
+  only after explicit approval and matching live PID/start ticks/exact argv.
+  The existing floating window initially lacked membership after startup; the
+  reviewed claim eval added it successfully without claiming or resizing it.
+  Automatic startup restoration and actual drag/drop/button rendering still need
+  live confirmation; installation and a successful eval are not visual acceptance.
+- Plan 033 prepares the missing Omarchy arrangement after maximization/fullscreen
+  changes. The addressless socket event triggers a delayed, coalesced rescan of
+  floating-workspace candidates through the existing serialized claim queue.
+  Live Lua checks preserve fullscreen and already-floating geometry; a restored,
+  still-tiled window is floated and placed. The QML event/timer regression fails
+  without the handler and passes with it; real Lua tests cover maximized and
+  fullscreen restore plus repeated-event geometry preservation. This follow-up
+  is now deployed after explicit approval, with transaction backups and an
+  owned-shell-only restart. Installed integrity and clean startup/configuration
+  checks pass; compositor config, plugin binaries and autostart were unchanged.
+  Live drag/maximize/restore/resize and startup restoration remain unconfirmed.
+- Plan 034 investigates direct placement after cross-workspace drag completion.
+  Versioned Hyprland source shows temporary floating during a tiled drag and a
+  possible retile at dragEnd. The supported socket/Lua interfaces provide no
+  explicit drag-end event. A coordinated passive trace now confirms floating-on,
+  workspace move, then floating-off at release; the affected window is tiled and
+  non-fullscreen afterwards, not maximized. That socket sequence can also result
+  from intentional manual toggles, so reliable drag-only correlation is not yet
+  established. The user explicitly approved correcting manual retile on floating
+  workspaces as well. The source now defers an addressed, deduplicated claim on
+  floating-off events and ignores floating-on events. Active/queued workspace-mode
+  changes away from floating block claims, preventing correction feedback.
+  Tiling/special workspaces, fullscreen and existing floating geometry are
+  preserved. The recorded event-sequence regression fails without the correction
+  and passes with it; all 565 unittests and the isolated QML fixture pass.
+  The user-approved policy extension is now installed with backups and an
+  owned-shell-only restart. Installed integrity and clean startup/configuration
+  checks pass, with saved workspace modes and compositor config hashes unchanged.
+  No Hyprland reload, autostart/plugin change or application test manipulation
+  occurred. The user confirmed basic native drag/drop correction. Its brief
+  release-time position change comes from the shared resize/center/cascade path;
+  preserving drop position was discussed and explicitly deferred. Separate
+  manual-retile/pointer-resize live acceptance and startup restoration remain open.
 - App launches from the app grid and the floating dock now arm Omarchy's
   delayed "Launching …" notice. It appears only when no window has arrived
   after two seconds, passes clicks through, and is not a notification. The

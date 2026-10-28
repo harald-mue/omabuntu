@@ -4,7 +4,7 @@
 -- workspaces. hyprland-plugins v0.56.0 has no workspace_tag option. It does
 -- support the dynamic window effect hyprbars:no_bar. The first named rule hides
 -- bars on every window; the second, registered after it, clears that effect for
--- windows carrying omabuntu-mode-floated. A later rule overwrites the effect.
+-- windows carrying omabuntu-floating-workspace, independently of float ownership. A later rule overwrites the effect.
 -- The workspace switcher only refreshes these names. It must not redefine them,
 -- because repeating an effect appends another copy.
 --
@@ -28,7 +28,7 @@ hl.window_rule({
   name = "omabuntu-hyprbars-show-floated",
   -- Title updates emit TITLE|CLASS in Hyprland 0.56.2. Both overrides must
   -- match CLASS: custom effects do not trigger dependent-rule reevaluation.
-  match = { class = ".*", tag = "omabuntu-mode-floated" },
+  match = { class = ".*", tag = "omabuntu-floating-workspace" },
   ["hyprbars:no_bar"] = "0",
 })
 

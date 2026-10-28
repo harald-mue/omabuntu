@@ -111,9 +111,11 @@ include dependency correctly.
 The v0.56.0 plugin lacks `workspace_tag` and `button_rounding`. It does register
 the dynamic window effect `hyprbars:no_bar`. `config/hypr/hyprbars.lua` now
 defines two named rules: every window gets `no_bar`, and windows tagged
-`omabuntu-mode-floated` override that because the later rule replaces the effect.
-Both rules match `class = ".*"`; the show rule additionally requires the floated
-tag. This shared class matcher is essential on Hyprland 0.56.2. Title changes
+`omabuntu-floating-workspace` override that because the later rule replaces the
+effect. This membership tag follows Omarchy's separation from the ownership tag
+`omabuntu-mode-floated`: already-floating windows get bars without being claimed
+for later tiling. The rule keeps its historical `show-floated` name.
+Both rules match `class = ".*"`; the show rule additionally requires membership. This shared class matcher is essential on Hyprland 0.56.2. Title changes
 emit `RULE_PROP_TITLE | RULE_PROP_CLASS`. Its custom-effect reset removes
 `hyprbars:no_bar` without adding that effect to the dependent-rule recheck set.
 With a class-only hide rule and a tag-only show rule, title changes therefore

@@ -25,10 +25,12 @@ the Omarchy helper commands are not used.
 
 Hyprland 0.56.2 can store `dwindle` or `scrolling` on a workspace rule. It has
 no floating workspace layout, and `workspaceopt` is deprecated. Floating
-therefore follows the Omarchy idea without its Lua module: tag tiled,
-unpinned, non-fullscreen windows with `omabuntu-mode-floated`, float those
-windows, and on the way back to a tiled layout tile and untag only those
-windows. The call is `hyprctl eval` of Hyprland's own `hl.workspace_rule`,
+therefore follows Omarchy's two-tag arrangement without its Lua module:
+mark every window on a floating workspace with `omabuntu-floating-workspace`.
+Tag tiled, non-fullscreen windows separately with `omabuntu-mode-floated`,
+float them, and on the way back tile and untag only owned, unpinned windows.
+Every departing window loses the membership tag, including unowned and pinned
+windows; their own floating state is preserved. The call is `hyprctl eval` of Hyprland's own `hl.workspace_rule`,
 `hl.get_workspace_windows`, `hl.dsp.window.tag` and `hl.dsp.window.float`.
 
 A window this mode floats is then sized the way Omarchy's `place()` does.
@@ -37,29 +39,85 @@ including this bar. The window becomes at most 1100 by 760 pixels, and at
 most 64 percent of that width and 68 percent of that height, then centered.
 Each further window on the same switch steps 24 pixels, through five
 positions, so the windows do not stack exactly. Windows that were already
-floating, fullscreen, or pinned keep their own size. New windows on a floating
+floating or fullscreen keep their own size. New windows on a floating
 workspace join the same placement path; the eval itself loads no title-bar plugin.
 
 A window moved from one workspace to another is arranged after the move lands.
 Hyprland 0.56.2 posts `movewindowv2` as `{address},{id},{name}` before
 `moveToWorkspace` returns. The shell waits one millisecond, the same pause as
 Omarchy's `window.move_to_workspace` handler, then uses the destination id.
-A tiled window arriving on a floating workspace takes the existing claim path.
+Every window arriving on a floating workspace receives its membership tag.
+A tiled, non-fullscreen arrival also takes the existing ownership/placement path.
+An already-floating arrival keeps its geometry and ownership but still gets the
+titlebar. This matters during dragging, when Hyprland can already report floating.
 A window that leaves for a tiling workspace is tiled and untagged only when it
 carries `omabuntu-mode-floated` and is not pinned. A window floated on its own,
 with Super+T or its own rule, keeps floating. Special workspaces, whose ids are
 negative, are left alone, as in Omarchy's `arrange()`.
 
-Still different from that Omarchy module, and not part of this move:
+## Restore after maximization or fullscreen (plan 033)
 
-- Omarchy also tags every window on a floating workspace and hangs title bars,
-  shadows, and full opacity on that second tag. This port only tags windows
-  the mode itself floated, then refreshes the existing named title-bar rules.
+Omarchy delays `arrange({window})` on `window.fullscreen` by one millisecond.
+The switcher now also schedules an arrangement after maximization/fullscreen
+changes. The Hyprland 0.56.2 socket event `fullscreen` contains only `0` or `1`,
+not the affected window address, so this port coalesces events and rescans known
+windows on floating workspaces instead of guessing from the focused window.
+It uses the existing serialized claim queue and live Lua destination/state
+checks, not a possibly stale IPC fullscreen flag. Revoked grants and special
+workspaces are left alone.
+
+A maximized/fullscreen window is not forcibly restored. When its state becomes
+zero, a still-tiled candidate is tagged as mode-owned, floated, resized, centered
+and cascaded. Already-floating windows keep their size and position on subsequent
+events. The titlebar maximize command is unchanged. This follow-up has been
+installed with explicit approval and an owned-shell-only restart; no compositor
+reload or configuration change was needed. Actual drag/maximize/restore/resize
+acceptance remains pending. Deployment does not establish that the previously
+unconfirmed startup restore works.
+
+## Keep normal windows floating after a retile (plan 034)
+
+A coordinated native trace confirmed that Hyprland 0.56.2 temporarily floats a
+tiled drag target, moves it, then emits `changefloatingmode` with state zero
+when dropping it. The move-time claim can therefore see a floating window and
+skip placement before the native drop tiles it again. That is not maximization.
+
+The user approved an explicit policy extension beyond the pinned Omarchy
+handlers: normal windows on a floating workspace are returned to floating after
+any retile, including a deliberate manual toggle. To keep a window tiled, move
+it to a tiling/scrolling workspace or change the workspace mode.
+
+The source implementation validates the addressed floating-off event, resolves
+its known workspace and defers a deduplicated claim by one millisecond through
+the existing serialized queue. It does not guess a drag duration or monitor
+input. Floating-on events are ignored, preventing a correction feedback loop.
+The workspace grant is rechecked before execution; in-flight or queued mode
+changes away from floating block claims so the correction cannot undo the mode
+switch. The Lua eval rechecks the live destination and preserves maximized,
+fullscreen and already-floating geometry. Unknown, closed, stale-destination
+and special-workspace candidates are ignored.
+
+This policy has been installed with explicit approval, backups and an
+owned-shell-only restart. Installed integrity and clean startup/configuration
+checks pass; no Hyprland reload, compositor config or autostart change was
+needed. The user confirmed that basic native drag/drop correction works. A
+brief position change on release remains: the corrective claim uses the shared
+resize/center/cascade placement path. The user chose to leave this unchanged
+for now; preserving the drop position is deferred. Manual-retile and pointer-resize
+coverage is isolated-tested, not separately live-accepted. The earlier startup
+restoration uncertainty remains separate.
+
+Still different from that Omarchy module:
+
+- Like Omarchy, this port separates workspace membership from float ownership.
+  Membership controls the existing titlebar rules and is restored for already
+  floating windows at shell startup too. Omarchy's additional shadow/full-opacity
+  effects remain excluded; the pinned plugin uses named no_bar overrides rather
+  than Omarchy's workspace_tag option.
 - New windows there float from the first frame by a window rule, excluding
   modals and apps that float on their own. Here a new window is claimed after
   `openwindow`, so it can appear tiled for a moment. There is no catalog of
   apps that float on their own.
-- Leaving fullscreen on a floating workspace does not float the window again.
 - Other maximized windows on a floating workspace are not cleared.
 - `follow_mouse` is not switched to click-to-focus while a floating workspace
   is active.

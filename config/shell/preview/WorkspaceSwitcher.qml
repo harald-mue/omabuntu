@@ -115,7 +115,7 @@ Item {
     function onValuesChanged() { root.restoreFloating() }
   }
 
-  readonly property string layoutEval: "local mode = \"%MODE%\"\nlocal id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nif mode ~= \"dwindle\" and mode ~= \"scrolling\" and mode ~= \"floating\" then\n  error(\"unsupported workspace mode\")\nend\nlocal cascade = 0\nlocal function place(window)\n  local monitor = window.monitor\n  if not monitor or not monitor.width then\n    return\n  end\n  local width = math.floor(monitor.width / monitor.scale)\n  local height = math.floor(monitor.height / monitor.scale)\n  if (monitor.transform or 0) % 2 == 1 then\n    width, height = height, width\n  end\n  local reserved = monitor.reserved or {}\n  width = width - (reserved.left or 0) - (reserved.right or 0)\n  height = height - (reserved.top or 0) - (reserved.bottom or 0)\n  hl.dispatch(hl.dsp.window.resize({\n    x = math.min(1100, math.floor(width * 0.64)),\n    y = math.min(760, math.floor(height * 0.68)),\n    relative = false,\n    window = window,\n  }))\n  hl.dispatch(hl.dsp.window.center({ window = window }))\n  cascade = (cascade + 1) % 5\n  hl.dispatch(hl.dsp.window.move({\n    x = cascade * 24 - 48,\n    y = cascade * 24 - 48,\n    relative = true,\n    window = window,\n  }))\nend\n-- This plugin revision has no workspace tag. The named rules hide bars on\n-- every window and show them again only for this tag. Refreshing the named\n-- rules recomputes that after a tag change without turning bars off globally.\nlocal function refreshFloatedBars()\n  if hl.plugin and hl.plugin.hyprbars then\n    hl.config({ plugin = { hyprbars = { enabled = true } } })\n    hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n    hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\n  end\nend\nif mode == \"floating\" then\n  local claiming = {}\n  for _, window in ipairs(hl.get_workspace_windows(id)) do\n    if not window.floating and (window.fullscreen or 0) == 0 and not window.pinned then\n      hl.dispatch(hl.dsp.window.tag({ tag = \"+\" .. tag, window = window }))\n      table.insert(claiming, window)\n    end\n  end\n  for _, window in ipairs(claiming) do\n    hl.dispatch(hl.dsp.window.float({ action = \"on\", window = window }))\n    place(window)\n  end\n  refreshFloatedBars()\nelse\n  hl.workspace_rule({ workspace = id, layout = mode })\n  for _, window in ipairs(hl.get_windows({ tag = tag })) do\n    local workspace = window.workspace and tostring(window.workspace.id) or \"\"\n    if workspace == id and not window.pinned then\n      hl.dispatch(hl.dsp.window.float({ action = \"off\", window = window }))\n      hl.dispatch(hl.dsp.window.tag({ tag = \"-\" .. tag, window = window }))\n    end\n  end\n  refreshFloatedBars()\nend\n\n-- Plan 020: persist the mode so the next config load and the shell restore\n-- it. Dwindle is the default layout, so reaching it drops this workspace's\n-- line, and an empty file is removed, like Omarchy's toggle script.\nlocal statedir = (os.getenv(\"XDG_STATE_HOME\") or ((os.getenv(\"HOME\") or \"\") .. \"/.local/state\")) .. \"/omabuntu/current\"\nlocal modespath = statedir .. \"/workspace-layouts.txt\"\nlocal merged = {}\nlocal saved, readerr, readcode = io.open(modespath, \"r\")\nif not saved and readcode ~= 2 then\n  error(\"Could not save workspace mode: \" .. tostring(readerr))\nend\nif saved then\n  for line in saved:lines() do\n    local lid, lmode = line:match(\"^%s*(%d+)%s+([%a]+)%s*$\")\n    if lid and lmode and lid ~= id then merged[#merged + 1] = lid .. \" \" .. lmode end\n  end\n  saved:close()\nend\nif mode ~= \"dwindle\" then merged[#merged + 1] = id .. \" \" .. mode end\ntable.sort(merged)\nif #merged > 0 then\n  local temporary = modespath .. \".new\"\n  local out, err = io.open(temporary, \"w\")\n  if not out then error(\"Could not save workspace mode: \" .. tostring(err)) end\n  local written, writeerr = out:write(table.concat(merged, \"\\n\"), \"\\n\")\n  local closed, closeerr = out:close()\n  if not written or not closed then\n    os.remove(temporary)\n    error(\"Could not save workspace mode: \" .. tostring(writeerr or closeerr))\n  end\n  local renamed, renameerr = os.rename(temporary, modespath)\n  if not renamed then\n    os.remove(temporary)\n    error(\"Could not save workspace mode: \" .. tostring(renameerr))\n  end\nelse\n  local removed, err, code = os.remove(modespath)\n  if not removed and code ~= 2 then\n    error(\"Could not save workspace mode: \" .. tostring(err))\n  end\nend"
+  readonly property string layoutEval: "local mode = \"%MODE%\"\nlocal id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nif mode ~= \"dwindle\" and mode ~= \"scrolling\" and mode ~= \"floating\" then\n  error(\"unsupported workspace mode\")\nend\nlocal cascade = 0\nlocal function place(window)\n  local monitor = window.monitor\n  if not monitor or not monitor.width then\n    return\n  end\n  local width = math.floor(monitor.width / monitor.scale)\n  local height = math.floor(monitor.height / monitor.scale)\n  if (monitor.transform or 0) % 2 == 1 then\n    width, height = height, width\n  end\n  local reserved = monitor.reserved or {}\n  width = width - (reserved.left or 0) - (reserved.right or 0)\n  height = height - (reserved.top or 0) - (reserved.bottom or 0)\n  hl.dispatch(hl.dsp.window.resize({\n    x = math.min(1100, math.floor(width * 0.64)),\n    y = math.min(760, math.floor(height * 0.68)),\n    relative = false,\n    window = window,\n  }))\n  hl.dispatch(hl.dsp.window.center({ window = window }))\n  cascade = (cascade + 1) % 5\n  hl.dispatch(hl.dsp.window.move({\n    x = cascade * 24 - 48,\n    y = cascade * 24 - 48,\n    relative = true,\n    window = window,\n  }))\nend\n-- This plugin revision has no workspace_tag option. The named rules hide bars\n-- on every window and show them for workspace membership. Refreshing the named\n-- rules recomputes that after a tag change without turning bars off globally.\nlocal function refreshFloatedBars()\n  if hl.plugin and hl.plugin.hyprbars then\n    hl.config({ plugin = { hyprbars = { enabled = true } } })\n    hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n    hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\n  end\nend\nif mode == \"floating\" then\n  local claiming = {}\n  for _, window in ipairs(hl.get_workspace_windows(id)) do\n    hl.dispatch(hl.dsp.window.tag({ tag = \"+omabuntu-floating-workspace\", window = window }))\n    if not window.floating and (window.fullscreen or 0) == 0 then\n      hl.dispatch(hl.dsp.window.tag({ tag = \"+\" .. tag, window = window }))\n      table.insert(claiming, window)\n    end\n  end\n  for _, window in ipairs(claiming) do\n    hl.dispatch(hl.dsp.window.float({ action = \"on\", window = window }))\n    place(window)\n  end\n  refreshFloatedBars()\nelse\n  hl.workspace_rule({ workspace = id, layout = mode })\n  local mine = {}\n  for _, window in ipairs(hl.get_windows({ tag = tag })) do\n    mine[window.address] = true\n  end\n  for _, window in ipairs(hl.get_workspace_windows(id)) do\n    hl.dispatch(hl.dsp.window.tag({ tag = \"-omabuntu-floating-workspace\", window = window }))\n    if mine[window.address] and not window.pinned then\n      hl.dispatch(hl.dsp.window.tag({ tag = \"-\" .. tag, window = window }))\n      hl.dispatch(hl.dsp.window.float({ action = \"off\", window = window }))\n    end\n  end\n  refreshFloatedBars()\nend\n\n-- Plan 020: persist the mode so the next config load and the shell restore\n-- it. Dwindle is the default layout, so reaching it drops this workspace's\n-- line, and an empty file is removed, like Omarchy's toggle script.\nlocal statedir = (os.getenv(\"XDG_STATE_HOME\") or ((os.getenv(\"HOME\") or \"\") .. \"/.local/state\")) .. \"/omabuntu/current\"\nlocal modespath = statedir .. \"/workspace-layouts.txt\"\nlocal merged = {}\nlocal saved, readerr, readcode = io.open(modespath, \"r\")\nif not saved and readcode ~= 2 then\n  error(\"Could not save workspace mode: \" .. tostring(readerr))\nend\nif saved then\n  for line in saved:lines() do\n    local lid, lmode = line:match(\"^%s*(%d+)%s+([%a]+)%s*$\")\n    if lid and lmode and lid ~= id then merged[#merged + 1] = lid .. \" \" .. lmode end\n  end\n  saved:close()\nend\nif mode ~= \"dwindle\" then merged[#merged + 1] = id .. \" \" .. mode end\ntable.sort(merged)\nif #merged > 0 then\n  local temporary = modespath .. \".new\"\n  local out, err = io.open(temporary, \"w\")\n  if not out then error(\"Could not save workspace mode: \" .. tostring(err)) end\n  local written, writeerr = out:write(table.concat(merged, \"\\n\"), \"\\n\")\n  local closed, closeerr = out:close()\n  if not written or not closed then\n    os.remove(temporary)\n    error(\"Could not save workspace mode: \" .. tostring(writeerr or closeerr))\n  end\n  local renamed, renameerr = os.rename(temporary, modespath)\n  if not renamed then\n    os.remove(temporary)\n    error(\"Could not save workspace mode: \" .. tostring(renameerr))\n  end\nelse\n  local removed, err, code = os.remove(modespath)\n  if not removed and code ~= 2 then\n    error(\"Could not save workspace mode: \" .. tostring(err))\n  end\nend"
 
   function program(id, mode) {
     if (!(id >= 1) || (mode !== "dwindle" && mode !== "scrolling" && mode !== "floating")) return ""
@@ -182,8 +182,9 @@ Item {
   property int claimCascade: 0
   property var claimQueue: []
   property var moveQueue: []
-  readonly property string claimEval: "local id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nlocal target = \"address:%ADDRESS%\"\nlocal window = hl.get_window(target)\nif not window then\n  return\nend\nif window.workspace and tostring(window.workspace.id) ~= id then\n  return\nend\nif window.floating or (window.fullscreen or 0) ~= 0 or window.pinned then\n  return\nend\nhl.dispatch(hl.dsp.window.tag({ tag = \"+\" .. tag, window = target }))\nhl.dispatch(hl.dsp.window.float({ action = \"on\", window = target }))\nlocal cascade = %CASCADE%\nlocal monitor = window.monitor\nif not monitor or not monitor.width then\n  return\nend\nlocal width = math.floor(monitor.width / monitor.scale)\nlocal height = math.floor(monitor.height / monitor.scale)\nif (monitor.transform or 0) % 2 == 1 then\n  width, height = height, width\nend\nlocal reserved = monitor.reserved or {}\nwidth = width - (reserved.left or 0) - (reserved.right or 0)\nheight = height - (reserved.top or 0) - (reserved.bottom or 0)\nhl.dispatch(hl.dsp.window.resize({\n  x = math.min(1100, math.floor(width * 0.64)),\n  y = math.min(760, math.floor(height * 0.68)),\n  relative = false,\n  window = target,\n}))\nhl.dispatch(hl.dsp.window.center({ window = target }))\nhl.dispatch(hl.dsp.window.move({\n  x = cascade * 24 - 48,\n  y = cascade * 24 - 48,\n  relative = true,\n  window = target,\n}))\nif hl.plugin and hl.plugin.hyprbars then\n  hl.config({ plugin = { hyprbars = { enabled = true } } })\n  hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n  hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\nend"
-  readonly property string releaseEval: "local id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nlocal target = \"address:%ADDRESS%\"\nlocal window = hl.get_window(target)\nif not window then\n  return\nend\nif window.workspace and tostring(window.workspace.id) ~= id then\n  return\nend\nlocal function listed(name)\n  return name == tag or name == tag .. \"*\"\nend\nlocal function ours(candidate)\n  for _, other in ipairs(hl.get_windows({ tag = tag })) do\n    if other.address == candidate.address then\n      return true\n    end\n  end\n  local tags = candidate.tags\n  if type(tags) == \"string\" then\n    return listed(tags)\n  end\n  if type(tags) == \"table\" then\n    for _, name in ipairs(tags) do\n      if listed(name) then\n        return true\n      end\n    end\n  end\n  return false\nend\nif not ours(window) or window.pinned then\n  return\nend\nhl.dispatch(hl.dsp.window.tag({ tag = \"-\" .. tag, window = target }))\nhl.dispatch(hl.dsp.window.float({ action = \"off\", window = target }))\nif hl.plugin and hl.plugin.hyprbars then\n  hl.config({ plugin = { hyprbars = { enabled = true } } })\n  hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n  hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\nend"
+  property var retileQueue: []
+  readonly property string claimEval: "local id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nlocal target = \"address:%ADDRESS%\"\nlocal window = hl.get_window(target)\nif not window then\n  return\nend\nif window.workspace and tostring(window.workspace.id) ~= id then\n  return\nend\nlocal function refreshFloatedBars()\n  if hl.plugin and hl.plugin.hyprbars then\n    hl.config({ plugin = { hyprbars = { enabled = true } } })\n    hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n    hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\n  end\nend\nhl.dispatch(hl.dsp.window.tag({ tag = \"+omabuntu-floating-workspace\", window = target }))\nif window.floating or (window.fullscreen or 0) ~= 0 then\n  refreshFloatedBars()\n  return\nend\nhl.dispatch(hl.dsp.window.tag({ tag = \"+\" .. tag, window = target }))\nhl.dispatch(hl.dsp.window.float({ action = \"on\", window = target }))\nrefreshFloatedBars()\nlocal cascade = %CASCADE%\nlocal monitor = window.monitor\nif not monitor or not monitor.width then\n  return\nend\nlocal width = math.floor(monitor.width / monitor.scale)\nlocal height = math.floor(monitor.height / monitor.scale)\nif (monitor.transform or 0) % 2 == 1 then\n  width, height = height, width\nend\nlocal reserved = monitor.reserved or {}\nwidth = width - (reserved.left or 0) - (reserved.right or 0)\nheight = height - (reserved.top or 0) - (reserved.bottom or 0)\nhl.dispatch(hl.dsp.window.resize({\n  x = math.min(1100, math.floor(width * 0.64)),\n  y = math.min(760, math.floor(height * 0.68)),\n  relative = false,\n  window = target,\n}))\nhl.dispatch(hl.dsp.window.center({ window = target }))\nhl.dispatch(hl.dsp.window.move({\n  x = cascade * 24 - 48,\n  y = cascade * 24 - 48,\n  relative = true,\n  window = target,\n}))"
+  readonly property string releaseEval: "local id = \"%ID%\"\nlocal tag = \"omabuntu-mode-floated\"\nlocal target = \"address:%ADDRESS%\"\nlocal window = hl.get_window(target)\nif not window then\n  return\nend\nif window.workspace and tostring(window.workspace.id) ~= id then\n  return\nend\nlocal function listed(name)\n  return name == tag or name == tag .. \"*\"\nend\nlocal function ours(candidate)\n  for _, other in ipairs(hl.get_windows({ tag = tag })) do\n    if other.address == candidate.address then\n      return true\n    end\n  end\n  local tags = candidate.tags\n  if type(tags) == \"string\" then\n    return listed(tags)\n  end\n  if type(tags) == \"table\" then\n    for _, name in ipairs(tags) do\n      if listed(name) then\n        return true\n      end\n    end\n  end\n  return false\nend\nhl.dispatch(hl.dsp.window.tag({ tag = \"-omabuntu-floating-workspace\", window = target }))\nif ours(window) and not window.pinned then\n  hl.dispatch(hl.dsp.window.tag({ tag = \"-\" .. tag, window = target }))\n  hl.dispatch(hl.dsp.window.float({ action = \"off\", window = target }))\nend\nif hl.plugin and hl.plugin.hyprbars then\n  hl.config({ plugin = { hyprbars = { enabled = true } } })\n  hl.window_rule({ name = \"omabuntu-hyprbars-hide\", enabled = true })\n  hl.window_rule({ name = \"omabuntu-hyprbars-show-floated\", enabled = true })\nend"
 
   function restoreFloating() {
     if (!root.liveModes) return
@@ -191,16 +192,24 @@ Item {
     for (var i = 0; i < tops.length; i++) {
       var workspace = tops[i].workspace
       if (!workspace) continue
-      var ipc = tops[i].lastIpcObject
-      if (ipc && ipc.floating) continue
       var address = String(tops[i].address || "")
       if (address.slice(0, 2) !== "0x") address = "0x" + address
       root.claimWindow(address, workspace.id)
     }
   }
 
+  function claimAllowed(workspaceId) {
+    if (!root.liveModes || !(workspaceId >= 1) || !TrialDesktopState.isFloating(workspaceId)) return false
+    // A switch away from floating emits its own floating-off events before
+    // the async apply/save finishes. Do not undo that approved mode change.
+    if (applyProc.running && applyProc.requestId === workspaceId && applyProc.requestMode !== "floating") return false
+    if (applyProc.running && applyProc.queuedSerial > applyProc.requestSerial &&
+        applyProc.queuedId === workspaceId && applyProc.queuedMode !== "floating") return false
+    return true
+  }
+
   function claimWindow(address, workspaceId) {
-    if (!root.liveModes || !(workspaceId >= 1) || !TrialDesktopState.isFloating(workspaceId)) return
+    if (!root.claimAllowed(workspaceId)) return
     if (!/^0x[0-9a-fA-F]+$/.test(address)) return
     var queue = root.claimQueue.slice()
     for (var i = 0; i < queue.length; i++) {
@@ -232,6 +241,29 @@ Item {
     moveTimer.restart()
   }
 
+  // Hyprland temporarily floats tiled drag targets, then tiles them at drop.
+  // Approved policy: correct any retile on a floating workspace, including a
+  // manual toggle. State-one events are ignored to avoid a corrective loop.
+  function noteRetile(address) {
+    if (!root.liveModes || !/^0x[0-9a-fA-F]+$/.test(address)) return
+    var tops = Hyprland.toplevels.values
+    for (var i = 0; i < tops.length; i++) {
+      var candidate = String(tops[i].address || "")
+      if (candidate.slice(0, 2) !== "0x") candidate = "0x" + candidate
+      if (candidate !== address) continue
+      var workspace = tops[i].workspace
+      if (!workspace || !root.claimAllowed(workspace.id)) return
+      var queue = root.retileQueue.slice()
+      for (var j = 0; j < queue.length; j++) {
+        if (queue[j].address === address && queue[j].id === workspace.id) return
+      }
+      queue.push({ address: address, id: workspace.id })
+      root.retileQueue = queue
+      retileTimer.restart()
+      return
+    }
+  }
+
   function drainClaims() {
     if (claimProc.running || !root.liveModes) return
     var queue = root.claimQueue.slice()
@@ -246,7 +278,7 @@ Item {
           .replace("%ADDRESS%", claim.address)
           .replace("%ID%", String(claim.id))
       } else {
-        if (!floating) continue
+        if (!root.claimAllowed(claim.id)) continue
         script = root.claimEval
           .replace("%ADDRESS%", claim.address)
           .replace("%ID%", String(claim.id))
@@ -264,6 +296,19 @@ Item {
       if (!event) return
       var name = String(event.name)
       var raw = String(event.data || "")
+      if (name === "changefloatingmode") {
+        var state = raw.split(",")
+        if (state.length === 2 && state[1] === "0" && /^[0-9a-fA-F]+$/.test(state[0]))
+          root.noteRetile("0x" + state[0])
+        return
+      }
+      // The fullscreen socket event has only 0/1, not a window address. It
+      // covers maximization too. Recheck candidates after the change lands;
+      // the Lua claim decides from live state, never an IPC snapshot or focus.
+      if (name === "fullscreen") {
+        if (root.liveModes && (raw === "0" || raw === "1")) fullscreenTimer.restart()
+        return
+      }
       if (name === "openwindow") {
         var data = raw.split(",")
         if (data.length < 2) return
@@ -281,6 +326,27 @@ Item {
       if (String(moved) !== idText) return
       root.noteMove("0x" + raw.slice(0, first), moved)
     }
+  }
+
+  Timer {
+    id: retileTimer
+    interval: 1
+    repeat: false
+    onTriggered: function() {
+      var pending = root.retileQueue
+      root.retileQueue = []
+      for (var i = 0; i < pending.length; i++) {
+        var item = pending[i]
+        root.claimWindow(item.address, item.id)
+      }
+    }
+  }
+
+  Timer {
+    id: fullscreenTimer
+    interval: 1
+    repeat: false
+    onTriggered: root.restoreFloating()
   }
 
   Timer {
