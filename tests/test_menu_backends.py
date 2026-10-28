@@ -280,7 +280,18 @@ class BackgroundTests(TempState):
                                                   run=lambda argv, timeout=5: (1, ''))
         self.assertTrue(result['ok'])
         self.assertFalse(result['applied'])
+        self.assertTrue(result['lock_background'])
         self.assertEqual(background_backend.current(), str(self.base / 'one.jpg'))
+        link = menu_common.state_home() / 'current' / 'lock-background'
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(os.readlink(link), str((self.base / 'one.jpg').resolve()))
+
+    def test_publish_leaves_a_regular_file_in_place(self):
+        link = menu_common.state_home() / 'current' / 'lock-background'
+        link.write_text('keep')
+        self.assertFalse(background_backend.publish_lock_background(self.base / 'one.jpg'))
+        self.assertEqual(link.read_text(), 'keep')
+        self.assertFalse(link.is_symlink())
 
     def test_set_refuses_outside_files_and_symlinks(self):
         with tempfile.TemporaryDirectory() as other:
@@ -381,6 +392,7 @@ class BackgroundTests(TempState):
         self.assertTrue(result['applied'])
         payload = json.loads((menu_common.state_home() / 'current' / 'background.json').read_text())
         self.assertTrue(payload['applied'])
+        self.assertTrue(result['lock_background'])
 
 
 class PowerTests(TempState):
@@ -497,6 +509,10 @@ class BackgroundRestoreTests(TempState):
                                       'eDP-1,' + str(self.assets / 'tokyo-night' / '1-winding-road.webp')],
                                      ['hyprctl', 'hyprpaper', 'wallpaper',
                                       'DP-5,' + str(self.assets / 'tokyo-night' / '1-winding-road.webp')]])
+        link = menu_common.state_home() / 'current' / 'lock-background'
+        self.assertEqual(os.readlink(link),
+                         str((self.assets / 'tokyo-night' / '1-winding-road.webp').resolve()))
+        self.assertTrue(result['lock_background'])
         # A restore never re-records the choice.
         self.assertEqual(json.loads((menu_common.state_home() / 'current' / 'background.json').read_text())['path'],
                          stale)
@@ -509,9 +525,14 @@ class BackgroundRestoreTests(TempState):
             run, _ = self.daemon()
             self.assertEqual(background_backend.restore_background(run=run, assets=self.assets)['error'],
                              'refused')
+            self.assertFalse((menu_common.state_home() / 'current' / 'lock-background').exists())
 
     def test_restore_without_a_daemon_is_not_applied_and_never_raises(self):
         self.record(self.assets / 'tokyo-night' / '1-winding-road.webp')
         result = background_backend.restore_background(run=lambda argv, timeout=5: (1, ''), assets=self.assets)
         self.assertFalse(result['ok'])
         self.assertIn('method', result)
+        self.assertTrue(result['lock_background'])
+        link = menu_common.state_home() / 'current' / 'lock-background'
+        self.assertEqual(os.readlink(link),
+                         str((self.assets / 'tokyo-night' / '1-winding-road.webp').resolve()))

@@ -20,6 +20,10 @@ here). When no daemon answers, the choice is recorded and `applied` stays
 false. Video wallpapers, intro videos, and transition caches are excluded.
 
 CLI: background_backend.py list | current | set <file>
+
+Hyprlock reads one static path, ~/.local/state/omabuntu/current/lock-background.
+set and restore point that symlink at the chosen still after the directory
+allowlist has accepted it. They do not run a command at lock time.
 """
 import json
 import os
@@ -220,6 +224,37 @@ def apply_background(path_text, run=None, timeout=5):
     return _legacy_wallpaper(path, monitors, run, timeout)
 
 
+LOCK_BACKGROUND_NAME = 'lock-background'
+
+
+def publish_lock_background(resolved, root=None):
+    """Point Hyprlock's static symlink at this still.
+
+    Hyprlock 0.9.6 loads one path and does not parse background.json. A
+    regular file already at the link path is left untouched. Returns whether
+    the symlink now points at the still.
+    """
+    target = Path(resolved)
+    try:
+        if target.is_symlink() or not target.is_file():
+            return False
+        destination = str(target.resolve())
+    except OSError:
+        return False
+    link = menu_common.state_home(root) / 'current' / LOCK_BACKGROUND_NAME
+    if not link.is_symlink() and link.exists():
+        return False
+    temporary = link.with_name(LOCK_BACKGROUND_NAME + '.tmp')
+    try:
+        if temporary.is_symlink() or temporary.exists():
+            temporary.unlink()
+        temporary.symlink_to(destination)
+        os.replace(temporary, link)
+    except OSError:
+        return False
+    return link.is_symlink() and os.readlink(link) == destination
+
+
 def set_background(path_text, dirs=None, root=None, run=None, assets=None):
     path = Path(path_text)
     if path.is_symlink() or not path.is_file() or path.suffix.lower() not in IMAGE_SUFFIXES:
@@ -231,6 +266,7 @@ def set_background(path_text, dirs=None, root=None, run=None, assets=None):
         resolved = str(path.absolute())
     if resolved not in allowed:
         return {'ok': False, 'error': 'refused', 'message': 'Background is outside the listed directories.'}
+    published = publish_lock_background(resolved, root)
     applied = apply_background(resolved, run)
     payload = {'schema_version': 1, 'path': str(path), 'applied': applied['ok']}
     if not applied['ok']:
@@ -239,7 +275,7 @@ def set_background(path_text, dirs=None, root=None, run=None, assets=None):
     backup = menu_common.backup_and_write(
         target, lambda target_path: menu_common.write_json(target_path, payload))
     menu_common.record('background-set', str(path), backup, {'applied': applied['ok']})
-    return {'ok': True, 'path': str(path), 'applied': applied['ok']}
+    return {'ok': True, 'path': str(path), 'applied': applied['ok'], 'lock_background': published}
 
 
 def resolve_recorded(path_text, assets=None):
@@ -278,8 +314,10 @@ def restore_background(run=None, timeout=5, root=None, assets=None):
     if resolved not in allowed:
         return {'ok': False, 'error': 'refused',
                 'message': 'The recorded background is outside the listed directories.'}
+    published = publish_lock_background(resolved, root)
     applied = apply_background(resolved, run, timeout)
-    return {'ok': applied['ok'], 'path': str(path), 'applied': applied['ok'], 'method': applied['method']}
+    return {'ok': applied['ok'], 'path': str(path), 'applied': applied['ok'],
+            'method': applied['method'], 'lock_background': published}
 
 
 def main(argv):

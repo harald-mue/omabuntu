@@ -31,6 +31,13 @@ class ManualLockTests(unittest.TestCase):
         self.assertNotRegex(lowered, r'(?m)^\s*auth\s*\{')
         self.assertIn('background', active)
         self.assertIn('input-field', active)
+        self.assertIn('path = ~/.local/state/omabuntu/current/lock-background', active)
+        self.assertIn('blur_passes = 3', active)
+        self.assertIn('rgb(16, 19, 21)', active)
+        self.assertNotIn('screenshot', lowered)
+        self.assertNotIn('reload_cmd', lowered)
+        self.assertNotIn('$time', lowered)
+        self.assertNotIn('label {', lowered)
 
     def test_config_with_action_is_rejected(self):
         path = self.release / 'lock/hyprlock.conf'

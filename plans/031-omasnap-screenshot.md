@@ -60,8 +60,9 @@ session-action tokens refuse lock and power commands. They do not match
 `omasnap` or `screenshot`, so a listed screenshot row can be dispatched.
 That is intentional and different from the lock row.
 
-The reviewed Hyprlock config is a flat color. It has no screenshot path,
-and this work does not give it one.
+The reviewed Hyprlock config was a flat color when this plan was written.
+It had no screenshot path, and this work does not give it one. Plan 039 later
+points that config at the recorded still; it still does not use a screenshot.
 
 ## Current project gaps
 

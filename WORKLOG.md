@@ -5,6 +5,11 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## Lock surface uses the recorded wallpaper (plan 039)
+
+- The reviewed Hyprlock config now points at `~/.local/state/omabuntu/current/lock-background`, with three blur passes and the previous flat color when that still is missing. The clock and the Omabuntu wordmark are gone. The password field and the package PAM service stay. No screenshot path, reload command, or original lock plugin.
+- Background set and restore update that symlink after the existing directory allowlist. The current recorded still was published there. The active release was not replaced and no lock was started.
+
 ## Elsewhen world clock (plan 038)
 
 - Staged Jason Fried's Elsewhen panel to the right of the clock. Cities stay in

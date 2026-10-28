@@ -183,3 +183,17 @@ No running component was restarted and no authentication or security settings
 were changed. Historical incomplete logs are consistent with the bug but do
 not independently prove the termination cause of each incident. No new live
 lock/unlock or long-duration acceptance test has been performed.
+
+## Recorded wallpaper on the lock surface (plan 039)
+
+The reviewed Hyprlock config now names `~/.local/state/omabuntu/current/lock-background`,
+blurs it with three passes, and keeps `rgb(16, 19, 21)` when that still is
+missing. The clock and the Omabuntu wordmark are removed. The password field
+and the package `hyprlock` PAM service are unchanged. Hyprlock 0.9.6 expands
+the tilde itself. There is no screenshot path and no reload command.
+
+`background.json` stays the menu record. `set` and `restore` update the symlink
+only after the existing directory allowlist accepts the still. A regular file
+already at the link path is left untouched. The current recorded still was published to that symlink. The active
+installed release was not replaced by this source change, and no lock was
+started.
