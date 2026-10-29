@@ -6,6 +6,7 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 import "Elsewhen"
+import "Weather"
 import "BarRun.js" as BarRun
 
 // One top bar per screen, with source-derived original section geometry.
@@ -178,8 +179,10 @@ Variants {
         }
       }
       centerEndContent: Component {
-        ElsewhenPanel {
-          bar: clockBar
+        Row {
+          spacing: 0
+          ElsewhenPanel { bar: clockBar }
+          WeatherWidget { bar: clockBar; settings: ({unit: "metric"}) }
         }
       }
       rightContent: Component {

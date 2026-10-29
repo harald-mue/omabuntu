@@ -111,7 +111,8 @@ unit was edited. ~/.config/hypr/hyprland.lua retains its October 22 timestamp.
 | Clock/calendar | Derived original calendar on left click; sealed label stays read-only | Native click acceptance. No timezone helper, shell.json writes, IPC, or calendar hotkey |
 | Indicators/menu | Menu button at the left edge: original BarIconButton with the extracted U+E900 mark, left click opens the command menu's root route, right click opens a terminal | Native click acceptance; no Arch package or system-management routes
 | Elsewhen | Original panel derived to the right of the clock; cities stay in the process | Native open/click acceptance. No weather fetch, GitHub profiles, notifications, or system timezone change |
-| Weather/agents | Not implemented | Dependency, notices, network/provider and asset decisions |
+| Weather | Original panel after Elsewhen, Celsius/km/h, 15-minute refresh; original city editor, wttr.in/IP location and Open-Meteo city search/forecast | Location-parity version deployed with clean startup; native editor acceptance pending. Notification actions and IPC remain out |
+| Agents | Not implemented | Dependency, notices and asset decisions |
 | Updates | Arch route excluded | Ubuntu-native, reviewed status/actions if agreed; never pacman or Omarchy migrations |
 
 The completion request is not treated as permission to change login, install

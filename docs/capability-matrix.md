@@ -21,7 +21,7 @@ This is an implementation plan, not a functional acceptance record.
 | Floating dock | Original app dock on floating workspaces | Original window/pure model; current-trial successful floating grants only | Native app/window/pointer acceptance | Source and isolated compilation checked; not visual acceptance |
 | Manual screen lock | Standalone Hyprlock substituted for the unadmitted original lock UI | Installed v0.9.6 config shows the recorded still through `~/.local/state/omabuntu/current/lock-background`, three blur passes, no clock and no wordmark; explicit `lock --apply` and SUPER+CTRL+L remain | Keep idle/suspend separate; wrong-password and policy checks remain open | Lock, unlock and all three outputs accepted earlier; the new surface is installed and was not locked |
 | Idle/suspend | Quickshell idle, sleep integration | No approved idle or sleep policy | Preserve existing mechanism; separate safety gate | Not activated |
-| Optional widgets | Weather, agents, live wallpaper, dictation | Elsewhen is mounted separately and does not fetch weather | Keep weather, agents, live wallpaper and dictation out | Deliberately deferred |
+| Optional widgets | Weather, agents, live wallpaper, dictation | Separate original weather panel with city editing, approved wttr.in IP location and Open-Meteo city search/forecast | Verify native city editing/select/clear; agents, live wallpaper and dictation stay out | Location-parity update deployed with clean startup; IP lookup and city search checked, native UI acceptance pending |
 | Updates/provisioning | Arch-specific management | Not a project capability | Do not expose these routes in menus or PATH | Excluded |
 
 Before applying any configuration: verify target backups, record path-by-path

@@ -100,6 +100,7 @@ def start(parent, candidate):
                OMABUNTU_MENU_DEFINITIONS=str(ROOT / "config/shell/omabuntu-menu.jsonc"),
                OMABUNTU_MENU_THEMES=str(ROOT / "config/menu/themes.json"),
                OMABUNTU_ELSEWHEN_HELPER=str(ROOT / "tools" / "elsewhen_probe.py"),
+               OMABUNTU_WEATHER_HELPER=str(ROOT / "tools" / "weather_probe.py"),
                OMABUNTU_ELSEWHEN_DIR=str(probe / "Elsewhen"))
     env.setdefault("DBUS_SESSION_BUS_ADDRESS", "unix:path=" + runtime_dir + "/bus")
     command = [str(runtime / "bin/quickshell"), "--no-color", "--path", str(probe / "TrialShell.qml")]

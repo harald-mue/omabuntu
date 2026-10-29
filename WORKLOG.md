@@ -5,6 +5,50 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## Original weather location interaction (plan 042)
+
+- Restored the original Omarchy weather city editor, suggestion list, persisted
+  selection, and clear-to-IP behavior after explicit user approval. Replaced
+  only upstream curl/command and state paths with a fixed-command Python
+  adapter: wttr.in for current reports/IP city and Open-Meteo for city search
+  and forecasts. No arbitrary URL, redirects, shell, or timezone changes.
+- Location set/clear backs up the previous record and rejects symlinked paths.
+  All 596 tests pass without live network in tests. Separate approved IP and
+  city-search probes succeeded. After approval, backed up and deployed the
+  location-parity panel, widget and probe, verified installed integrity, and
+  restarted only the recorded bar. Startup has no QML or helper-launch errors.
+  Native location-editor interaction still needs user acceptance. No lock or
+  capture was triggered.
+
+## Lock, screenshot, and weather follow-up (plan 041)
+
+- Added source menu rows for System > Lock and Trigger > Capture > Screenshot.
+  Exact registry tokens launch the installed lock manager and existing Omasnap
+  wrapper without a menu-process lifetime limit or a shell. Packaged the capture
+  wrapper alongside the menu helper. No lock or screenshot was triggered and
+  these menu additions were later deployed after approval. All 583 unit tests
+  passed before weather integration.
+- After the user selected Vienna and Open-Meteo only, staged the original
+  Omarchy 03ff1eff weather panel and model with witnessed Ubuntu adaptations.
+  The bounded standard-library probe requests only Vienna's forecast; the
+  panel refreshes every 15 minutes with metric units. No IP location, wttr.in,
+  geocoding/editor, notification action, or IPC registration. MIT source and
+  Open-Meteo CC BY 4.0 data attribution are recorded. A provider check returned
+  a valid four-day report. All 590 unit tests pass; live QML/visual acceptance
+  remains pending. After approval, backed up and deployed the weather and menu
+  files, verified installed integrity, and restarted only the recorded bar.
+  Startup logged Configuration Loaded without QML or helper-launch errors.
+  Hyprland and applications stayed running; no lock or capture was triggered.
+
+## Setup default browser and terminal (plan 040)
+
+- Added Setup > Defaults > Browser and Terminal to the Super+Space menu. Rows
+  list only installed `.desktop` entries. The browser choice uses
+  `xdg-settings`; the terminal choice writes the Hyprland xdg-terminals
+  preference list for `xdg-terminal-exec`. Nothing is installed from the menu.
+  The active release copies were backed up and replaced; the bar was not
+  restarted.
+
 ## Lock surface uses the recorded wallpaper (plan 039)
 
 - The reviewed Hyprlock config now points at `~/.local/state/omabuntu/current/lock-background`, with three blur passes and the previous flat color when that still is missing. The clock and the Omabuntu wordmark are gone. The password field and the package PAM service stay. No screenshot path, reload command, or original lock plugin.

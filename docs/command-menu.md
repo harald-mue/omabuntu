@@ -42,13 +42,21 @@ three current-theme/font/background readers start once and share their answer
 across sibling rows. `when:` hides a row (and an emptied submenu with it),
 `disabled:` dims it and makes it unselectable, `checked:` adds the marker.
 
-Root rows: Apps (opens the app grid), Learn, Style, System. Learn lists the
+Root rows: Apps (opens the app grid), Learn, Trigger, Style, Setup, System. Learn lists the
 keybindings menu, the Hyprland wiki and Ubuntu's desktop documentation. Style
 holds the Hyprland configuration things: Theme and Background open the image
-picker (see [image picker](image-picker.md)), Font stays a provider submenu. System (Super+Esc route, upstream order minus the excluded rows):
+picker (see [image picker](image-picker.md)), Font stays a provider submenu.
+Setup holds Defaults with provider submenus for the default browser and default
+terminal. Only installed `.desktop` entries appear; the browser choice uses
+`xdg-settings set default-web-browser`, and the terminal choice writes the
+Hyprland `xdg-terminals` preference list for `xdg-terminal-exec`. Nothing is
+installed from the menu. System (Super+Esc route, upstream order minus the excluded rows):
 Suspend and Hibernate (guarded by `/sys/power/state`), Logout, Reboot,
-Shutdown. Upstream's screensaver and lock rows stay excluded: no reviewed
-Ubuntu backend exists and lock activation is its own approval gate.
+Shutdown. Source now also includes Lock before Suspend, through the existing
+installed manager (`omabuntu lock --apply`). Trigger > Capture > Screenshot
+uses the existing Omasnap wrapper from plan 031. These menu additions were deployed after approval. Both actions launch detached with no session lifetime limit;
+starting a process is not a lock/unlock or screenshot acceptance verdict.
+The screensaver remains excluded.
 
 ## Providers
 
@@ -77,6 +85,9 @@ Ubuntu backend exists and lock activation is its own approval gate.
   rewrites `font-family` in an existing ghostty config with a SIGUSR2 reload
   (both backed up first). The bar reads the family from the watched state
   file, so later changes restyle the bar text without a restart.
+- Default browsers and terminals: discovered from installed `.desktop` files
+  through `tools/defaults_backend.py`. Duplicate vendor ids collapse to one
+  row. The current browser or terminal gets the check glyph.
 
 Row ids are `<menuId>.<slug>` with `-` appended on collision, exactly the
 upstream merge rule. Provider rows are re-derived by id inside the helper on
@@ -88,7 +99,9 @@ Selection goes to `tools/menu_model.py run <rowId>`. An id absent from the
 definitions or no longer enumerated by its provider is refused. Static actions
 match a fixed registry only: `omabuntu-open:apps|keybindings` (surface-internal,
 refused inside the helper), `xdg-open:https://...`, `systemctl:<verb>` and
-`uwsm:stop`. Anything else is refused.
+`uwsm:stop`, and exact `omabuntu-session:lock|screenshot` tokens. The last two
+launch only the installed manager or packaged screenshot wrapper, never an
+arbitrary shell command. Anything else is refused.
 
 Every session-ending action goes through `tools/power_actions.py` and is
 refused until its gate flag exists in the state home's
@@ -103,8 +116,8 @@ are not enabled yet." in the card and keeps it open.
 ## Not included
 
 - Upstream Install/Remove/Update sections (pacman-based; an apt adaptation is
-  a separate plan), the Trigger section and its toggles, Setup beyond the rows
-  listed, About, dmenu select/input modes, locale catalogs, upstream theme
+  a separate plan), the rest of Setup beyond default browser/terminal, the
+  rest of Trigger beyond Screenshot, About, dmenu select/input modes, locale catalogs, upstream theme
   background images, and the font/background providers' live daemon work.
 - Autostart, and any persistence of the Super+Space/Super+Esc binds across a
   Hyprland restart without an approved user-config edit.

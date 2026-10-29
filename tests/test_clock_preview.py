@@ -34,6 +34,7 @@ class ClockPreviewTests(unittest.TestCase):
                  "config/shell/preview/CalendarPanel.qml",
                  "config/shell/preview/ClockControlView.qml",
                  *("config/shell/preview/" + name for name in checker.ELSEWHEN_TRANSFORMS),
+                 *("config/shell/preview/" + name for name in checker.WEATHER_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.DESKTOP_TRANSFORMS),
                  *("vendor/omarchy/" + source for source in checker.UPSTREAM.values())]
         for name in names:

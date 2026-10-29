@@ -871,6 +871,42 @@
       "source_modifications": [],
       "stage_transform": "elsewhen-miniglobe-v1",
       "staged_sha256": "817d763b85877d6b4dd85429584b07ef2c4424f92c5537d194432a35c7582ef9"
+    },
+    "Weather/WeatherPanel.qml": {
+      "path": "shell/plugins/panels/weather/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/weather/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/weather/Panel.qml",
+      "bytes": 32659,
+      "sha256": "a324b226f0d9eda3d2f4d01c061b5856e0659ba3eff21748a905fd68f4c7bbe1",
+      "git_blob_sha1": "f31a26a51f3a2d2060d62749b3e0bee6a6c24249",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "weather-location-panel-v2",
+      "staged_sha256": "05cf7a6d17802f5fe33de774401a817e5be0e804ef062417e29fe73678a5bce4"
+    },
+    "Weather/WeatherWidget.qml": {
+      "path": "shell/plugins/panels/weather/BarWidget.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/weather/BarWidget.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/weather/BarWidget.qml",
+      "bytes": 2593,
+      "sha256": "ab3e32b97cf37847ff880a44013133eef9b9f04fe7258b692b30e7b24c6de4ca",
+      "git_blob_sha1": "1203c5039b621190044352f9e5da5dd873d06e8c",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "weather-location-widget-v2",
+      "staged_sha256": "75d06a4a23919c79f8866ced901da15b74dfc6ec5914a9f1c91878c71bcf22b8"
+    },
+    "Weather/Model.js": {
+      "path": "shell/plugins/panels/weather/Model.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/weather/Model.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/weather/Model.js",
+      "bytes": 11736,
+      "sha256": "b0cec7428a4b8a54439ca5ac19d332bc3dd4ce2eb44781ea764e6ae1dfb6cc01",
+      "git_blob_sha1": "f74f4d43e619f2080f125d0c5fc0531ac8cf1c56",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "b0cec7428a4b8a54439ca5ac19d332bc3dd4ce2eb44781ea764e6ae1dfb6cc01"
     }
   },
   "authored": {
@@ -884,7 +920,7 @@
     },
     "Commons/I18n.qml": {
       "path": "config/shell/preview/I18n.qml",
-      "sha256": "bd3ac0a66f209799db25b6607461811894a614d795092c9188dfcc0c03050a71"
+      "sha256": "eab73c877a97a3cdc48e4ab2791d24cc6324a7f61e472d6840c4869cba0bf96d"
     },
     "PreviewContent.qml": {
       "path": "config/shell/preview/PreviewContent.qml",
@@ -900,7 +936,7 @@
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "f175b00b230fd22fab24a7dea3cc3a8b490c5cdff559ee192c0c6f0b49da2a51"
+      "sha256": "cfca7f607de4085e07c77253bb53ea2b178b18512b081defdbcb926e634293ec"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
@@ -1023,6 +1059,7 @@
     "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\nPanel 1.0 Panel.qml\nPanelController 1.0 PanelController.qml\n",
     "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\nsingleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\nsingleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n",
     "Elsewhen/qmldir": "ArcText 1.0 ArcText.qml\nAvatar 1.0 Avatar.qml\nCityMatches 1.0 CityMatches.qml\nCityRow 1.0 CityRow.qml\nCitySearch 1.0 CitySearch.qml\nDaylightStrip 1.0 DaylightStrip.qml\nElsewhenPanel 1.0 ElsewhenPanel.qml\nGlobe 1.0 Globe.qml\nGlobeFooter 1.0 GlobeFooter.qml\nHeroTitle 1.0 HeroTitle.qml\nMiniGlobe 1.0 MiniGlobe.qml\nMoonDot 1.0 MoonDot.qml\n",
+    "Weather/qmldir": "WeatherPanel 1.0 WeatherPanel.qml\nWeatherWidget 1.0 WeatherWidget.qml\n",
     "Port/qmldir": "Tray 1.0 Tray.qml\n"
   },
   "notice_paths": [

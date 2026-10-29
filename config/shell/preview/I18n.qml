@@ -11,7 +11,9 @@ QtObject {
   readonly property bool rightToLeft: false
   function formatNumber(value) { return String(value); }
   function t(key, fallback) {
-    var labels = {"tray.title": "Tray icons", "tray.help": "Pinned icons stay visible. Hidden icons never show.",
+    var labels = {"weather.feels": "FEELS", "weather.humid": "HUMIDITY",
+                  "weather.wind": "WIND", "weather.fetching": "Fetching weather…",
+                  "weather.searchCity": "Search city", "tray.title": "Tray icons", "tray.help": "Pinned icons stay visible. Hidden icons never show.",
                   "tray.empty": "No tray items reporting.", "tray.unknown": "Unknown",
                   "tray.pin": "Pin", "tray.unpin": "Unpin", "tray.hide": "Hide", "tray.show": "Show",
                   "bluetooth.available": "AVAILABLE",

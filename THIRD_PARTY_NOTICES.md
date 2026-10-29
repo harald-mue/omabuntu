@@ -1,5 +1,25 @@
 # Third-party notices
 
+## Weather panel
+
+`vendor/omarchy/shell/plugins/panels/weather/` originates from Omarchy commit
+`03ff1eff3812933f7088484533784d2f63eaf19a`. The manifest names Omarchy as
+author; the reviewed QML/JavaScript files carry no separate third-party notice.
+The root MIT notice is preserved in `licenses/Omarchy-MIT.txt` and
+`vendor/omarchy/LICENSE`. `tools/weather_frontend.py` derives the original panel
+and bar widget with the original location editor and a bounded Python backend
+for wttr.in weather/IP location and Open-Meteo forecasts/city search.
+No images, fonts, or weather datasets are bundled with this port.
+
+Current reports and IP-based city lookup also use [wttr.in](https://wttr.in/).
+No wttr.in dataset or source code is bundled. The provider sees the requesting
+network's public IP; manual city searches are sent to Open-Meteo.
+
+Forecast weather data is provided by [Open-Meteo](https://open-meteo.com/), under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Values and condition
+codes are rendered by the original model as rounded temperatures and icons.
+
+
 Omabuntu's [MIT License](LICENSE) covers its original work, not every dependency
 or local asset. Preserve each third-party copyright and license notice. This
 inventory distinguishes source included in the public candidate from external

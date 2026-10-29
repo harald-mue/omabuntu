@@ -28,6 +28,7 @@ import subprocess
 import sys
 
 import background_backend
+import defaults_backend
 import font_backend
 import menu_common
 import power_actions
@@ -290,7 +291,7 @@ def guard_run(script, timeout=8):
 
 # ---------------------------------------------------------------- Providers
 
-PROVIDERS = {'themes', 'backgrounds', 'fonts'}
+PROVIDERS = {'themes', 'backgrounds', 'fonts', 'default-browsers', 'default-terminals'}
 
 
 def provider_rows(provider, palettes_path=None, state_root=None, dirs=None, font_output=None):
@@ -311,6 +312,10 @@ def provider_rows(provider, palettes_path=None, state_root=None, dirs=None, font
     if provider == 'fonts':
         available = font_backend.families(font_output)
         return font_backend.rows(state_root, available)
+    if provider == 'default-browsers':
+        return defaults_backend.browser_rows()
+    if provider == 'default-terminals':
+        return defaults_backend.terminal_rows()
     return None
 
 
@@ -356,11 +361,44 @@ def provider_row_for(items, row_id):
 # an id absent from them, or a provider row that is no longer enumerated,
 # is refused.
 
-ACTION_RE = re.compile(r'^(omabuntu-open:(apps|keybindings|themes|backgrounds)|xdg-open:https://[A-Za-z0-9./_-]+/?|systemctl:(suspend|hibernate|reboot|poweroff)|uwsm:stop)$')
+ACTION_RE = re.compile(r'^(omabuntu-open:(apps|keybindings|themes|backgrounds)|omabuntu-session:(lock|screenshot)|xdg-open:https://[A-Za-z0-9./_-]+/?|systemctl:(suspend|hibernate|reboot|poweroff)|uwsm:stop)$')
+
+
+def launch_session_action(action):
+    """Launch one reviewed action without a menu-process lifetime limit.
+
+    No shell, captured credentials or inherited JSON stdout. These children
+    survive the menu closing; only the existing lock manager owns locking.
+    """
+    if action == 'omabuntu-session:lock':
+        executable = Path.home() / '.local/bin/omabuntu'
+        if executable.is_symlink() or not executable.is_file() or not os.access(executable, os.X_OK):
+            return {'ok': False, 'error': 'missing', 'message': 'Installed lock manager is missing.'}
+        command = [str(executable), 'lock', '--apply']
+    elif action == 'omabuntu-session:screenshot':
+        helper = Path(__file__).resolve().parent / 'capture_screenshot.py'
+        import capture_screenshot
+        try:
+            capture_screenshot.approved_binary(os.environ)
+        except ValueError as error:
+            return {'ok': False, 'error': 'missing', 'message': str(error)}
+        if helper.is_symlink() or not helper.is_file():
+            return {'ok': False, 'error': 'missing', 'message': 'Screenshot helper is missing.'}
+        command = [sys.executable, str(helper)]
+    else:
+        return {'ok': False, 'error': 'refused'}
+    try:
+        subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError:
+        return {'ok': False, 'error': 'failed', 'message': 'Could not start the requested action.'}
+    return {'ok': True, 'status': 'started-not-accepted'}
 
 
 def _run_action(action, run=None, palettes_path=None, state_root=None, dirs=None, font_output=None):
     """Execute one registry action; session-ending verbs go through gates."""
+    if action.startswith('omabuntu-session:'):
+        return launch_session_action(action)
     if action.startswith('omabuntu-open:'):
         # Surface-side routes; the helper never receives them. Refuse here so
         # a forged request cannot relaunch or focus anything.
@@ -394,6 +432,10 @@ def run_item(row_id, definitions=None, run=None):
             return font_backend.set_font(row['value'])
         if provider == 'backgrounds':
             return background_backend.set_background(row['value'])
+        if provider == 'default-browsers':
+            return defaults_backend.set_browser(row['value'])
+        if provider == 'default-terminals':
+            return defaults_backend.set_terminal(row['value'])
         return {'ok': False, 'error': 'refused'}
     action = entry.get('action')
     if not action or not ACTION_RE.fullmatch(action):

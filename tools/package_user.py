@@ -67,7 +67,8 @@ def prepare(version, candidate):
         for name in ('network_nm.py', 'display_backend.py', 'qrcodegen.py', 'dock_state.py',
                      'keybindings_menu.py', 'menu_model.py', 'menu_common.py',
                      'theme_backend.py', 'font_backend.py', 'background_backend.py',
-                     'power_actions.py', 'elsewhen_probe.py'):
+                     'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py',
+                     'capture_screenshot.py', 'weather_probe.py'):
             target = temporary / 'helpers' / name
             target.parent.mkdir(exist_ok=True)
             target.write_bytes((ROOT / 'tools' / name).read_bytes())

@@ -24,6 +24,7 @@ import workspace_modes
 import desktop_frontends
 import clock_frontend
 import elsewhen_frontend
+import weather_frontend
 
 builder = check_runtime.builder
 ROOT = Path(__file__).resolve().parents[1]
@@ -91,6 +92,15 @@ ELSEWHEN_TRANSFORMS = {
     "Elsewhen/MiniGlobe.qml": ("elsewhen-miniglobe-v1", elsewhen_frontend.derive_miniglobe),
     "Ui/Panel.qml": ("elsewhen-base-panel-v1", elsewhen_frontend.derive_base_panel),
 }
+WEATHER_TRANSFORMS = {
+    "Weather/WeatherPanel.qml": ("weather-location-panel-v2", weather_frontend.derive_panel),
+    "Weather/WeatherWidget.qml": ("weather-location-widget-v2", weather_frontend.derive_widget),
+}
+UPSTREAM.update({
+    "Weather/WeatherPanel.qml": "shell/plugins/panels/weather/Panel.qml",
+    "Weather/WeatherWidget.qml": "shell/plugins/panels/weather/BarWidget.qml",
+    "Weather/Model.js": "shell/plugins/panels/weather/Model.js",
+})
 DESKTOP_UPSTREAM = {
     "BluetoothControlView.qml": "shell/plugins/panels/bluetooth/Panel.qml",
     "BluetoothPanelController.qml": "shell/plugins/panels/bluetooth/Panel.qml",
@@ -146,6 +156,7 @@ MAPS["Elsewhen/qmldir"] = "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "ArcText", "Avatar", "CityMatches", "CityRow", "CitySearch", "DaylightStrip",
     "ElsewhenPanel", "Globe", "GlobeFooter", "HeroTitle", "MiniGlobe", "MoonDot"))
 
+MAPS["Weather/qmldir"] = "WeatherPanel 1.0 WeatherPanel.qml\nWeatherWidget 1.0 WeatherWidget.qml\n"
 MAPS["Commons/qmldir"] += "singleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\n"
 MAPS["Commons/qmldir"] += "singleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n"
 MAPS["Port/qmldir"] = "Tray 1.0 Tray.qml\n"
@@ -217,6 +228,8 @@ def verified_sources(root):
             transform = DESKTOP_TRANSFORMS[target][0]
         if target in ELSEWHEN_TRANSFORMS:
             transform = ELSEWHEN_TRANSFORMS[target][0]
+        if target in WEATHER_TRANSFORMS:
+            transform = WEATHER_TRANSFORMS[target][0]
         if (not isinstance(record, dict) or record.get("path") != source_path or record.get("vendor_path") != vendor
                 or record.get("license") != "MIT" or record.get("source_modifications") != []
                 or record.get("stage_transform") != transform
@@ -238,6 +251,7 @@ def verified_sources(root):
                       "clock-calendar-host-v1": clock_frontend.derive_host}
         transforms.update({key: fn for key, fn in DESKTOP_TRANSFORMS.values()})
         transforms.update({key: fn for key, fn in ELSEWHEN_TRANSFORMS.values()})
+        transforms.update({key: fn for key, fn in WEATHER_TRANSFORMS.values()})
         files[target] = transforms[transform](data) if transform != "none" else data
         if target in DESKTOP_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
             raise builder.BuildError("Generated desktop frontend mirror differs")
@@ -249,6 +263,8 @@ def verified_sources(root):
             raise builder.BuildError("Generated workspace switcher mirror differs")
         if target == "KeyboardLayout.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/KeyboardLayout.qml", 65536):
             raise builder.BuildError("Generated keyboard layout mirror differs")
+        if target in WEATHER_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 131072):
+            raise builder.BuildError("Generated weather mirror differs")
         if target in ELSEWHEN_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 131072):
             raise builder.BuildError("Generated elsewhen mirror differs")
         if target in ("CalendarPanel.qml", "ClockControlView.qml") and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):

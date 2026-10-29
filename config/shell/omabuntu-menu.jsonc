@@ -8,16 +8,19 @@
   // process evaluates (see tools/menu_model.py). Actions use a reviewed
   // omabuntu registry instead of arbitrary shell commands; tools/menu_model.py
   // builds the dispatch allowlist from this file and refuses everything else.
-  // Excluded upstream sections (install, remove, update, trigger, setup,
-  // about, dmenu modes, locale catalogs) are documented in
-  // plans/002-command-menu.md and docs/menu-surface.md.
+  // Excluded upstream sections (install, remove, update, trigger, about,
+  // dmenu modes, locale catalogs) are documented in plans/002-command-menu.md
+  // and docs/command-menu.md. Setup keeps only reviewed default-application
+  // rows backed by xdg-settings and xdg-terminal-exec.
 
   // Root menu (upstream order: apps, learn, trigger, style, setup, install,
   // remove, update, about, system; only sections with reviewed Ubuntu
   // backends are kept).
   "apps": {"icon": "\udb80\udc3b", "label": "Apps", "aliases": ["app", "applications"], "action": "omabuntu-open:apps"},
   "learn": {"icon": "\udb82\uddd1", "label": "Learn"},
+  "trigger": {"icon": "\udb85\udcde", "label": "Trigger"},
   "style": {"icon": "\uebcf", "label": "Style", "aliases": ["theme-menu"]},
+  "setup": {"icon": "\ue615", "label": "Setup", "aliases": ["settings"]},
   "system": {"icon": "\uf011", "label": "System", "aliases": ["power-menu", "power"]},
 
   // Learn (adapted: Ubuntu documentation replaces the Arch wiki; the Tmux,
@@ -25,6 +28,9 @@
   "learn.keybindings": {"icon": "\uf11c", "label": "Keybindings", "action": "omabuntu-open:keybindings"},
   "learn.hyprland": {"icon": "\uf359", "label": "Hyprland", "description": "Open the Hyprland wiki", "action": "xdg-open:https://wiki.hypr.land/"},
   "learn.ubuntu": {"icon": "\uf08b", "label": "Ubuntu", "description": "Open the Ubuntu desktop documentation", "action": "xdg-open:https://help.ubuntu.com/"},
+
+  "trigger.capture": {"icon": "\uf030", "label": "Capture"},
+  "trigger.capture.screenshot": {"icon": "\uf030", "label": "Screenshot", "action": "omabuntu-session:screenshot"},
 
   // Style: the Hyprland configuration things. Theme and Background open the
   // image picker (upstream opens omarchy.image-picker the same way); their
@@ -34,12 +40,18 @@
   "style.background": {"icon": "\uf03e", "label": "Background", "aliases": ["background", "wallpaper"], "provider": "backgrounds", "action": "omabuntu-open:backgrounds"},
   "style.font": {"icon": "\ue659", "label": "Font", "provider": "fonts"},
 
+  // Setup > Defaults: only installed browsers and terminals, applied through
+  // xdg-settings and the xdg-terminal-exec preference list. Rows come from
+  // tools/defaults_backend.py at dispatch time; nothing is installed here.
+  "setup.default": {"icon": "\uf005", "label": "Defaults", "title": "Default applications"},
+  "setup.default.browser": {"icon": "\uf488", "label": "Browser", "title": "Default browser", "provider": "default-browsers"},
+  "setup.default.terminal": {"icon": "\uf489", "label": "Terminal", "title": "Default terminal", "provider": "default-terminals"},
+
   // System menu (Super+Escape opens this route). Upstream order is kept:
-  // screensaver, lock, suspend, hibernate, logout, reboot, shutdown. The
-  // screensaver and lock rows stay excluded here because no reviewed Ubuntu
-  // backend exists and lock activation is a separate approval gate. Every
-  // session-ending action is additionally gated in tools/power_actions.py;
-  // an unapproved row is refused there, not hidden here.
+  // screensaver, lock, suspend, hibernate, logout, reboot, shutdown. Only
+  // screensaver stays excluded. Lock uses the existing installed manager.
+  // Other session-ending actions remain gated in tools/power_actions.py.
+  "system.lock": {"icon": "\uf023", "label": "Lock", "action": "omabuntu-session:lock"},
   "system.suspend": {"icon": "\udb81\udcb2", "label": "Suspend", "when": "omabuntu-can-suspend", "action": "systemctl:suspend"},
   "system.hibernate": {"icon": "\udb82\udd01", "label": "Hibernate", "when": "omabuntu-can-hibernate", "action": "systemctl:hibernate"},
   "system.logout": {"icon": "\udb80\udf43", "label": "Logout", "action": "uwsm:stop"},
