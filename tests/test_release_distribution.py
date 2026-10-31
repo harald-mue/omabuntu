@@ -22,6 +22,30 @@ import published_install
 import release_archive
 
 
+class ReleaseCommandRunnerTests(unittest.TestCase):
+    def test_git_and_github_output_bypass_personal_pagers_without_changing_parent(self):
+        settings = {'GIT_PAGER': 'less', 'GH_PAGER': 'more', 'PAGER': 'less -R',
+                    'OMABUNTU_TEST_ENV': 'preserved'}
+        with patch.dict(os.environ, settings):
+            before = dict(os.environ)
+            for command in (('git', 'diff', '--stat'), ('gh', 'release', 'list')):
+                with self.subTest(command=command), patch.object(publish.subprocess, 'run',
+                        return_value=subprocess.CompletedProcess(command, 0, stdout='fixture')) as run:
+                    self.assertEqual(publish.run(*command), 'fixture')
+                    environment = run.call_args.kwargs['env']
+                    for name in ('GIT_PAGER', 'GH_PAGER', 'PAGER'):
+                        self.assertEqual(environment[name], 'cat')
+                    self.assertEqual(environment['OMABUNTU_TEST_ENV'], 'preserved')
+                    self.assertEqual(dict(os.environ), before)
+
+    def test_capture_and_untimed_interactive_operations_remain_supported(self):
+        with patch.object(publish.subprocess, 'run',
+                          return_value=subprocess.CompletedProcess([], 0, stdout='fixture')) as run:
+            publish.run('ssh-keygen', '-y', capture=True, timeout=None)
+            self.assertEqual(run.call_args.kwargs['stdout'], subprocess.PIPE)
+            self.assertIsNone(run.call_args.kwargs['timeout'])
+
+
 class TerminalConfirmationTests(unittest.TestCase):
     def confirm_with_reply(self, reply):
         master, slave = pty.openpty()

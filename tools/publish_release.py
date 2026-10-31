@@ -21,7 +21,9 @@ VERSION = re.compile(r'[0-9]+\.[0-9]+\.[0-9]+')
 
 
 def run(*args, cwd=ROOT, capture=False, timeout=120):
-    return subprocess.run(args, cwd=cwd, check=True, text=True,
+    # Release output must not stop in less, regardless of personal pager settings.
+    environment = {**os.environ, 'GIT_PAGER': 'cat', 'GH_PAGER': 'cat', 'PAGER': 'cat'}
+    return subprocess.run(args, cwd=cwd, check=True, text=True, env=environment,
                           stdout=subprocess.PIPE if capture else None,
                           timeout=timeout).stdout
 
