@@ -1,16 +1,17 @@
 # Omabuntu developer entry points.
 #
-# This is a thin wrapper around the reviewed Python tools. It installs no
-# packages, uses no sudo and publishes nothing. Explicit live targets reload
+# This is a thin wrapper around the reviewed Python tools. The release target
+# explicitly commits and publishes after confirmations. Explicit live targets reload
 # Hyprland configuration, never the compositor process or login session. Targets
 # that change the host keep the tools' own refusals and print what they do.
 #
 # Every target that needs a release name takes VERSION=<name>, for example:
-#   make update VERSION=my-change BUILD_DIR=work/builds/<build-id>
+#   make release VERSION=0.1.0
+#   make package VERSION=my-change BUILD_DIR=work/builds/<build-id>
 
 PYTHON ?= python3
 VERSION ?=
-# No implicit machine-specific stage: release operations require BUILD_DIR.
+# Legacy stage packaging requires an explicit machine-specific BUILD_DIR.
 BUILD_DIR ?=
 RELEASES ?= $(CURDIR)/work/user-releases
 BUNDLE ?= $(RELEASES)/$(VERSION)
@@ -20,19 +21,31 @@ DEV_VERSION := $(if $(VERSION),$(VERSION),dev-$(shell date -u +%Y%m%dT%H%M%S.%NZ
 
 .DEFAULT_GOAL := help
 
-.PHONY: help test doctor release preflight plan install update start stop status \
+.PHONY: help test doctor guide release build packages font acceptance rollback \
+        package preflight plan install update start stop status \
         autostart autostart-plan autostart-remove hypr-settings hypr-settings-plan \
         hypr-settings-remove reload restart dev-update check-version check-build
 
 help:
 	@echo 'Omabuntu targets:'
+	@echo ''
+	@echo 'Installer:'
+	@echo '  make guide                             show the next step; may offer to install'
+	@echo '  make build                             build a local development bundle'
+	@echo '  make release VERSION=0.1.0             reviewed commit, build, tag and GitHub publication'
+	@echo '  make packages                          review missing packages; no install'
+	@echo '  make font                              review the desktop font; no install'
+	@echo '  make acceptance                        read-only stock-install gates'
+	@echo '  make rollback                          review the previous application release'
+	@echo ''
+	@echo 'Development:'
 	@echo '  make test                              unit suite'
 	@echo '  make doctor                            private read-only report'
-	@echo '  make release VERSION=<name> BUILD_DIR=<stage>  prepare a local release'
+	@echo '  make package VERSION=<name> BUILD_DIR=<stage>  package an existing build stage'
 	@echo '  make preflight VERSION=<name>          read-only bundle check'
 	@echo '  make plan VERSION=<name>               read-only deployment plan'
 	@echo '  make install VERSION=<name>            install a prepared release'
-	@echo '  make update VERSION=<name> BUILD_DIR=<stage>  prepare, stop, install, start'
+	@echo '  make update                            download and install the latest signed GitHub Release'
 	@echo '  make start                             start the installed shell'
 	@echo '  make stop                              stop the owned shell'
 	@echo '  make status                            show the recorded shell state'
@@ -46,8 +59,8 @@ help:
 	@echo '  make restart                           restart only the owned shell'
 	@echo '  make dev-update BUILD_DIR=<stage> [VERSION=<fresh>]  fresh release + managed files + live reload'
 	@echo ''
-	@echo 'Nothing here installs packages, starts the shell implicitly,'
-	@echo 'publishes a release or changes Git history.'
+	@echo 'Release publication and installation require interactive approval.'
+	@echo 'make build never commits, publishes or changes the running desktop.'
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
@@ -58,14 +71,35 @@ doctor:
 check-version:
 	@case "$(VERSION)" in \
 	  ''|*[!A-Za-z0-9._-]*) \
-	    echo 'VERSION is required, for example: make release VERSION=my-change BUILD_DIR=work/builds/<build-id>' >&2; \
+	    echo 'VERSION is required, for example: make package VERSION=my-change BUILD_DIR=work/builds/<build-id>' >&2; \
 	    exit 2;; \
 	esac
 
 check-build:
 	@test -n '$(BUILD_DIR)' || { echo 'BUILD_DIR is required: choose an explicit verified work/builds/<build-id> stage' >&2; exit 2; }
 
-release: check-version check-build
+guide:
+	./install.sh --plain
+
+release: check-version
+	$(PYTHON) tools/publish_release.py --version '$(VERSION)'
+
+build:
+	./install.sh --build-release --apply
+
+packages:
+	./install.sh --packages --plain
+
+font:
+	./install.sh --font --plain
+
+acceptance:
+	./install.sh --acceptance --plain
+
+rollback:
+	./install.sh --rollback --plain
+
+package: check-version check-build
 	$(PYTHON) tools/package_user.py --version '$(VERSION)' --build-dir '$(BUILD_DIR)'
 
 preflight: check-version
@@ -78,16 +112,9 @@ install: check-version
 	@echo 'Installing $(VERSION); the shell is not started.'
 	$(OMABUNTU) install '$(BUNDLE)' --apply
 
-# The requested one-command local source update. Only this target starts the
-# desktop process, and only after a successful release switch.
-update: check-version
-	@test -d '$(BUNDLE)' || $(MAKE) --no-print-directory release VERSION='$(VERSION)'
-	@echo 'Stopping the owned shell before the release switch.'
-	$(OMABUNTU) stop
-	@echo 'Installing $(VERSION).'
-	$(OMABUNTU) install '$(BUNDLE)' --apply
-	@echo 'Starting $(VERSION).'
-	$(OMABUNTU) start
+# Published releases do not follow the development checkout or local mtimes.
+update:
+	./install.sh --download-release
 
 start:
 	$(OMABUNTU) start
@@ -132,7 +159,7 @@ restart:
 # Uses the checkout manager so deployment fixes do not depend on the old release.
 # Failure stops here; recovery/rollback is explicit, not an automatic session reset.
 dev-update: check-build
-	$(MAKE) --no-print-directory release VERSION='$(DEV_VERSION)'
+	$(MAKE) --no-print-directory package VERSION='$(DEV_VERSION)'
 	$(MAKE) --no-print-directory preflight VERSION='$(DEV_VERSION)'
 	$(MAKE) --no-print-directory hypr-settings-plan
 	$(MAKE) --no-print-directory autostart-plan

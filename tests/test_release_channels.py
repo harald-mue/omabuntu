@@ -66,6 +66,18 @@ class ChannelTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Unknown channel'):
                 channels.from_bundle('latest', base)
 
+    def test_pin_stable_keeps_dev_and_does_not_publish(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'work') as directory:
+            base = Path(directory)
+            old = bundle(base / 'bundles', 'dev-1', 'old')
+            new = bundle(base / 'bundles', 'stable-2', 'new')
+            path = base / 'channels.json'
+            channels.write(path, channels.from_bundle('dev', old))
+            pinned = channels.pin_stable(new, path)
+            self.assertEqual(pinned['channels']['stable']['version'], 'stable-2')
+            self.assertEqual(pinned['channels']['dev']['version'], 'dev-1')
+            self.assertFalse(pinned['publisher_signature'])
+
     def test_replace_keeps_the_other_channel(self):
         with tempfile.TemporaryDirectory(dir=ROOT / 'work') as directory:
             base = Path(directory)

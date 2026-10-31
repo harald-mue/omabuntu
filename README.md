@@ -1,202 +1,141 @@
 # Omabuntu
 
-An Ubuntu-native, reversible integration of selected Omarchy desktop components
-with Hyprland and Quickshell. This is not an Arch installer or a complete Ubuntu
-provisioner, and it does not run Omarchy installers or migrations.
+```text
+   █▀█ █▀▄▀█ ▄▀█ █▄▄ █░█ █▄░█ ▀█▀ █░█
+   █▄█ █░▀░█ █▀█ █▄█ █▄█ █░▀█ ░█░ █▄█
 
-## Install and update
-
-Run these commands as your normal user from this repository, not with `sudo`.
-The default command only shows the next step and changes nothing. The full
-guide is [docs/installer.md](docs/installer.md).
-
-```sh
-./install.sh
+          Your Ubuntu. Reimagined.
 ```
 
-Install or update the local application release after a bundle has been built
-or placed in a release directory:
+An Ubuntu-native Hyprland desktop integration with the Omarchy bar, menus and
+selected panels, adapted for Ubuntu. Keep Ubuntu, GNOME and your personal
+configuration — install and update Omabuntu without building it yourself.
 
-```sh
-# First install of a prepared bundle. Review first, then add --apply.
-./install.sh --bundle work/user-releases/VERSION
+## Install
 
-# Update an existing install. An older unversioned install needs --allow-legacy-state.
-./install.sh --bundle work/user-releases/VERSION --update --allow-legacy-state
+**Target: Ubuntu 26.04 · x86_64**
 
-# Restore the previous application release. This does not undo APT packages.
-./install.sh --rollback
+Open a terminal and run this as your normal user, **not with sudo**:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-Add `--apply` only after the review. Add `--restart-bar` only when the recorded
-bar should stop and start. Without it, a running bar blocks the switch.
+**Availability:** the first public GitHub Release is still pending. The command
+requires a published release and the bootstrap files to be available on GitHub.
+See [GitHub Releases](https://github.com/harald-mue/omabuntu/releases).
 
-To build that bundle on Ubuntu 26.04, follow the guide: PPA, additive packages,
-font, then `./install.sh --build-release`. Package installation must be confirmed
-in your own terminal. It does not upgrade or remove installed packages.
+No Git checkout, Makefile or local compilation is needed. The installer:
 
-`dev` and `stable` are exact release pins, not branches. They are not a signed
-or published download yet:
+1. Downloads the latest published release for Ubuntu 26.04 x86_64.
+2. Checks the publisher signature and archive checksums before extraction.
+3. Asks before installing missing prerequisites and switching the application.
+4. Asks separately before restarting a running Omabuntu bar during an update.
 
-```sh
-./install.sh --channels --set-channel dev --bundle work/user-releases/VERSION
-./install.sh --update --channel dev --channels-file channels/omabuntu.json --release-dir work/user-releases
+You need `curl`, Python 3 and `ssh-keygen` (OpenSSH client) for the initial
+bootstrap. Compatible Hyprland and Qt packages are also required; the installer
+checks native compatibility and refuses incompatible versions rather than
+silently upgrading your system.
+
+### Your existing desktop stays yours
+
+Your personal `hyprland.lua` is not replaced or merged automatically. Package
+changes require approval; there are no blanket upgrades, automatic logouts or
+reboots. GNOME remains available.
+
+Installing the application does **not** finish a new Hyprland session setup.
+Generic session configuration, plugin loading at next login and login autostart
+are separate opt-in steps. Follow the [session setup guide](docs/installer.md#session-and-next-login)
+using the retained installer directory printed after download. An existing
+personal profile is deliberately left alone; that is not an application install
+failure.
+
+### Prefer to inspect the script first?
+
+```bash
+curl -fsSLo omabuntu-install.sh https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh
+# Read omabuntu-install.sh before running it.
+bash omabuntu-install.sh
 ```
 
-Background images are not cleared for redistribution. A channel checksum is not
-a publisher signature.
+The initial bootstrap trusts GitHub HTTPS. Downloaded release archives additionally
+require the publisher signature. For the trust model, public-key fingerprint and
+immutable bootstrap pinning, see [release verification](docs/releases.md#trust-model).
 
-## Status
+## Update
 
-The development target is **Ubuntu 26.04, Hyprland 0.56.2 and Qt 6.10.2**.
-Selected original component/layout sources are retained with narrow Ubuntu
-backend adaptations; the unmodified full Omarchy shell is not deployed.
+**Run the same command again:**
 
-Implemented and exercised on the development target:
+```bash
+curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
+```
+
+It downloads the latest **published GitHub Release** and asks before switching.
+You do not need Git or `git pull`. Your preferences and private configuration are
+kept, and the previous application release remains available for rollback.
+
+For rollback and interrupted-update recovery, see the
+[installation and recovery guide](docs/installer.md#release-install-and-update).
+Application rollback does not undo APT package changes.
+
+## What is included?
 
 - Quickshell bar, application launcher, command menu, calendar and desktop panels.
-- Versioned local installation, strict release integrity, updates and rollback.
-- Explicit untimed session lifetime and a separately approved login autostart unit.
-- Per-workspace tiling, scrolling and floating state persistence and restore.
-- Wallpaper restoration and the independent hyprpaper splash-disable setting.
+- Per-workspace tiling, scrolling and floating state persistence.
+- Versioned application installation, verified updates and rollback.
+- Separately approved session and login integration.
 
-A real login and removal of the wallpaper splash have been user-confirmed.
-That is not fresh-machine acceptance or proof that every panel/backend works on
-other hardware. Lock authentication/recovery, idle/suspend activation, full-shell
-compatibility and some native/visual paths remain separate acceptance gates.
-See [capabilities](docs/capability-matrix.md), [compatibility](docs/compatibility.md)
-and [lock readiness](docs/lock-readiness.md). Do not infer security acceptance
-from successful tests or diagnostics.
+Public release builds exclude theme background images because their redistribution
+rights are not cleared. Third-party code and fonts retain their license notices.
 
-## Start with read-only commands
+The development target is **Hyprland 0.56.2 and Qt 6.10.2 on Ubuntu 26.04**.
+This is an integration of selected original components, not the unmodified full
+Omarchy shell or an Arch installer. Stock-machine installation and native-login
+acceptance are still in progress; successful tests do not establish functional
+or security acceptance on your hardware.
 
-Python 3 standard-library tooling is used for orchestration. The source builder
-requires Python 3.12 or later. Native checks require their documented dependencies;
-none of these commands installs packages or activates the desktop:
+## For developers and release maintainers
 
-```sh
+Most users should use the installation command above. A source checkout is for
+local development and publication:
+
+```bash
+git clone https://github.com/harald-mue/omabuntu.git
+cd omabuntu
 make help
-make test
-python3 tools/omabuntu.py --help
-python3 tools/build_runtime.py
-python3 tools/check_runtime.py
+make build                    # prepare a local development bundle
+make guide                    # review local installation stages
 ```
 
-`python3 tools/omabuntu.py doctor` collects bounded OS/package/session diagnostics
-and writes private reports under ignored `work/`. Reports may contain private
-information. Collection success is not functional or security acceptance.
+Maintainers can publish a versioned release after publisher-key and GitHub access
+setup:
 
-For an offline source-only verification with no existing build/image inputs:
-
-```sh
-python3 tools/check_clean_source.py --run
+```bash
+make release VERSION=0.1.0
 ```
 
-See [clean-source verification](docs/clean-source.md) for what is and is not
-exercised. The regular unit suite does not require imported wallpaper images or
-a prebuilt runtime; executable Lua tests explicitly skip if Lua 5.4 is absent.
+This asks before committing changes, builds the committed source without theme
+artwork, creates checksums and a signature, and asks again before pushing the
+commit/tag and publishing on GitHub. It does not install or restart the desktop.
+New files must be reviewed and staged explicitly. See
+[publishing releases](docs/releases.md) for prerequisites and failure recovery.
 
-## Fresh-machine installer and update work
-
-`./install.sh` is the staged Ubuntu 26.04 installer. The default command shows
-the live guide and changes nothing. Each stage is reviewed before `--apply`.
-The full operator guide is [docs/installer.md](docs/installer.md).
-
-```sh
-./install.sh                 # live guide, no changes
-./install.sh --plain
-./install.sh --check         # readiness report, nonzero while incomplete
-```
-
-Implemented stages include signed PPA preparation, additive packages, font
-registration, pinned source builds, local release update/rollback, generic
-session files, next-login activation, and unsigned `dev`/`stable` channel pins.
-Channels are exact version pins, not branches or a publication. Background
-images stay outside Git and are not cleared for redistribution.
-
-This is not yet a completed stock-machine installation. Native login, VM
-acceptance, and remote publication remain open. See also
-[fresh-installation status](docs/fresh-installation.md) and
-[user installation](docs/user-installation.md).
-
-## Build and local installation
-
-Read [runtime build](docs/runtime-build.md), [dependencies](docs/dependencies.md)
-and [installation](docs/user-installation.md) before applying anything.
-A working compositor and compatible system libraries must already exist.
-Dependency installation, source downloads/building, desktop configuration and
-session activation are separate approval steps.
-
-After reviewing dependencies and explicitly approving a local build:
-
-```sh
-python3 tools/build_runtime.py --build --jobs 4
-```
-
-The builder creates a new `work/builds/<build-id>/` and reports its location.
-Use that exact directory explicitly; no timestamp from the developer's machine
-and no unverified automatic "latest" selection is built in:
-
-```sh
-# Replace your-build-id with the directory produced by the approved build.
-BUILD_DIR=work/builds/your-build-id
-python3 tools/check_runtime.py --run --build-dir "$BUILD_DIR"
-make release VERSION=local-test BUILD_DIR="$BUILD_DIR"
-make preflight VERSION=local-test
-make plan VERSION=local-test
-```
-
-These steps prepare and check a **local** bundle; they do not install or start it.
-Follow the separately approved apply steps in the
-[installation guide](docs/user-installation.md) or
-[guided installer](docs/guided-installer.md). Nothing here authorizes a public
-binary release.
-
-Useful explicit live targets, only after desktop approval:
-
-- `make install VERSION=...`: install a prepared release without starting it.
-- `make start`, `make stop`, `make status`: control/inspect the owned shell.
-- `make update VERSION=... BUILD_DIR=...`: prepare if needed, stop, install, start.
-- `make dev-update BUILD_DIR=...`: fresh release, preflight, backed-up managed
-  config/autostart deployment, config reload and owned-shell restart.
-- `make hypr-settings`, `make autostart`: separate managed deployment gates.
-
-The hyprpaper config is a separate explicit deployment; `make hypr-settings`
-does not install it. See [wallpaper splash settings](docs/user-installation.md#separate-wallpaper-splash-setting-plan-022).
-No desktop component expires on a timer. Autostart is not crash supervision.
-
-## Local-only images and private artifacts
-
-`config/menu/backgrounds/` and `config/menu/themes-previews/` are excluded from
-Git because per-image redistribution rights are not cleared. Existing local
-images are kept; an asset-free checkout works with palettes and available system
-backgrounds. Missing imported previews are represented as absent, not downloaded
-silently. [Origin metadata](upstream/theme-backgrounds.json) remains available.
-
-Local packaging includes those directories **if they exist**. Consequently a
-private bundle may contain images excluded from Git: do not publish such a bundle
-without a separate asset and runtime-license review. The installer codec probe
-uses an authored tiny image and does not require upstream wallpapers.
-
-`work/`, build outputs, diagnostic logs, source snapshots, machine inventories,
-backups and local configuration must remain private. Do not delete the retained
-verified build or rollback material merely because they are ignored, and never
-use a blanket `git clean -fdx` as project cleanup.
+Run `make test` for the unit suite. For detailed development work, see
+[runtime builds](docs/runtime-build.md), [dependencies](docs/dependencies.md),
+[testing](docs/testing.md) and [clean-source verification](docs/clean-source.md).
+Keep private configuration, keys, diagnostics, backups and build outputs out of
+Git; `work/` is private working material, not release content.
 
 ## Documentation and licensing
 
+- [Installer and session setup](docs/installer.md)
+- [Releases, signing and verification](docs/releases.md)
+- [Capabilities](docs/capability-matrix.md), [compatibility](docs/compatibility.md)
+  and [lock readiness](docs/lock-readiness.md)
 - [Architecture](docs/architecture.md) and [workspace modes](docs/workspace-modes.md)
-- [Testing](docs/testing.md) and [clean-source verification](docs/clean-source.md)
-- [Installation and rollback](docs/user-installation.md)
 - [Upstream provenance](upstream/README.md) and [third-party notices](THIRD_PARTY_NOTICES.md)
 - [Publication checklist](docs/publication.md) and [development summary](WORKLOG.md)
 
 Original Omabuntu code and documentation use the [MIT License](LICENSE).
-Third-party components retain their own notices and licenses. Selected upstream
-sources and deterministic adaptations are documented under `vendor/` and
-`upstream/`; do not remove them as disposable build output. No affiliation with
-or endorsement by Omarchy or its authors is claimed.
-
-A passing suite, an ignore rule or a source pin is not publication approval.
-Review the complete candidate and Git history for private data and secrets before
-creating a remote, committing or uploading anything.
+Third-party components retain their own notices and licenses. No affiliation
+with or endorsement by Omarchy or its authors is claimed.

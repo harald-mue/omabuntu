@@ -23,7 +23,7 @@ The installer keeps these domains separate:
 | APT/PPA | Only a reviewed additive package transaction | Installed-package upgrades, removals, unrelated packages |
 | Hyprland profile | An owned generic module, or an untouched managed snippet when explicitly adopted | Private monitor rules and other user lines |
 | Artwork | A private cache of pinned downloads | Publication or a claim that every image may be redistributed |
-| Channels | A local `dev` or `stable` pin | A moving branch, a signed publisher identity, or a download |
+| Public release | Signed GitHub archive, downloaded with explicit install approval | A development checkout or automatic desktop activation |
 
 A checksum proves that bytes match a pin. It is not a publisher signature.
 Application rollback does not undo APT changes.
@@ -99,10 +99,14 @@ It does not change GTK, terminal, or saved Omabuntu font preferences.
 ### Build
 
 ```sh
-./install.sh --build-release
-./install.sh --build-release --apply
+make build
 ./install.sh --build-release --apply --skip-artwork
 ```
+
+`make build` prepares a local development bundle. The second command omits
+artwork. Public `make release VERSION=0.1.0` is a separate reviewed commit/build/
+publication workflow; see [releases.md](releases.md). Other commands are `make guide`,
+`make packages`, `make font`, `make acceptance`, and `make rollback`.
 
 Apply downloads pinned sources, artwork, and the font when they are missing,
 then builds the runtime, Omasnap, and hyprbars in isolated sandboxes. The result
@@ -139,8 +143,10 @@ does not resume the new release.
 ./install.sh --session-activate --enable-login
 ```
 
-Session apply writes a generic profile only when no user Hyprland is running
-and no foreign configuration would be overwritten. `--adopt-managed` replaces
+Session apply writes a generic profile only on a machine without its own
+Hyprland configuration, and only when Hyprland is not running. An existing
+personal `hyprland.lua` is kept. That is not an install failure. The application
+release can still be updated. `--adopt-managed` replaces
 only an untouched `omabuntu-managed` snippet. Extra lines, including private
 monitor rules, block adoption.
 
@@ -164,38 +170,16 @@ activation in a temporary home. It does not change the host and is not VM
 acceptance. `--state-schema` reports schema 1 and does not rewrite preferences.
 `--source-update` fetches only already pinned archives into the private cache.
 
-## Channels
+## Published releases
 
-`dev` and `stable` name an exact release version and the SHA-256 of its verified
-metadata. They are not Git branches. The channel file has no download URL, no
-artwork, and no signature claim.
+Use `make release VERSION=0.1.0` to prepare and publish a signed GitHub Release
+after explicit commit and publication confirmations. Use `make update` to fetch
+the latest published release, rather than building from the checkout.
+Publisher key setup and the first real publication are still pending.
+See [release setup, trust and recovery](releases.md).
 
-Print a pin:
-
-```sh
-./install.sh --channels --set-channel dev --bundle work/user-releases/VERSION
-```
-
-Write it only when you mean to:
-
-```sh
-./install.sh --channels --set-channel dev \
-  --bundle work/user-releases/VERSION \
-  --write-channel channels/omabuntu.json
-```
-
-Resolve it locally, still without applying:
-
-```sh
-./install.sh --update --channel dev \
-  --channels-file channels/omabuntu.json \
-  --release-dir work/user-releases
-```
-
-Add `--apply` only after that review. Publishing the channel file or the bundle
-is a separate approval. Do not publish a private bundle that contains artwork
-until each image's redistribution rights are cleared. See
-[plan 044](../plans/044-release-channels.md).
+The old local channel commands remain deprecated compatibility only. The new
+flow does not use dev/stable pins and never promotes an installation to stable.
 
 ## Not done
 

@@ -5,8 +5,55 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## Release-first README (plan 047)
+
+- Put the one-command curl installation and identical update command first.
+  End-user instructions no longer require a checkout, Makefile or local build.
+- Removed obsolete channel/promotion wording and detailed legacy stage/deployment
+  commands from the README. Kept development and publication in a short separate
+  section linked to the operator documentation.
+- Preserved the wordmark and honest publication, ABI, bootstrap trust and separate
+  session-activation limitations. Added documentation regression and link checks.
+  No publication, installation, Git commit/push or desktop changes were performed.
+
+## Personal Git identity correction (plan 046)
+
+- With explicit approval, corrected the corporate author/committer identity in
+  main to the personal identity and set repository-local author defaults.
+  Preserved all 16 commit trees, messages, dates and unrelated identities.
+- Backed up the original history, Git metadata and pending files privately;
+  published the verified history using an exact remote force-with-lease and
+  verified the resulting remote main. No pending installer work was committed.
+- Existing clones require coordination; cached or copied old commits are not
+  guaranteed to disappear from hosting services after a history rewrite.
+
+## GitHub release distribution (plan 045)
+
+- Configured the user-approved Ed25519 publisher public key and recorded its
+  fingerprint in the release guide. The private key and passphrase were not
+  read, copied or tested. Signing access, publication and real installation
+  acceptance remain separate gates.
+
+- Separated `make build` (development) from `make release VERSION=x.y.z`
+  (reviewed commit, isolated artwork-free build, checksums, SSH signature,
+  annotated tag, atomic push and draft-to-public GitHub Release).
+- Added a no-checkout HTTPS bootstrap that verifies the publisher signature,
+  checksums and metadata before bounded safe extraction. Interactive installation
+  uses the existing prerequisite and release review gates, never source builds.
+- `make update` selects the latest published GitHub Release, not local mtimes or
+  channels. Removed automatic stable promotion. Local channel tools remain
+  deprecated compatibility only; existing pin files are not rewritten.
+- Updated the README, Makefile help and release setup/trust/recovery guide.
+  No publication, Git commit/push, key setup, package installation or desktop
+  changes were performed. The public key and first real release remain pending.
+  800 tests, clean-source verification, shell syntax and whitespace checks passed.
+  Unit/fixture verification is not stock-VM or native-login acceptance.
+
 ## Fresh installation, updates and downloaded artwork (plan 043)
 
+- Added memorable installer Makefile targets. The old stage packager is now
+  `make package`; plan 045 supersedes the earlier `make release` build alias
+  and automatic stable promotion behavior.
 - Pinned the built release `source-447226aa17e9898a` as both `dev` and `stable`
   in `channels/omabuntu.json`. The file is an unsigned local pin. It was not
   published, installed, or used to start the desktop.

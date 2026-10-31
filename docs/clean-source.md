@@ -65,7 +65,7 @@ python3 tools/check_runtime.py --run --build-dir "$BUILD_DIR"
 python3 tools/check_desktop_panels.py --run --build-dir "$BUILD_DIR"
 python3 tools/check_command_menu.py --run --build-dir "$BUILD_DIR"
 python3 tools/check_image_picker.py --run --build-dir "$BUILD_DIR"
-make release VERSION=local-test BUILD_DIR="$BUILD_DIR"
+make package VERSION=local-test BUILD_DIR="$BUILD_DIR"
 make preflight VERSION=local-test
 make plan VERSION=local-test
 ```

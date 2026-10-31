@@ -113,6 +113,29 @@ class GuideTests(unittest.TestCase):
         self.assertIn('other.sources', item['summary'])
         self.assertIn('not be duplicated', item['summary'])
 
+    def test_explicit_ready_bundle_is_the_install_step(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'work') as directory:
+            root = Path(directory)
+            bundle = root / 'work/user-releases/source-new'
+            (bundle / 'runtime/bin').mkdir(parents=True)
+            (bundle / 'native').mkdir()
+            (bundle / 'runtime/bin/omasnap').write_text('bin')
+            (bundle / 'native/hyprbars.so').write_text('plugin')
+            (bundle / 'release.json').write_text('{}')
+            with patch.object(guide.user_install, 'verify_bundle', return_value={'version': 'source-new'}), \
+                 patch.object(guide.release_update, 'review', return_value={'version': 'source-new'}):
+                class Installation:
+                    def __init__(self, root):
+                        self.root = root
+                    def selected(self):
+                        return 'releases/source-old'
+                    def running(self):
+                        return {'pid': 1}
+                item = guide.release_stage(Installation(root), bundle, root)
+            self.assertEqual(item['status'], 'apply')
+            self.assertIn('source-new', item['command'])
+            self.assertIn('--restart-bar', item['command'])
+
     def test_root_review_is_refused(self):
         with patch.object(guide.os, 'getuid', return_value=0), self.assertRaises(ValueError):
             guide.review()

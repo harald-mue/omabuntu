@@ -81,7 +81,7 @@ def run(root):
         ('runtime-plan', [sys.executable, '-B', 'tools/check_runtime.py'], 0, None),
         ('desktop-plan', [sys.executable, '-B', 'tools/check_desktop_panels.py'], 0, 'Plan only'),
         ('package-missing-build', [sys.executable, '-B', 'tools/package_user.py', '--version', 'clean-check'], 2, '--build-dir'),
-        ('make-missing-build', ['make', '--no-print-directory', 'release', 'VERSION=clean-check'], 2, 'BUILD_DIR is required'),
+        ('make-missing-build', ['make', '--no-print-directory', 'package', 'VERSION=clean-check'], 2, 'BUILD_DIR is required'),
         ('dev-update-missing-build', ['make', '--no-print-directory', 'dev-update'], 2, 'BUILD_DIR is required'),
     ]
     for name, command, expected, marker in checks:

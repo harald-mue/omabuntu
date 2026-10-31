@@ -84,7 +84,7 @@ def font_stage(root):
                  './install.sh --font --apply')
 
 
-def build_stage(root, state=None):
+def build_stage(root, state=None, installation=None):
     reviewed = bootstrap_build.create_plan(root, state=state)
     if reviewed['blockers']:
         return stage('build', 'blocked', reviewed['blockers'][0], './install.sh --build-release')
@@ -108,27 +108,37 @@ def matching_bundle(bundle, digest):
             and (bundle / 'native/hyprbars.so').is_file())
 
 
-def release_stage(installation, bundle):
+def release_stage(installation, bundle, root=ROOT):
     try:
         current = installation.selected()
     except (OSError, ValueError) as error:
         return stage('release', 'blocked', str(error))
-    if current:
-        release = installation.root / current
-        if (release / 'runtime/bin/omasnap').is_file() and (release / 'native/hyprbars.so').is_file():
+    # Only the bundle selected by the reviewed source build; never newest mtime.
+    target = Path(bundle) if bundle else None
+    if target is None:
+        if current:
             return stage('release', 'done', 'Installed release contains the screenshot tool and plugin artifact.')
-    if bundle is None:
         return stage('release', 'blocked', 'Build a verified bundle before installing a release.')
+    restart = installation.running() is not None
     try:
-        release_update.review(installation, bundle, 'update' if current else 'install', False, False)
+        release_update.review(installation, target, 'update' if current else 'install', restart, False)
     except release_update.UpdateError as error:
-        return stage('release', 'blocked', str(error) + ' The guide never restarts the bar.')
-    return stage('release', 'apply', 'Install the verified bundle without starting the bar.',
-                 './install.sh --bundle ' + str(bundle))
+        return stage('release', 'blocked', str(error))
+    command = './install.sh --bundle ' + str(target)
+    if current:
+        command += ' --update'
+    if restart:
+        command += ' --restart-bar'
+    summary = 'Install ' + target.name + '.'
+    if restart:
+        summary = 'Install ' + target.name + ' and restart the recorded bar.'
+    return stage('release', 'apply', summary, command)
 
 
 def session_stage(root):
     reviewed = session_config.plan(root)
+    if any('not overwritten' in item for item in reviewed['blockers']):
+        return stage('session', 'manual', 'Your existing Hyprland configuration is kept. It is not replaced or merged.')
     if reviewed['blockers']:
         return stage('session', 'blocked', reviewed['blockers'][0], './install.sh --session-config')
     if not reviewed['changes']:
@@ -139,6 +149,8 @@ def session_stage(root):
 
 def activation_stage(root):
     reviewed = session_activation.plan(root)
+    if any('generic session' in item or 'not overwritten' in item for item in reviewed['blockers']):
+        return stage('activation', 'manual', 'Next-login files are skipped while your personal Hyprland configuration is kept.')
     if reviewed['blockers']:
         return stage('activation', 'blocked', reviewed['blockers'][0], './install.sh --session-activate')
     if not reviewed['changes']:
@@ -180,8 +192,9 @@ def review(root=ROOT, installation=None, installed=None, state=None, apt_root=Pa
         return item
     stages = [guarded('host', host_stage), promote_system(guarded('ppa', lambda: ppa_stage(apt_root)), allow_system),
               promote_system(guarded('packages', lambda: packages_stage(installed)), allow_system),
-              guarded('font', lambda: font_stage(root)), guarded('build', lambda: build_stage(root, state))]
-    stages.append(guarded('release', lambda: release_stage(installation, bundle_from(stages))))
+              guarded('font', lambda: font_stage(root)),
+              guarded('build', lambda: build_stage(root, state, installation))]
+    stages.append(guarded('release', lambda: release_stage(installation, bundle_from(stages), root)))
     stages.extend((guarded('session', lambda: session_stage(root)),
                    guarded('activation', lambda: activation_stage(root)), guarded('login', login_stage)))
     nxt = next((item for item in stages if item['status'] != 'done'), None)

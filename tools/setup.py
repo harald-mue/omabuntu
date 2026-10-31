@@ -287,6 +287,25 @@ def activation_stage(args):
     return 0
 
 
+def install_ready_release(command):
+    marker = '--bundle '
+    if marker not in command:
+        raise ValueError('No release bundle is ready to install')
+    bundle = Path(command.split(marker, 1)[1].split(' --', 1)[0].strip())
+    installation = user_install.Installation(*user_install.defaults())
+    current = installation.selected()
+    restart = '--restart-bar' in command
+    if restart and input('  Restart the recorded bar and switch to this release? [y/N] ').strip().lower() not in ('y', 'yes'):
+        print('  Cancelled. The running bar was left alone.')
+        return 0
+    mode = 'update' if current else 'install'
+    plan = release_update.review(installation, bundle, mode, restart, False)
+    result = release_update.apply(installation, plan, release_update.approve_digest(plan))
+    print('  Result: ' + result['status'] + ' (' + plan['version'] + ')')
+    print('  Previous release remains available through ./install.sh --rollback.')
+    return 0
+
+
 def guide_stage(args):
     reviewed = setup_guide.review(ROOT, allow_system=args.allow_system)
     digest = guided.digest(reviewed)
@@ -303,6 +322,9 @@ def guide_stage(args):
         if nxt and nxt['command']:
             console.line('  Next command: ' + nxt['command'])
         console.line('  Approval digest: ' + digest)
+        if (nxt and nxt['id'] == 'release' and nxt['status'] == 'apply' and sys.stdin.isatty()
+                and input('  Install this prepared development release now? [y/N] ').strip().lower() in ('y', 'yes')):
+            return install_ready_release(nxt['command'])
     if not args.apply:
         return 0 if nxt is None or nxt['status'] != 'blocked' else 1
     if nxt is None or nxt['status'] != 'apply':

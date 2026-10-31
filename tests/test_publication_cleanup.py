@@ -126,7 +126,7 @@ class PublicationCleanupTests(unittest.TestCase):
                 self.assertEqual(check_clean_source.candidate_files(root), [Path('README.md')])
 
     def test_make_refuses_missing_build_before_packaging_or_deployment(self):
-        for target in ('release', 'dev-update'):
+        for target in ('package', 'dev-update'):
             result = subprocess.run(['make', '--no-print-directory', target,
                                      'VERSION=fixture', 'BUILD_DIR='],
                                     cwd=ROOT, text=True, capture_output=True, timeout=15)

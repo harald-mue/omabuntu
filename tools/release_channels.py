@@ -77,6 +77,14 @@ def resolve(channel_file, name, release_dir):
             'publisher_signature': False, 'downloaded': False, 'published': False}
 
 
+def pin_stable(bundle, path):
+    """Point stable at an installed bundle. Keep dev. Do not publish."""
+    path = Path(path)
+    record = from_bundle('stable', bundle, path if path.exists() else None)
+    write(path, record, replace=path.exists())
+    return record
+
+
 def write(path, record, replace=False):
     path = Path(path)
     if os.getuid() == 0 or os.environ.get('SUDO_USER'):

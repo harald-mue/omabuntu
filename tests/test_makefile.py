@@ -32,17 +32,15 @@ class MakefileTests(unittest.TestCase):
             self.assertNotIn('systemctl', body, name)
             self.assertNotIn('sudo', body, name)
 
-    def test_update_prepares_stops_installs_then_starts(self):
+    def test_update_downloads_only_the_published_release(self):
         body = target_body('update')
-        order = [body.index(marker) for marker in
-                 ('release VERSION', 'stop', 'install', 'start')]
-        self.assertEqual(order, sorted(order))
-        self.assertEqual(body.count('$(OMABUNTU) start'), 1)
+        self.assertIn('./install.sh --download-release', body)
+        self.assertNotIn('$(OMABUNTU)', body)
 
     def test_version_is_required_before_a_release_target_runs(self):
         self.assertIn('VERSION is required', target_body('check-version'))
         text = MAKEFILE.read_text()
-        for name in ('release', 'preflight', 'plan', 'install', 'update'):
+        for name in ('release', 'package', 'preflight', 'plan', 'install'):
             self.assertRegex(text, r'(?m)^%s: check-version(?: check-build)?$' % name)
 
     def test_autostart_targets_only_use_the_deployer(self):
@@ -55,7 +53,7 @@ class MakefileTests(unittest.TestCase):
 
     def test_development_update_always_builds_before_stopping(self):
         body = target_body('dev-update')
-        markers = ('release VERSION', 'preflight VERSION', 'hypr-settings-plan',
+        markers = ('package VERSION', 'preflight VERSION', 'hypr-settings-plan',
                    'autostart-plan', '$(OMABUNTU) stop', 'tools/user_install.py install',
                    'directory hypr-settings\n', 'directory autostart\n',
                    'directory reload\n', '$(OMABUNTU) start')

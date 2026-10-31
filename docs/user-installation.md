@@ -334,7 +334,7 @@ make update VERSION=my-change BUILD_DIR=work/builds/<build-id>
 ```
 
 `make install VERSION=...` stops at installation and never starts the shell.
-`make release VERSION=... BUILD_DIR=...` only prepares the bundle under `work/`, and
+`make package VERSION=... BUILD_DIR=...` only prepares the bundle under `work/`, and
 `make help` lists every target without side effects.
 
 ### Complete live development update
