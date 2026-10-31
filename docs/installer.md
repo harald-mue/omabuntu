@@ -175,15 +175,14 @@ acceptance. `--state-schema` reports schema 1 and does not rewrite preferences.
 Use `make release VERSION=0.1.0` to prepare and publish a signed GitHub Release
 after explicit commit and publication confirmations. Use `make update` to fetch
 the latest published release, rather than building from the checkout.
-Publisher key setup and the first real publication are still pending.
+The publisher public key is configured; the first real publication is still pending.
 See [release setup, trust and recovery](releases.md).
 
-The old local channel commands remain deprecated compatibility only. The new
-flow does not use dev/stable pins and never promotes an installation to stable.
+A checkout is the development path; GitHub Releases are the published path.
 
 ## Not done
 
-- No signed remote channel or public download has been published.
+- The first signed GitHub Release has not been published.
 - No stock Ubuntu VM install, reinstall, update, or rollback has been accepted.
 - Native first-login, plugin loading, and wallpaper appearance still need a real
   Hyprland login.

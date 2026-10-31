@@ -3,13 +3,13 @@
 ## Status
 
 The current operator guide is [installer.md](installer.md). `./install.sh`
-stages PPA, packages, font, build, release, session, activation, and local
-`dev`/`stable` channel pins. `tools/install.py` remains the local-bundle apply
+stages PPA, packages, font, build, release, session, and activation. `tools/install.py` remains the local-bundle apply
 engine used by that entry. Package apply still requires an approved plan and an
 interactive terminal. Session start is separate.
 
 This is not a universal fresh-desktop provisioner. Native login, VM acceptance,
-and remote publication remain open. A channel pin is not a signed release.
+and the first real publication remain open. Signed GitHub release distribution
+is described in [releases.md](releases.md).
 
 The supported development target is Ubuntu 26.04 on x86_64 with Hyprland
 0.56.2 and system Qt 6.10.2. This is tested target context, not a compatibility claim

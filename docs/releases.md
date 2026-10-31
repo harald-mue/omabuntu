@@ -65,7 +65,7 @@ Artifacts under `work/publish/vVERSION/`:
 After separate publication confirmation the tool creates an annotated tag and
 atomically pushes main and the tag. It uploads artifacts into a draft GitHub
 Release, then makes it public. There is no force push, tag replacement, package
-installation, channel promotion or desktop deployment.
+installation or desktop deployment.
 
 Failures stop immediately. Local commits, build workspaces, tags or GitHub drafts
 may remain, depending on the failed step. Inspect them manually; do not blindly
@@ -105,8 +105,8 @@ locations; deleting a cache is not an uninstall.
 
 Repeat the command to update. From a checkout `make update` takes the same public
 release path. `make build` and `make guide` remain the source-development path.
-No dev/stable channel is needed. Old local channel commands are deprecated
-compatibility only; neither installation nor publication reads/writes those pins.
+Published versions are selected through GitHub Releases; development versions
+are built from the checkout.
 
 ## Trust model
 

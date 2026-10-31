@@ -312,7 +312,7 @@ logout. An unknown/reused PID is not stopped. The bar does not expire on a timer
 
 ## Update and rollback
 
-For the staged `./install.sh` commands, channels, and the difference between an
+For the staged `./install.sh` commands and the difference between an
 application release and APT, read [installer.md](installer.md). The commands
 below remain the installed release manager.
 

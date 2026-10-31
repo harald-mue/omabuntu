@@ -146,7 +146,7 @@ Git; `work/` is private working material, not release content.
   and [lock readiness](docs/lock-readiness.md)
 - [Architecture](docs/architecture.md) and [workspace modes](docs/workspace-modes.md)
 - [Upstream provenance](upstream/README.md) and [third-party notices](THIRD_PARTY_NOTICES.md)
-- [Publication checklist](docs/publication.md) and [development summary](WORKLOG.md)
+- [Publication checklist](docs/publication.md)
 
 Original Omabuntu code and documentation use the [MIT License](LICENSE).
 Third-party components retain their own notices and licenses. No affiliation

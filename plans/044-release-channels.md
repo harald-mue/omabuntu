@@ -1,5 +1,12 @@
 # Release channels
 
+> **SUPERSEDED — not valid for current implementation.** The local dev/stable
+> mechanism, files and CLI options have been removed by
+> [plan 048](048-remove-release-channels.md). Development uses source checkouts;
+> published distribution uses signed GitHub Releases under
+> [plan 045](045-github-release-distribution.md). The design and checked tasks
+> below are historical records only, not supported usage instructions.
+
 ## Goal
 
 Let a later update select `stable` or `dev` without tracking a moving branch.

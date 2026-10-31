@@ -1,5 +1,10 @@
 # GitHub release distribution
 
+> **PARTIALLY SUPERSEDED.** The statements below retaining deprecated local
+> channel compatibility are no longer valid. [Plan 048](048-remove-release-channels.md)
+> removes that implementation entirely. The signed GitHub Release workflow
+> remains current; the original implementation record below is retained.
+
 ## Goal and evidence
 
 Replace channel-based distribution with development checkouts and versioned

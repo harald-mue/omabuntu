@@ -61,11 +61,9 @@ commit when Omarchy behavior matters), current project gaps, safety
 constraints, the proposed shape, explicit exclusions, and checkbox tasks
 (`- [ ]`). Check a task only after that task is done. A plan is not approval to
 edit the desktop, bind keys, install, restart, or commit. Keep machine-specific
-bind dumps, logs, and secrets out of the plan. Update `WORKLOG.md` when the
-planned work changes the repository.
+bind dumps, logs, and secrets out of the plan.
 
 ## Verification and Git
 
 Run python3 -m unittest discover -s tests -v after changes.
-Keep WORKLOG.md current in English.
 Do not commit without asking. Use English Conventional Commits.

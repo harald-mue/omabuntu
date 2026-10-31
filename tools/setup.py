@@ -35,7 +35,6 @@ import state_schema
 import package_closure
 import acceptance
 import rehearse_install
-import release_channels
 import install as guided
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -375,27 +374,6 @@ def rehearse_stage(args):
     return 0 if report['failed_start'] == 'restored' and report['rolled_back'] else 1
 
 
-def channel_stage(args):
-    if args.set_channel:
-        record = release_channels.from_bundle(args.set_channel, args.bundle, args.channels_file)
-        if args.write_channel is None:
-            print(json.dumps(record, indent=2))
-            print('  Channel pin only. Not written, published, installed, or started.')
-            return 0
-        path = release_channels.write(args.write_channel, record, replace=args.replace_channel)
-        print('  Wrote channel pin: ' + str(path))
-        print('  Not published, installed, or started.')
-        return 0
-    path = args.channels_file or (ROOT / 'channels/omabuntu.json')
-    if not path.exists():
-        print('  No channel file at ' + str(path) + '. Create one with --set-channel.')
-        return 1
-    data = release_channels.load(path)
-    print(json.dumps(data, indent=2) if args.json else '  Channels: ' + ', '.join(sorted(data['channels'])))
-    print('  Unsigned pin. No download or publication.')
-    return 0
-
-
 def acceptance_stage(args):
     reviewed = acceptance.review(ROOT)
     if args.json:
@@ -650,8 +628,7 @@ def system_stage(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument('--update', action='store_true', help='Review update readiness, or update an explicit prepared --bundle or channel')
-    mode.add_argument('--channels', action='store_true', help='Review or write a local dev/stable pin; no download or publication')
+    mode.add_argument('--update', action='store_true', help='Review update readiness, or update an explicit prepared --bundle')
     mode.add_argument('--rollback', action='store_true', help='Review the verified previous application release; --apply is explicit')
     mode.add_argument('--recover-update', action='store_true', help='Review one interrupted update; --apply restores its prestate and does not resume it')
     mode.add_argument('--ppa', action='store_true', help='Download and verify a signed PPA plan; --apply explicitly writes the source/key and refreshes metadata')
@@ -685,12 +662,6 @@ def main(argv=None):
     parser.add_argument('--plain', action='store_true', help='Disable ANSI colors')
     parser.add_argument('--json', action='store_true', help='Print machine-readable readiness without the banner')
     parser.add_argument('--bundle', type=Path, help='Explicit trusted local prepared release; no source download')
-    parser.add_argument('--channel', choices=('stable', 'dev'), help='With --update: resolve this channel from a local release directory')
-    parser.add_argument('--set-channel', choices=('stable', 'dev'), help='With --channels: pin a verified local bundle as dev or stable')
-    parser.add_argument('--channels-file', type=Path, help='Channel file to read, or to merge when setting a channel')
-    parser.add_argument('--release-dir', type=Path, help='Directory containing versioned releases for --channel')
-    parser.add_argument('--write-channel', type=Path, help='With --set-channel: write the pin here; nothing is published')
-    parser.add_argument('--replace-channel', action='store_true', help='With --write-channel: replace an existing channel file')
     parser.add_argument('--apply', action='store_true', help='Apply only the explicit reviewed release, source, package, build or font stage')
     parser.add_argument('--approve', help='Digest of the exact selected-stage plan; requires --apply')
     parser.add_argument('--allow-system', action='store_true', help='With --guide --apply: allow the next PPA or package stage only')
@@ -730,41 +701,12 @@ def main(argv=None):
         parser.error('Source/package apply uses your terminal for sudo/APT; JSON is review-only')
     if args.rollback and args.bundle:
         parser.error('--rollback uses the previous release, not --bundle')
-    if args.channel and not args.update:
-        parser.error('--channel requires --update')
-    if args.channel and args.bundle:
-        parser.error('--channel resolves the bundle; do not also pass --bundle')
-    if args.set_channel and not args.channels:
-        parser.error('--set-channel requires --channels')
-    if args.channels and not args.set_channel and (args.bundle or args.write_channel):
-        parser.error('Reviewing channels takes no bundle; use --set-channel to pin one')
-    if args.write_channel and not args.set_channel:
-        parser.error('--write-channel requires --set-channel')
-    if args.set_channel and args.bundle is None:
-        parser.error('--set-channel requires --bundle')
     if args.recover_update and (args.bundle or args.allow_legacy_state or args.plan):
         parser.error('Update recovery uses its journal, not a bundle or legacy acknowledgement')
     if args.approve and not args.apply:
         parser.error('--approve requires --apply')
     if args.apply and args.check:
         parser.error('--apply and --check cannot be combined')
-    if args.channels:
-        try:
-            return channel_stage(args)
-        except (OSError, ValueError) as error:
-            print('  Channel operation blocked: ' + str(error), file=sys.stderr)
-            return 1
-    if args.channel:
-        try:
-            if args.release_dir is None or args.channels_file is None:
-                parser.error('--channel requires --channels-file and --release-dir')
-            resolved = release_channels.resolve(args.channels_file, args.channel, args.release_dir)
-            args.bundle = Path(resolved['bundle'])
-            if not args.json:
-                print('  Channel ' + args.channel + ' resolved to ' + resolved['version'] + ' (unsigned, not downloaded).')
-        except (OSError, ValueError) as error:
-            print('  Channel resolution blocked: ' + str(error), file=sys.stderr)
-            return 1
     if args.recover_update:
         try:
             return recover_stage(args)

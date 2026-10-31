@@ -27,6 +27,38 @@ def plan(mode='install', **kwargs):
                          which=lambda _: '/example', installation=INSTALLED, **kwargs)
 
 
+class RemovedDistributionOptionsTests(unittest.TestCase):
+    def test_obsolete_options_are_rejected_before_any_operation(self):
+        options = (['--channels'], ['--update', '--channel', 'stable'],
+                   ['--set-channel', 'dev'], ['--channels-file', 'pins.json'],
+                   ['--release-dir', 'work/user-releases'],
+                   ['--write-channel', 'pins.json'], ['--replace-channel'])
+        with patch.object(setup, 'inspect') as inspect, \
+             patch.object(setup, 'local_release') as release, \
+             patch.object(setup, 'guide_stage') as guide:
+            for args in options:
+                with self.subTest(args=args), contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit) as error:
+                        setup.main(args)
+                    self.assertEqual(error.exception.code, 2)
+            inspect.assert_not_called()
+            release.assert_not_called()
+            guide.assert_not_called()
+
+    def test_help_has_no_obsolete_distribution_options(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output), self.assertRaises(SystemExit) as error:
+            setup.main(['--help'])
+        self.assertEqual(error.exception.code, 0)
+        self.assertNotIn('channel', output.getvalue().lower())
+        self.assertIn('--bundle', output.getvalue())
+
+    def test_obsolete_implementation_and_pin_are_removed(self):
+        for name in ('tools/release_channels.py', 'tests/test_release_channels.py',
+                     'channels/omabuntu.json'):
+            self.assertFalse((ROOT / name).exists(), name)
+
+
 class Terminal(io.StringIO):
     def isatty(self):
         return True

@@ -8,7 +8,7 @@ and a source-to-bundle runtime/Omasnap/plugin build stage are implemented. Gener
 session files and next-login activation files can be prepared separately. Native
 first-login validation and clean-target validation still remain. `--guide`
 now shows the next implemented stage and can apply only that local stage.
-The operator guide is [installer.md](installer.md). Plan [043](../plans/043-fresh-install-and-updates.md) tracks the complete work. Channels are plan [044](../plans/044-release-channels.md).
+The operator guide is [installer.md](installer.md). Plan [043](../plans/043-fresh-install-and-updates.md) tracks the broader installation work. Published distribution is documented in [releases.md](releases.md).
 No PPA, packages, desktop files, session or service was changed by this audit.
 
 ## Terminal experience: implemented preview
@@ -254,21 +254,12 @@ native-login acceptance false. `./install.sh --rehearse` runs install, repeat,
 failed start, update and rollback in a temporary home. It does not change the
 host and is not VM acceptance.
 
-## Release channels: local pins, not publication
+## Published distribution
 
-`stable` and `dev` are names for an exact release version and metadata SHA-256.
-They are not branches and not a publisher signature. The channel file contains
-no download URL and no artwork.
-
-```sh
-./install.sh --channels --set-channel dev --bundle work/user-releases/VERSION
-./install.sh --channels --set-channel dev --bundle work/user-releases/VERSION --write-channel channels/omabuntu.json
-./install.sh --update --channel dev --channels-file channels/omabuntu.json --release-dir work/user-releases
-```
-
-The first command prints the pin. The second writes it only when asked. The third
-resolves the local directory and reviews the update; it does not download or apply
-unless `--apply` is added. Publishing the file or the bundle is a separate approval.
+Use `make release VERSION=0.1.0` to build and publish a signed GitHub Release
+after explicit approvals. Users install and update from the latest published
+release, without a checkout or local build. Development checkouts use
+`make build` and `make guide`. See [release setup and verification](releases.md).
 
 ## Next-login activation: files only
 
