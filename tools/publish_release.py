@@ -26,9 +26,10 @@ def run(*args, cwd=ROOT, capture=False, timeout=120):
 
 
 def confirm(message):
-    with open('/dev/tty', 'r+') as terminal:
-        terminal.write(message + ' Type yes: ')
-        terminal.flush()
+    # A terminal is not seekable: buffered r+ fails before showing the prompt.
+    with open('/dev/tty', 'w') as output, open('/dev/tty', 'r') as terminal:
+        output.write(message + ' Type yes: ')
+        output.flush()
         if terminal.readline().strip() != 'yes':
             raise ValueError('Cancelled; no further actions performed')
 

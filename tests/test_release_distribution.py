@@ -1,7 +1,10 @@
 """Public release transport tests: no network, publication or live deployment."""
+import builtins
 import hashlib
 import io
 import json
+import os
+import pty
 from pathlib import Path
 import shutil
 import subprocess
@@ -17,6 +20,32 @@ import download_release as download
 import publish_release as publish
 import published_install
 import release_archive
+
+
+class TerminalConfirmationTests(unittest.TestCase):
+    def confirm_with_reply(self, reply):
+        master, slave = pty.openpty()
+        modes = []
+        def terminal_open(path, mode):
+            self.assertEqual(path, '/dev/tty')
+            modes.append(mode)
+            return builtins.open(os.dup(slave), mode)
+        try:
+            os.write(master, reply)
+            with patch.object(publish, 'open', side_effect=terminal_open):
+                publish.confirm('Publish fixture?')
+            self.assertEqual(modes, ['w', 'r'])
+        finally:
+            os.close(master)
+            os.close(slave)
+
+    def test_yes_works_with_a_real_nonseekable_terminal(self):
+        self.confirm_with_reply(b'yes\n')
+
+    def test_other_answers_cancel_with_a_real_terminal(self):
+        for reply in (b'no\n', b'\n', b'y\n'):
+            with self.subTest(reply=reply), self.assertRaisesRegex(ValueError, 'Cancelled'):
+                self.confirm_with_reply(reply)
 
 
 class ArchiveTests(unittest.TestCase):
