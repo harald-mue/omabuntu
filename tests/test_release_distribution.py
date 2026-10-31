@@ -83,6 +83,29 @@ class ArchiveTests(unittest.TestCase):
                     release_archive.extract(archive, base / 'out')
                 self.assertFalse((base / 'out').exists())
 
+    def test_readonly_and_executable_file_modes_survive_transport(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            archive = base / 'modes.tar'
+            with tarfile.open(archive, 'w') as stream:
+                for name, mode in (('bundle/readonly', 0o444), ('bundle/executable', 0o755)):
+                    item = tarfile.TarInfo(name)
+                    item.mode = mode
+                    item.size = 1
+                    stream.addfile(item, io.BytesIO(b'x'))
+            release_archive.extract(archive, base / 'out')
+            self.assertEqual((base / 'out/bundle/readonly').stat().st_mode & 0o777, 0o444)
+            self.assertEqual((base / 'out/bundle/executable').stat().st_mode & 0o777, 0o755)
+
+    def test_paths_below_the_runtime_alias_are_refused(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            archive = self.archive(base, [('bundle/runtime/bin/qs', 'link', 'quickshell'),
+                                          ('bundle/runtime/bin/qs/extra', 'file', 'x')])
+            with self.assertRaises(ValueError):
+                release_archive.extract(archive, base / 'out')
+            self.assertFalse((base / 'out').exists())
+
     def test_duplicate_paths_and_size_limit(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -187,6 +210,105 @@ class PublishedInstallerTests(unittest.TestCase):
             main.assert_not_called()
 
 
+class SigningResumeTests(unittest.TestCase):
+    def fixture(self, base):
+        import user_install
+        tree = base / 'tree'
+        tree.mkdir()
+        (tree / 'README.md').write_text('committed source')
+        with tarfile.open(base / 'source.tar', 'w') as source:
+            source.add(tree / 'README.md', arcname='README.md')
+        bundle = tree / 'work/user-releases/release-1.0.0'
+        bundle.mkdir(parents=True)
+        (bundle / 'release.json').write_text('{}')
+        with patch.object(user_install, 'verify_bundle'):
+            return publish.package(tree, bundle, base, '1.0.0', 'a' * 40)
+
+    def test_complete_unsigned_archive_can_be_reviewed_without_rebuilding(self):
+        import user_install
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            assets = self.fixture(base)
+            with patch.object(publish.subprocess, 'check_output', return_value=(base / 'source.tar').read_bytes()), \
+                 patch.object(user_install, 'verify_bundle', return_value={'version': 'release-1.0.0'}):
+                self.assertEqual(publish.review_existing(base, '1.0.0', 'a' * 40), assets)
+                with self.assertRaisesRegex(ValueError, 'metadata'):
+                    publish.review_existing(base, '1.0.0', 'b' * 40)
+                assets[0].write_bytes(b'corrupted')
+                with self.assertRaisesRegex(ValueError, 'changed'):
+                    publish.review_existing(base, '1.0.0', 'a' * 40)
+
+    def test_resume_refuses_a_different_git_export(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            self.fixture(base)
+            with patch.object(publish.subprocess, 'check_output', return_value=b'other commit'):
+                with self.assertRaisesRegex(ValueError, 'source export'):
+                    publish.review_existing(base, '1.0.0', 'a' * 40)
+
+    def test_signing_has_no_interactive_timeout_and_reuses_verified_signature(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            assets = self.fixture(base)
+            def sign(*args, **kwargs):
+                self.assertIsNone(kwargs['timeout'])
+                Path(args[-1] + '.sig').write_bytes(b'fixture signature')
+            with patch.object(publish, 'run', side_effect=sign) as run, \
+                 patch.object(publish.download_release, 'verify') as verify:
+                publish.sign_artifacts(assets, '/private/key', base / 'key.pub', base)
+                self.assertEqual(Path(str(assets[2]) + '.sig').read_bytes(), b'fixture signature')
+                publish.sign_artifacts(assets, '/private/key', base / 'key.pub', base)
+                self.assertEqual(run.call_count, 1)
+                self.assertEqual(verify.call_count, 2)
+
+    def test_resume_accepts_an_ancestor_commit_without_commit_or_build(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / 'config').mkdir()
+            (root / 'config/release-signing-key.pub').write_text('ssh-ed25519 fixture')
+            case = root / 'work/publish/v1.0.0'
+            case.mkdir(parents=True)
+            (case / 'release.json').write_text(json.dumps({'commit': 'a' * 40}))
+            calls = []
+            def run(*args, **kwargs):
+                calls.append(args)
+                if args[:2] == ('ssh-keygen', '-y'):
+                    self.assertIsNone(kwargs['timeout'])
+                    return 'ssh-ed25519 fixture'
+                if args[:3] == ('git', 'branch', '--show-current'):
+                    return 'main'
+                if args[:3] == ('git', 'remote', 'get-url'):
+                    return 'https://github.com/' + publish.REPOSITORY
+                if args[:3] == ('git', 'rev-parse', 'HEAD'):
+                    return 'b' * 40
+                return ''
+            with patch.object(sys, 'argv', ['publish', '--version', '1.0.0', '--signing-key', '/private/key', '--resume-signing']), \
+                 patch.object(publish, 'ROOT', root), \
+                 patch.object(publish.os, 'getuid', return_value=1000), \
+                 patch.object(publish.shutil, 'which', return_value='/fixture'), \
+                 patch.object(publish, 'run', side_effect=run), \
+                 patch.object(publish, 'confirm'), \
+                 patch.object(publish, 'review_existing', return_value=('archive', 'metadata', 'sums')) as review, \
+                 patch.object(publish, 'publish_artifacts') as finish:
+                publish.main()
+                review.assert_called_once_with(case, '1.0.0', 'a' * 40)
+                self.assertEqual(finish.call_args.kwargs['head'], 'b' * 40)
+                self.assertTrue(finish.call_args.kwargs['resume'])
+            self.assertIn(('git', 'merge-base', '--is-ancestor', 'a' * 40, 'b' * 40), calls)
+            self.assertFalse(any(c[:2] in (('python3', '-c'), ('git', 'commit')) for c in calls))
+
+    def test_timeout_keeps_original_artifacts_and_no_final_signature(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            assets = self.fixture(base)
+            before = {p: p.read_bytes() for p in assets}
+            with patch.object(publish, 'run', side_effect=subprocess.TimeoutExpired('fixture', 1)):
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    publish.sign_artifacts(assets, '/private/key', base / 'key.pub', base)
+            self.assertFalse(Path(str(assets[2]) + '.sig').exists())
+            self.assertTrue(all(p.read_bytes() == data for p, data in before.items()))
+
+
 class PublisherTests(unittest.TestCase):
     def test_artifact_name_requires_numeric_version(self):
         self.assertEqual(publish.artifact_name('1.2.3'), 'omabuntu-1.2.3-ubuntu-26.04-x86_64.tar.gz')
@@ -249,7 +371,10 @@ class PublisherTests(unittest.TestCase):
             def extract(archive, tree):
                 tree.mkdir()
             def package(tree, bundle, case, version, commit):
-                return tuple(case / name for name in ('archive.tar.gz', 'release.json', 'SHA256SUMS'))
+                assets = tuple(case / name for name in ('archive.tar.gz', 'release.json', 'SHA256SUMS'))
+                for path in (*assets, Path(str(assets[2]) + '.sig')):
+                    path.write_bytes(b'fixture')
+                return assets
             with patch.object(sys, 'argv', ['publish', '--version', '0.1.0', '--signing-key', '/private/key']), \
                  patch.object(publish, 'ROOT', root), \
                  patch.object(publish.os, 'getuid', return_value=1000), \
@@ -258,7 +383,8 @@ class PublisherTests(unittest.TestCase):
                  patch.object(publish, 'confirm') as confirm, \
                  patch.object(publish.release_archive, 'extract', side_effect=extract), \
                  patch.object(publish, 'package', side_effect=package), \
-                 patch.object(publish, 'check_artifacts'):
+                 patch.object(publish, 'check_artifacts'), \
+                 patch.object(publish, 'sign_artifacts'):
                 publish.main()
             self.assertEqual(confirm.call_count, 2)
             build = next(i for i, call in enumerate(calls) if call[:2] == ('python3', '-c'))

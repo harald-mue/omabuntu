@@ -21,7 +21,7 @@ DEV_VERSION := $(if $(VERSION),$(VERSION),dev-$(shell date -u +%Y%m%dT%H%M%S.%NZ
 
 .DEFAULT_GOAL := help
 
-.PHONY: help test doctor guide release build packages font acceptance rollback \
+.PHONY: help test doctor guide release release-resume build packages font acceptance rollback \
         package preflight plan install update start stop status \
         autostart autostart-plan autostart-remove hypr-settings hypr-settings-plan \
         hypr-settings-remove reload restart dev-update check-version check-build
@@ -33,6 +33,7 @@ help:
 	@echo '  make guide                             show the next step; may offer to install'
 	@echo '  make build                             build a local development bundle'
 	@echo '  make release VERSION=0.1.0             reviewed commit, build, tag and GitHub publication'
+	@echo '  make release-resume VERSION=0.1.0      verify existing archive, resume signing/publication only'
 	@echo '  make packages                          review missing packages; no install'
 	@echo '  make font                              review the desktop font; no install'
 	@echo '  make acceptance                        read-only stock-install gates'
@@ -83,6 +84,9 @@ guide:
 
 release: check-version
 	$(PYTHON) tools/publish_release.py --version '$(VERSION)'
+
+release-resume: check-version
+	$(PYTHON) tools/publish_release.py --version '$(VERSION)' --resume-signing
 
 build:
 	./install.sh --build-release --apply

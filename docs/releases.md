@@ -62,6 +62,10 @@ Artifacts under `work/publish/vVERSION/`:
 - `SHA256SUMS`: archive and metadata checksums;
 - `SHA256SUMS.sig`: SSH signature in the `omabuntu-release` namespace.
 
+Interactive publisher-key and signing prompts have no timeout: entering a
+passphrase is not a timed probe. Network, build and signature-verification
+commands retain their bounded execution limits.
+
 After separate publication confirmation the tool creates an annotated tag and
 atomically pushes main and the tag. It uploads artifacts into a draft GitHub
 Release, then makes it public. There is no force push, tag replacement, package
@@ -72,6 +76,44 @@ may remain, depending on the failed step. Inspect them manually; do not blindly
 retry with another version, delete evidence or overwrite a published release.
 No automated destructive cleanup or unpublish/rewrite is provided. Only complete
 non-prerelease GitHub Releases are selected by the downloader.
+
+### Start over after a failed build or signing attempt
+
+A complete fresh build is supported. Before retrying the same version, verify
+that no corresponding tag or GitHub Release was created and no release process
+is still running. Move the existing workspace out of `work/publish/vVERSION/`
+into a uniquely named private backup directory under `work/`; do not delete it
+or overwrite a published version. Commit any reviewed source fixes, then run
+`make release VERSION=...` again. The archive will be built from the new commit.
+A fresh build is independent of the archived artifacts and may take several
+minutes. Existing tags or remote releases require separate manual review.
+
+### Optional: resume after a signing interruption
+
+If you prefer not to rebuild and packaging finished but signing stopped, keep the workspace:
+
+```sh
+make release-resume VERSION=0.1.0
+```
+
+This is an explicit pre-publication recovery path, not a fresh build. Review and
+commit any pending fixes first; a clean main checkout is required. The recorded
+artifact commit must be HEAD or its ancestor. The tool verifies the metadata,
+archive checksums, original Git export, packaged source, bundle integrity and
+absence of theme artwork. It does not rebuild, commit or include later source
+changes in the existing archive. The tag identifies the original artifact commit;
+main may also include newer committed fixes, which are displayed before approval.
+
+After confirmation it signs in a fresh retained attempt directory, verifies the
+signature/archive and asks separately before pushing and publishing. Interactive
+signing does not expire. An existing valid signature can be reused; an invalid
+signature or incomplete workspace requires manual review, not overwrite/deletion.
+Changed HEAD/artifacts or an existing tag are refused. Failures after tag creation,
+push or GitHub draft creation are outside this resume path.
+
+Extraction retains the bundle's reviewed regular-file permissions after the safe
+Tar data filter so that read-only manifest files remain read-only. Links cannot
+be used as archive parent paths; privileged modes and unsafe paths remain refused.
 
 ## Install and update without Git
 

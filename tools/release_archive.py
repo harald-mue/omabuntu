@@ -15,10 +15,11 @@ def extract(archive, destination):
         if len(members) > MAX_FILES or sum(m.size for m in members) > MAX_BYTES:
             raise ValueError('Archive exceeds extraction limits')
         seen = set()
+        links = {PurePosixPath(m.name) for m in members if m.issym()}
         for member in members:
             path = PurePosixPath(member.name)
             if (path.is_absolute() or '..' in path.parts or not path.parts
-                    or member.name in seen):
+                    or member.name in seen or any(parent in links for parent in path.parents)):
                 raise ValueError('Unsafe or duplicate archive path')
             seen.add(member.name)
             # The runtime intentionally contains exactly this relative alias.
@@ -30,3 +31,9 @@ def extract(archive, destination):
                 raise ValueError('Privileged archive mode')
         destination.mkdir(mode=0o700, parents=True)
         stream.extractall(destination, members=members, filter='data')
+        # Python's data filter adds owner read/write bits to regular files.
+        # Restore the reviewed non-privileged file modes required by the bundle
+        # manifest, without chmod through links or restoring privileged bits.
+        for member in members:
+            if member.isfile():
+                (destination / member.name).chmod(member.mode & 0o777)
