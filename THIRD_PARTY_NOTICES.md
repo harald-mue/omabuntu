@@ -1,5 +1,32 @@
 # Third-party notices
 
+## Desktop Nerd Font
+
+The optional desktop face is JetBrainsMono Nerd Font Regular from
+`ryanoasis/nerd-fonts` v3.4.0, commit
+`fa7b859994228a9c8759f99c55a8d31ee92a1b5e`, originating from JetBrains Mono
+2.304. Its folder explicitly supplies SIL OFL 1.1. Preserve both the folder
+notice (`licenses/Desktop-JetBrainsMonoNerd-OFL.txt`, copyright JetBrains Mono
+Project Authors) and the upstream licensing overview
+(`licenses/Desktop-Nerd-Fonts-LICENSE.txt`, including Ryan L McIntyre's notice).
+No font patching or renaming is performed. The TTF is downloaded from the
+pinned URL, not committed. Source and byte identity are recorded separately.
+
+## Omasnap screenshot executable
+
+The optional release-local `runtime/bin/omasnap` is built from
+`omacom/omasnap` commit `a432f40b14598a4a02b89fa0054f9a0ba3662dd4`
+(version 1.24.0), copyright Tobi Lütke, MIT. Source/archive identity and
+annotation font hashes are recorded in `upstream/omasnap-source.json`.
+`tools/build_omasnap.py` verifies the source MIT, bundled Neucha/JetBrains
+Mono/Inter font OFL notices, Lucide ISC notice and fonts provenance note
+against the preserved `licenses/Omasnap-*` records before compiling.
+These notices accompany the local executable under `licenses/omasnap/`.
+No Omasnap source tree, font binaries or compiled executable is committed.
+System Qt and LayerShellQt remain Ubuntu dependencies, not copied from a
+private home directory. This build path does not authorize public binary
+publication or run an Omarchy installer.
+
 ## Weather panel
 
 `vendor/omarchy/shell/plugins/panels/weather/` originates from Omarchy commit
@@ -89,6 +116,16 @@ See [runtime build](docs/runtime-build.md) and
 cleared for GitHub Releases merely because its source checksum is pinned.
 
 ## External desktop and build dependencies
+
+The optional bootstrap hyprbars artifact uses hyprland-plugins commit
+`7644cecdb947060682891a0db2a0cdc5c0b9e704` (Hypr Development, BSD-3-Clause),
+compiled against Hyprland headers at `efb50993780079460b0cbed1363e2166a2de1d9f`
+(vaxerski, BSD-3-Clause). Their root notices were reviewed in the exact source
+checkouts before archive acquisition and are preserved as
+`licenses/Hyprland-plugins-BSD-3-Clause.txt` and
+`licenses/Hyprland-BSD-3-Clause.txt`. Locked archives and notice hashes live in
+`upstream/hyprbars-build.json`. This does not authorize plugin activation or
+publication of a release; other upstream plugins/assets are not packaged.
 
 Qt, Hyprland, hyprpaper, Hyprlock, hyprland-plugins/hyprbars, font packages and
 native desktop libraries are external dependencies, not relicensed by Omabuntu.

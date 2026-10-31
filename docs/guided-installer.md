@@ -2,16 +2,14 @@
 
 ## Status
 
-`tools/install.py` implements the staged local-bundle workflow below, reusing
-our [versioned user-release installer](user-installation.md). Package and
-file apply require an explicitly approved saved plan, and session start is
-separate. Running the tool with `--help` changes nothing.
+The current operator guide is [installer.md](installer.md). `./install.sh`
+stages PPA, packages, font, build, release, session, activation, and local
+`dev`/`stable` channel pins. `tools/install.py` remains the local-bundle apply
+engine used by that entry. Package apply still requires an approved plan and an
+interactive terminal. Session start is separate.
 
-This is not a universal fresh-desktop provisioner: a compatible compositor
-and desktop services must already exist. Automatic keybinding/configuration
-integration, wallpaper process management, autostart and clean-target
-acceptance remain pending. Implementation is not approval to install on the
-current machine; no host apply was performed while implementing it.
+This is not a universal fresh-desktop provisioner. Native login, VM acceptance,
+and remote publication remain open. A channel pin is not a signed release.
 
 The supported development target is Ubuntu 26.04 on x86_64 with Hyprland
 0.56.2 and system Qt 6.10.2. This is tested target context, not a compatibility claim

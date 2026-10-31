@@ -312,6 +312,10 @@ logout. An unknown/reused PID is not stopped. The bar does not expire on a timer
 
 ## Update and rollback
 
+For the staged `./install.sh` commands, channels, and the difference between an
+application release and APT, read [installer.md](installer.md). The commands
+below remain the installed release manager.
+
 Prepare a distinct new version and review it first. With an installed bar,
 explicitly stop it, then install the new bundle and start it manually. The
 previous release remains intact. Updates do not auto-restart a desktop process.

@@ -287,9 +287,9 @@ def terminal_install(command):
     return subprocess.run(command, check=False, timeout=1800).returncode
 
 
-def apply_packages(plan_path, approval, run=omabuntu.probe, execute=terminal_install):
+def apply_packages(plan_path, approval, run=omabuntu.probe, execute=terminal_install, manifest_path=MANIFEST):
     reviewed = read_plan(plan_path, 'omabuntu-package-plan', approval)
-    fresh = package_review(wallpaper=reviewed.get('wallpaper') is True, run=run)
+    fresh = package_review(wallpaper=reviewed.get('wallpaper') is True, run=run, manifest_path=manifest_path)
     if fresh != reviewed or fresh['blockers']:
         raise ValueError('Package plan or host state changed; create and approve a new plan')
     case = private_case()

@@ -1,0 +1,86 @@
+-- SPDX-License-Identifier: MIT
+-- Generic Omabuntu session module for Hyprland 0.56.2 (efb509937800).
+-- Rendered by the installer, not loaded directly from this source template.
+-- No autostart, plugin loading, idle/suspend policy or automatic session action.
+-- A separate activation file may be read below; its absence is intentional.
+-- Private monitor rules and corporate/user settings are not copied here.
+
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
+hl.config({
+  misc = { disable_splash_rendering = true, disable_hyprland_logo = true,
+           col = { splash = 0x00000000 } },
+  ecosystem = { no_donation_nag = true },
+  general = { layout = "dwindle", gaps_in = 2, gaps_out = 10, border_size = 2 },
+  decoration = { rounding = 8, blur = { enabled = false }, shadow = { enabled = true } },
+  dwindle = { preserve_split = true, force_split = 2 },
+  input = {
+    kb_layout = @KEYBOARD_LAYOUT@,
+    kb_variant = "", kb_options = "",
+    repeat_rate = 40, repeat_delay = 250, numlock_by_default = true,
+    follow_mouse = 1,
+    touchpad = { natural_scroll = false, clickfinger_behavior = true, scroll_factor = 0.4 },
+  },
+})
+
+local function bind(keys, description, action, options)
+  options = options or {}
+  options.description = description
+  hl.bind(keys, action, options)
+end
+
+bind("SUPER + RETURN", "Launch terminal", hl.dsp.exec_cmd("xdg-terminal-exec"))
+bind("SUPER + SPACE", "Open command menu", hl.dsp.global("omabuntu:menu"))
+bind("SUPER + ESCAPE", "Open system menu", hl.dsp.global("omabuntu:system"))
+bind("SUPER + ALT + SPACE", "Open applications", hl.dsp.global("omabuntu:apps"))
+bind("SUPER + K", "Show keybindings", hl.dsp.global("omabuntu:keybindings"))
+bind("PRINT", "Screenshot", hl.dsp.exec_cmd(@SCREENSHOT_COMMAND@))
+bind("SUPER + SHIFT + S", "Screenshot", hl.dsp.exec_cmd(@SCREENSHOT_COMMAND@))
+bind("SUPER + M", "Minimize window", hl.dsp.exec_cmd(@MINIMIZE_COMMAND@))
+@MANUAL_LOCK_BIND@
+
+bind("SUPER + W", "Close focused window", hl.dsp.window.close())
+bind("SUPER + Q", "Close focused window", hl.dsp.window.close())
+bind("SUPER + T", "Toggle floating", hl.dsp.window.float({ action = "toggle" }))
+bind("SUPER + F", "Toggle fullscreen", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+bind("SUPER + J", "Toggle split", hl.dsp.layout("togglesplit"))
+bind("SUPER + P", "Toggle pseudo tiling", hl.dsp.window.pseudo())
+for _, item in ipairs({
+  { key = "LEFT", direction = "l" }, { key = "RIGHT", direction = "r" },
+  { key = "UP", direction = "u" }, { key = "DOWN", direction = "d" },
+}) do
+  bind("SUPER + " .. item.key, "Focus " .. item.direction, hl.dsp.focus({ direction = item.direction }))
+  bind("SUPER + SHIFT + " .. item.key, "Swap " .. item.direction, hl.dsp.window.swap({ direction = item.direction }))
+end
+for workspace = 1, 10 do
+  local key = "code:" .. tostring(workspace + 9)
+  bind("SUPER + " .. key, "Focus workspace " .. workspace, hl.dsp.focus({ workspace = workspace }))
+  bind("SUPER + SHIFT + " .. key, "Move to workspace " .. workspace,
+       hl.dsp.window.move({ workspace = workspace }))
+  bind("SUPER + SHIFT + ALT + " .. key, "Move silently to workspace " .. workspace,
+       hl.dsp.window.move({ workspace = workspace, follow = false }))
+end
+bind("SUPER + mouse:272", "Move window", hl.dsp.window.drag(), { mouse = true })
+bind("SUPER + mouse:273", "Resize window", hl.dsp.window.resize(), { mouse = true })
+bind("SUPER + S", "Toggle scratchpad", hl.dsp.workspace.toggle_special("scratchpad"))
+bind("SUPER + ALT + S", "Move to scratchpad",
+     hl.dsp.window.move({ workspace = "special:scratchpad", follow = false }))
+
+-- Re-register saved scrolling layouts before windows open. Floating ownership
+-- and dock restoration stay with the source-derived shell's existing model.
+local layouts = io.open(@WORKSPACE_STATE@, "r")
+if layouts then
+  for line in layouts:lines() do
+    local id, mode = line:match("^%s*(%d+)%s+([%a]+)%s*$")
+    if id and mode == "scrolling" then
+      hl.workspace_rule({ workspace = id, layout = "scrolling" })
+    end
+  end
+  layouts:close()
+end
+
+-- Next-login activation is owned separately. A missing file loads nothing.
+local activation = io.open(@ACTIVATION_PATH@, "r")
+if activation then
+  activation:close()
+  dofile(@ACTIVATION_PATH@)
+end

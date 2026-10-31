@@ -82,6 +82,10 @@ def file_manifest(directory):
     return result
 
 
+SESSION_HELPERS = ('runtime/bin/omasnap', 'helpers/capture_screenshot.py',
+                   'helpers/omabuntu_hyprland_window_minimize.py')
+SESSION_LOCK_HELPERS = ('helpers/lock_session.py', 'lock/hyprlock.conf')
+
 BASELINE = ('manager.py', 'runtime/bin/quickshell', 'shell/TrialShell.qml',
             'helpers/network_nm.py', 'helpers/display_backend.py', 'helpers/qrcodegen.py',
             'licenses/Omarchy-MIT.txt', 'licenses/Omabuntu-MIT.txt',
@@ -511,6 +515,9 @@ class Installation:
                    OMABUNTU_WEATHER_HELPER=str(release / 'helpers/weather_probe.py'),
                    OMABUNTU_ELSEWHEN_DIR=str(release / 'shell/Elsewhen'),
                    OMABUNTU_STATE_HOME=str(self.state), PYTHONDONTWRITEBYTECODE='1')
+        bundled_capture = release / 'runtime/bin/omasnap'
+        if bundled_capture.is_file() and not bundled_capture.is_symlink():
+            env['OMABUNTU_OMASNAP'] = str(bundled_capture)
         env.setdefault('DBUS_SESSION_BUS_ADDRESS', 'unix:path=' + str(runtime_dir / 'bus'))
         args = [str(release / 'runtime/bin/quickshell'), '--no-color', '--path', str(release / 'shell/TrialShell.qml')]
         with (logdir / 'output.log').open('x') as stream:

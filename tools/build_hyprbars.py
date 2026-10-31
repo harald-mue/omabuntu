@@ -7,10 +7,11 @@ running binary, so the plugin is built against a source checkout of the exact
 commit with freshly generated Wayland protocol headers, as hyprpm does.
 """
 import argparse
+import datetime
+import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,8 +39,16 @@ def run(argv, cwd=None, env=None, timeout=1800):
     return result.stdout
 
 
+def installed_version():
+    """Exit-only binary metadata; a first install need not have a live session."""
+    text = json.loads(run(['Hyprland', '--version-json'], timeout=15))
+    if not isinstance(text, dict) or text.get('dirty') is not False:
+        raise ValueError('Require a clean installed Hyprland build')
+    return text
+
+
 def hyprland_version():
-    text = json.loads(run(['hyprctl', 'version', '-j']))
+    text = installed_version()
     return text.get('version'), text.get('commit'), text.get('abiHash')
 
 
@@ -92,7 +101,7 @@ def module_version(module):
 def write_version_header():
     """Hyprland generates src/version.h during its own build; plugins need it."""
     template = (HEADERS / 'src/version.h.in').read_text()
-    version = json.loads(run(['hyprctl', 'version', '-j']))
+    version = installed_version()
     values = {
         'GIT_COMMIT_HASH': version.get('commit', ''),
         'GIT_BRANCH': version.get('branch', ''),
@@ -129,23 +138,24 @@ def missing_modules():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=WORK / 'hyprbars-build')
+    parser.add_argument('--output', type=Path, help='Fresh private build directory; existing paths are never overwritten')
     args = parser.parse_args(argv)
     version, commit, abi = hyprland_version()
-    if commit != HYPRLAND_COMMIT or not abi:
+    if version != '0.56.2' or commit != HYPRLAND_COMMIT or not abi:
         raise ValueError('Installed Hyprland differs from the reviewed build: ' + str(commit))
     missing = missing_modules()
     if missing:
         print('Missing build requirements:', ', '.join(missing))
         print('Install (approved, user-run):', APT_HINT)
         return 2
-    output = args.output
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')
+    output = args.output or WORK / 'hyprbars-builds' / stamp
     if '..' in output.parts or any(part.is_symlink() for part in (output, *output.parents)):
         raise ValueError('Refusing symlinked or traversing build directory')
+    if output.exists():
+        raise ValueError('Choose a fresh build directory; existing contents are retained')
     source = output / 'source'
-    if source.exists():
-        shutil.rmtree(source)  # Only this tool's own private build checkout.
-    output.mkdir(mode=0o700, parents=True, exist_ok=True)
+    output.mkdir(mode=0o700, parents=True)
     run(['git', 'clone', '--quiet', '--no-checkout', PLUGIN_REPO, str(source)])
     run(['git', 'checkout', '--quiet', PLUGIN_COMMIT], cwd=source)
     if run(['git', 'rev-parse', 'HEAD'], cwd=source).strip() != PLUGIN_COMMIT:
@@ -154,10 +164,6 @@ def main(argv=None):
     env = {**os.environ, 'PKG_CONFIG_PATH': str(pc) + ':' + os.environ.get('PKG_CONFIG_PATH', '')}
     build = output / 'build'
     install = output / 'install'
-    if build.exists():
-        shutil.rmtree(build)
-    if install.exists():
-        shutil.rmtree(install)
     run(['cmake', '-S', str(source / 'hyprbars'), '-B', str(build), '-G', 'Ninja',
          '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_INSTALL_PREFIX=' + str(install)], env=env)
     run(['cmake', '--build', str(build), '--target', 'hyprbars'], env=env)
@@ -165,9 +171,12 @@ def main(argv=None):
     library = next(install.rglob('hyprbars.so'), None) or next(build.glob('libhyprbars.so'), None)
     if library is None or library.is_symlink() or library.stat().st_size < 10000:
         raise ValueError('Built plugin library is missing or implausible')
+    if hyprland_version() != (version, commit, abi):
+        raise ValueError('Installed Hyprland changed during the build; artifact was not loaded')
     report = {'status': 'built-not-loaded', 'plugin_commit': PLUGIN_COMMIT,
               'hyprland_version': version, 'hyprland_commit': commit, 'abi_hash': abi,
               'hyprland_headers': str(HEADERS), 'library': str(library),
+              'library_sha256': hashlib.sha256(library.read_bytes()).hexdigest(),
               'loaded': False, 'config_applied': False,
               'limits': 'Built only. Loading needs an explicit plugin load or config include '
                         'plus a Hyprland reload, which are separate approvals.'}

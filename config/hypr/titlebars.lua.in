@@ -1,0 +1,61 @@
+-- SPDX-License-Identifier: MIT
+-- Rendered floating-workspace titlebar for hyprbars v0.56.0.
+-- Included only by the separate next-login activation file, never directly.
+-- No autostart, plugin load, lock, idle or private monitor rules.
+
+if not hl.plugin.hyprbars then
+  return
+end
+
+-- hyprbars v0.56.0 has no per-button window placeholder; focus happens first.
+local window = [[window = "activewindow"]]
+local minimize_cmd = @MINIMIZE_COMMAND@
+
+hl.window_rule({
+  name = "omabuntu-hyprbars-hide",
+  match = { class = ".*" },
+  ["hyprbars:no_bar"] = "1",
+})
+hl.window_rule({
+  name = "omabuntu-hyprbars-show-floated",
+  -- Title updates emit TITLE|CLASS in Hyprland 0.56.2. Both overrides must
+  -- match CLASS: custom effects do not trigger dependent-rule reevaluation.
+  match = { class = ".*", tag = "omabuntu-floating-workspace" },
+  ["hyprbars:no_bar"] = "0",
+})
+
+hl.config({
+  plugin = {
+    hyprbars = {
+      enabled = true,
+      bar_height = 30,
+      bar_color = "rgba(101315ee)",
+      ["col.text"] = "rgba(caccccee)",
+      bar_text_font = "JetBrainsMono Nerd Font",
+      bar_text_size = 12,
+      bar_text_weight = "normal",
+      bar_text_align = "left",
+      bar_buttons_alignment = "right",
+      bar_part_of_window = true,
+      bar_precedence_over_border = true,
+      bar_padding = 10,
+      bar_button_padding = 8,
+      icon_on_hover = false,
+      on_double_click = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\", action = \"toggle\", " .. window .. " })'",
+    },
+  },
+})
+
+for _, button in ipairs({
+  { icon = "×", action = "hyprctl dispatch 'hl.dsp.window.close({ " .. window .. " })'" },
+  { icon = "□", action = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\", action = \"toggle\", " .. window .. " })'" },
+  { icon = "−", action = minimize_cmd },
+}) do
+  hl.plugin.hyprbars.add_button({
+    bg_color = "rgba(101315ff)",
+    fg_color = "rgba(caccccff)",
+    size = 20,
+    icon = button.icon,
+    action = button.action,
+  })
+end

@@ -141,7 +141,7 @@ class CaptureScreenshotTests(unittest.TestCase):
         pin = json.loads((ROOT / "upstream/omasnap-source.json").read_text())
         self.assertEqual(pin["commit"], "a432f40b14598a4a02b89fa0054f9a0ba3662dd4")
         self.assertEqual(pin["version"], "1.24.0")
-        self.assertEqual(pin["status"], "pinned-not-built")
+        self.assertEqual(pin["status"], "pinned-build-input")
         notices = [pin["license"], *pin["bundled_notices"], pin["fonts_note"]]
         for notice in notices:
             path = ROOT / notice["notice_path"]

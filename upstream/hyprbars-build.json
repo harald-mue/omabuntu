@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "target": {
+    "version": "0.56.2",
+    "commit": "efb50993780079460b0cbed1363e2166a2de1d9f"
+  },
+  "sources": [
+    {
+      "name": "hyprland-plugins",
+      "repository": "https://github.com/hyprwm/hyprland-plugins",
+      "commit": "7644cecdb947060682891a0db2a0cdc5c0b9e704",
+      "archive_url": "https://codeload.github.com/hyprwm/hyprland-plugins/tar.gz/7644cecdb947060682891a0db2a0cdc5c0b9e704",
+      "archive_root": "hyprland-plugins-7644cecdb947060682891a0db2a0cdc5c0b9e704",
+      "archive_bytes": 33021,
+      "archive_sha256": "46b76d4c9f020273c50dba1bb816387e38e8e3b64d8fa33baa971d009b9de89f",
+      "license": {
+        "upstream_path": "LICENSE",
+        "notice_path": "licenses/Hyprland-plugins-BSD-3-Clause.txt",
+        "sha256": "3a1d080d85ce1d722b3bd84d87b74dd2332ba7b68a40a28a7126a86cfca6502a"
+      }
+    },
+    {
+      "name": "Hyprland",
+      "repository": "https://github.com/hyprwm/Hyprland",
+      "commit": "efb50993780079460b0cbed1363e2166a2de1d9f",
+      "archive_url": "https://codeload.github.com/hyprwm/Hyprland/tar.gz/efb50993780079460b0cbed1363e2166a2de1d9f",
+      "archive_root": "Hyprland-efb50993780079460b0cbed1363e2166a2de1d9f",
+      "archive_bytes": 50812454,
+      "archive_sha256": "5b05ce7ba5296fa46e666852bf108ab5af121bf577f8043787e2d2c252d8f109",
+      "license": {
+        "upstream_path": "LICENSE",
+        "notice_path": "licenses/Hyprland-BSD-3-Clause.txt",
+        "sha256": "e01df754903af0ab26babb317b5f5a62dd95f770b733c5275414dd3245d00ae7"
+      }
+    }
+  ]
+}

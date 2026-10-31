@@ -435,6 +435,15 @@ class WallpaperRestoreTests(unittest.TestCase):
                 self.app.start()
         return restore, popen
 
+    def test_start_prefers_the_release_local_screenshot_binary(self):
+        binary = self.release / 'runtime/bin/omasnap'
+        binary.write_text('fixture; never executed')
+        meta = json.loads((self.release / 'release.json').read_text())
+        meta['files'] = deploy.file_manifest(self.release)
+        (self.release / 'release.json').write_text(json.dumps(meta))
+        _, popen = self.attempt_start_until_process_creation()
+        self.assertEqual(popen.call_args.kwargs['env']['OMABUNTU_OMASNAP'], str(binary))
+
     def test_start_prepares_workspace_state_before_any_optional_helper(self):
         restore, popen = self.attempt_start_until_process_creation()
         self.assertTrue((self.app.state / 'current').is_dir())

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "kind": "omabuntu-release-channels",
+  "channels": {
+    "dev": {
+      "version": "source-447226aa17e9898a",
+      "bundle_sha256": "b07a9bb3f10c2cd59b6f75e9ecc81849bbb10aaad22feb2213946501a2c33a64"
+    },
+    "stable": {
+      "version": "source-447226aa17e9898a",
+      "bundle_sha256": "b07a9bb3f10c2cd59b6f75e9ecc81849bbb10aaad22feb2213946501a2c33a64"
+    }
+  },
+  "publisher_signature": false,
+  "artwork_included": false,
+  "note": "Channel pin only. Not a publisher signature or an artwork redistribution grant."
+}

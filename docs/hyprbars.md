@@ -6,6 +6,29 @@ Omarchy's close/maximise/minimise titlebar comes from hyprbars; its dock restore
 windows from `special:minimized`. Plugins execute inside the compositor and can
 crash the desktop. Building successfully is not functional acceptance.
 
+## Fresh-machine preparation
+
+The standalone builder now obtains version/commit/ABI from installed Hyprland's
+exit-only `--version-json`, not a running session. Generated headers use the same
+metadata. Exact commit/clean-build checks remain. Outputs default to fresh paths
+under `work/hyprbars-builds/`; existing outputs are refused rather than removed.
+Library SHA-256 and post-build binary identity are recorded. No plugin is loaded.
+The bootstrap pipeline now uses the separate `tools/build_plugin.py`, not this
+historical shared-checkout builder. Archive/notice pins live in
+`upstream/hyprbars-build.json`; both archives were downloaded and checked against
+the preserved BSD notices. Protocol copyright notices are retained alongside them.
+The bootstrap builder creates private headers/version/protocol output, compiles
+in Bubblewrap without network/home/session access and checks ELF, shared-library
+resolution and defined plugin exports without dlopen or plugin entry invocation.
+The exact installed commit/library-derived client ABI is checked before/after
+build, during packaging, and before update switching. Package bytes and a matching
+ABI descriptor are stored as inert `native/hyprbars.so` and `native/hyprbars.json`.
+No user-library copy, plugin load, hyprpm action or compositor reload occurs.
+`--session-activate` can write a next-login guarded load of the immutable release
+library and the reviewed titlebar rules. It does not load the plugin or reload
+Hyprland. Native build/VM and first-login acceptance remain pending;
+old live-maintenance references below are retained, not bootstrap instructions.
+
 ## Reference build
 
 - Running Hyprland: 0.56.2, commit `efb50993780079460b0cbed1363e2166a2de1d9f`.

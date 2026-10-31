@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "name": "omabuntu-bootstrap",
+  "target": {"ubuntu": "26.04", "codename": "resolute", "architecture": "amd64"},
+  "ppa": {
+    "reference": "~cppiber/ubuntu/hyprland",
+    "api_url": "https://api.launchpad.net/1.0/~cppiber/+archive/ubuntu/hyprland",
+    "uri": "https://ppa.launchpadcontent.net/cppiber/hyprland/ubuntu",
+    "origin": "LP-PPA-cppiber-hyprland",
+    "fingerprint": "A54D23B62FF3FCC76EFF71E8FDBAAA1CF0CCF48E",
+    "component": "main"
+  },
+  "package_groups": {
+    "bootstrap": ["ca-certificates", "gnupg", "gpgv", "git"],
+    "desktop": [
+      "hyprland", "hyprland-data", "hyprland-guiutils", "uwsm",
+      "xdg-desktop-portal-hyprland", "hyprlock", "hyprpaper",
+      "network-manager", "bluez", "pipewire", "wireplumber", "upower",
+      "power-profiles-daemon", "xdg-utils", "xdg-terminal-exec", "wl-clipboard", "xkb-data",
+      "fontconfig"
+    ],
+    "omasnap_build": ["liblayershellqtinterface-dev", "libdeflate-dev", "libwayland-dev"],
+    "plugin_build": [
+      "binutils", "libdrm-dev", "libwayland-bin", "glslang-dev", "libhyprlang-dev", "libhyprutils-dev", "libhyprcursor-dev",
+      "libhyprgraphics-dev", "libaquamarine-dev", "libcairo2-dev", "libpango1.0-dev",
+      "libegl-dev", "libxcb1-dev", "libxcb-xfixes0-dev", "libxcb-icccm4-dev",
+      "libxcb-composite0-dev", "libxcb-res0-dev", "libxcb-errors-dev",
+      "libxcb-shape0-dev", "hyprwayland-scanner", "liblua5.4-dev",
+      "libinput-dev", "libudev-dev", "libpixman-1-dev", "libxkbcommon-dev"
+    ]
+  },
+  "limitations": [
+    "Initial request inventory; clean stock-Ubuntu dependency closure remains unverified.",
+    "Quickshell build groups and local runtime manifest are merged by the planner.",
+    "The pinned desktop Nerd Font is separately downloaded/staged and explicitly registered per user.",
+    "Package maintainer scripts may start native system services; show this before approval.",
+    "No blanket upgrade, removal, browser/editor install or corporate provisioning is requested."
+  ]
+}

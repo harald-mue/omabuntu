@@ -172,6 +172,30 @@ if __name__ == '__main__':
 
 
 class HyprbarsBuildTests(unittest.TestCase):
+    def test_binary_version_probe_does_not_require_a_running_session(self):
+        import build_hyprbars
+        data = {'version': '0.56.2', 'commit': build_hyprbars.HYPRLAND_COMMIT,
+                'abiHash': 'fixture-abi', 'dirty': False}
+        with patch.object(build_hyprbars, 'run', return_value=json.dumps(data)) as run:
+            self.assertEqual(build_hyprbars.hyprland_version(),
+                             ('0.56.2', build_hyprbars.HYPRLAND_COMMIT, 'fixture-abi'))
+        run.assert_called_once_with(['Hyprland', '--version-json'], timeout=15)
+        data['dirty'] = True
+        with patch.object(build_hyprbars, 'run', return_value=json.dumps(data)), self.assertRaises(ValueError):
+            build_hyprbars.hyprland_version()
+
+    def test_build_never_replaces_an_existing_output_directory(self):
+        import build_hyprbars
+        with tempfile.TemporaryDirectory(dir=ROOT / 'work') as directory:
+            marker = Path(directory) / 'keep'
+            marker.write_text('user data')
+            with patch.object(build_hyprbars, 'hyprland_version', return_value=(
+                    '0.56.2', build_hyprbars.HYPRLAND_COMMIT, 'abi')), \
+                 patch.object(build_hyprbars, 'missing_modules', return_value=[]):
+                with self.assertRaisesRegex(ValueError, 'fresh build directory'):
+                    build_hyprbars.main(['--output', directory])
+            self.assertEqual(marker.read_text(), 'user data')
+
     def test_build_refuses_unpinned_hyprland_and_missing_deps(self):
         import build_hyprbars
         with patch.object(build_hyprbars, 'hyprland_version', return_value=(

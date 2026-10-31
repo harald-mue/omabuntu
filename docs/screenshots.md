@@ -26,7 +26,23 @@ export `WAYLAND_DISPLAY`; when exactly one Wayland socket is present, the
 helper passes that name to Omasnap. Without it, Qt tries the X11 plugin
 and exits before the overlay appears.
 
-## What is installed today
+## Release-local build pipeline
+
+The installer build stage now uses `tools/build_omasnap.py`: exact archive hash,
+source/font/notice verification, system LayerShellQt, isolated no-network
+Bubblewrap compilation, ELF/linkage checks and an offscreen `--version` probe.
+No capture is performed. `./install.sh --build-release` plans the combined
+Quickshell/Omasnap/artwork bundle; `--apply` separately approves downloads,
+builds and private packaging, not installation or desktop activation.
+
+The resulting bundle carries `runtime/bin/omasnap` and `licenses/omasnap/`.
+The manager passes that release-local binary via `OMABUNTU_OMASNAP` to menu
+helpers. Old releases without it retain the approved standalone default path.
+This pipeline is unit-tested with fixture stages; native fresh-machine build
+and generated hotkey/session integration still require acceptance. No installed
+standalone binary or active release was changed while implementing the builder.
+
+## Existing standalone installation (historical path)
 
 Omasnap 1.24.0 from the pinned commit is installed as a regular executable
 at `~/.local/bin/omasnap`. Its font and icon notices are beside it under

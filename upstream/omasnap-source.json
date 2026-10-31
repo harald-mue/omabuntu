@@ -1,9 +1,18 @@
 {
   "schema_version": 1,
-  "status": "pinned-not-built",
+  "status": "pinned-build-input",
   "repository": "https://github.com/omacom/omasnap",
   "commit": "a432f40b14598a4a02b89fa0054f9a0ba3662dd4",
   "version": "1.24.0",
+  "archive_url": "https://codeload.github.com/omacom/omasnap/tar.gz/a432f40b14598a4a02b89fa0054f9a0ba3662dd4",
+  "archive_sha256": "ac184e0e051b0fdfb157601c8cc7296e98d02920c78936e07f13805fe4339548",
+  "archive_bytes": 6050541,
+  "archive_root": "omasnap-a432f40b14598a4a02b89fa0054f9a0ba3662dd4",
+  "annotation_font_sha256": {
+    "assets/Neucha.ttf": "7927bd6ce090fa032857dcbc3ad0e8b765c462d0a72a8779068132496b4e087d",
+    "assets/JetBrainsMono-Regular.ttf": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f",
+    "assets/InterDisplay-SemiBold.ttf": "0310d7a325896129730c6c8cf9a6e0f81ee258bedf77b1ff059b2a7b75f74e02"
+  },
   "committed_at": "2026-10-27T13:00:22Z",
   "subject": "Release 1.24.0",
   "license": {
@@ -60,6 +69,6 @@
   "limitations": [
     "The Omasnap source tree, font files, and icons are not imported. Only the license and provenance notices are kept.",
     "This pin does not approve a package install, a build, a key binding, or a capture.",
-    "Font file hashes recorded inside the provenance note were not re-downloaded or re-hashed here."
+    "The annotation font hashes were checked against the pinned archive before implementing the reusable builder; no font files are committed."
   ]
 }

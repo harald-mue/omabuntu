@@ -5,6 +5,163 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## Fresh installation, updates and downloaded artwork (plan 043)
+
+- Pinned the built release `source-447226aa17e9898a` as both `dev` and `stable`
+  in `channels/omabuntu.json`. The file is an unsigned local pin. It was not
+  published, installed, or used to start the desktop.
+- Audited existing local-bundle/package/build and rollback tools. Documented the
+  gap to stock Ubuntu 26.04, including PPA trust/candidates, native ABI coupling,
+  Omasnap packaging, fonts, generic config and clean-VM validation. Updates must
+  preserve private configuration/state and distinguish application rollback
+  from system-package rollback. No live package, PPA or desktop changes.
+- Added a locked-manifest artwork downloader: default plan, offline check,
+  explicit bounded downloads, exact pinned length/blob verification, local
+  SHA-256 reporting, cache reuse, no redirects/symlinks, no partial-file
+  promotion and no clobbering user conflicts. No image downloads were run.
+  Per-image redistribution rights remain unresolved; images stay outside Git.
+- Added `install.sh` and the Python readiness frontend with the user-approved
+  compact two-line block OMABUNTU banner and "Your Ubuntu. Reimagined." tagline,
+  ASCII fallback for dumb/limited terminals, TTY colors, numbered status cards,
+  compact/plain/JSON modes
+  and explicit incomplete-apply gates. Install/update/rollback are previews:
+  no privileged actions, Git fetch, writes, downloads or desktop restarts.
+  This is not a working fresh-machine provisioner yet.
+- Added real prepared-bundle apply/update/rollback through `install.sh`: explicit
+  bundle and approval, same manager control lock, native/runtime preflight,
+  complete staging before stopping the bar, exact launcher/selectors backup,
+  persistent outer journal, and synchronous bar-start failure rollback. New
+  bundles declare state schema/native targets; mismatches are refused and
+  unversioned installations need explicit acknowledgement. User config and
+  preferences are not migrated. Identical reinstall is a no-op. Interrupted
+  outer journals block retries for review; automated power-loss recovery is
+  not claimed. Tests use fixture releases and mocked bar processes only.
+- Added explicit PPA preparation/apply: pinned Launchpad identity and primary
+  fingerprint, isolated GnuPG key/InRelease verification, fixed deb822/Signed-By
+  destinations, conflict/duplicate/source-drift checks and private journals.
+  A real read-only verification of the published resolute signature succeeded;
+  no system source was written. Failed source/metadata apply retains evidence
+  rather than deleting unrelated source files.
+- Added base-only and merged compositor/runtime/build package planning and
+  approved additive apply. Exact candidates/dependencies are simulated/pinned,
+  native-version drift and existing-package changes/removals are blocked, and
+  before/after state is verified. No auto-yes or explicit native-service restart;
+  the UI warns about package maintainer scripts. The base-only review ran with
+  zero changes on the development target. All sudo/APT mutation tests use fakes.
+- Added `--build-release` source-to-bundle planning/apply: pinned runtime builds,
+  exact returned-stage checks, source/required-package fingerprint binding,
+  isolated Omasnap build/linkage/version probes, verified notices/fonts and
+  release-local screenshot binary packaging. Archive and font bytes were checked
+  against the source pin. No native compilation or capture was run by the suite.
+  Lock-specific artwork caches reuse unchanged verified files across revisions.
+  Build approval is not package, deployment or desktop-start approval.
+- Pinned/reviewed the desktop Nerd Font and OFL notices. Its actual byte identity,
+  family and icon glyphs were checked. Builds stage the font; `--font --apply`
+  separately registers it per user with pre-state/backups and cache verification,
+  retaining old versions and existing preferences. No live font install occurred.
+- Standalone hyprbars now uses installed-binary JSON metadata, fresh output
+  paths, library hashes and a post-build identity recheck. The historical builder
+  remains separate from the new bootstrap-only isolated builder below.
+- Added `--session-config` review/apply with a generic Hyprland 0.56.2 module
+  and editable entry, validated XKB choice, original menu shortcuts and
+  release-local screenshot/minimize binds. The source API was checked against
+  the official pinned example/dispatcher implementation. Real Lua 5.4 tests use
+  mock compositor objects. No startup, plugin loading or automatic locking.
+- Ownership receipts preserve editable main-file/theme changes and options;
+  foreign profiles or owned-module drift block apply. Live user Hyprland
+  processes block writes, and pre-state/backups plus synchronous failure
+  restoration preserve concurrent edits. The updater rejects candidates missing
+  helpers referenced by an installed generic profile. The existing private
+  profile was reviewed only and refused as unowned; no desktop config changed.
+- Integrated the separate `build_plugin.py` with bootstrap source-to-bundle
+  preparation: exact plugin/header archives and BSD notices, private generated
+  headers, Bubblewrap compile/static-ELF/linkage/export checks, client ABI derived
+  exactly as the pinned PluginAPI.hpp, and package/native drift gates. Preserve
+  protocol notices and inert native library/descriptor bytes inside releases;
+  updates recheck the descriptor before stopping the bar. Never dlopen, run
+  plugin entry points, hyprpm, load/unload, or mutate the historical checkout.
+  The two actual archives/notices and headless ABI metadata were verified;
+  compiler/scanner/ELF outputs are simulated in tests, not native acceptance.
+- Hardened new output/temp handling against collisions: never reuse a plugin
+  workspace or remove a temporary file whose exclusive creation failed. The
+  session writer shares this cleanup correction. Verification: 731 unit tests,
+  clean-source verification and git diff whitespace checks passed. No native
+  build, plugin load, config apply or desktop restart was performed.
+- Added `--session-activate` for next-login files only: guarded load of the
+  immutable release hyprbars library, reviewed titlebar rules with the release
+  minimize helper, hyprpaper splash disabled, and the existing oneshot user unit.
+  `--enable-login` can enable that unit; nothing is started, loaded or reloaded.
+  Unowned files and a running Hyprland or hyprpaper block writes. Tests use
+  fixtures and never call a real compositor or systemctl start.
+- Added `./install.sh --guide`: a read-only ordered review of host, PPA, packages,
+  font, build, release, session, activation and manual login. `--apply` runs only
+  the next local stage after confirmation. It does not install packages, restart
+  the bar, load a plugin or start Hyprland. System stages stay separate commands.
+- Added `--recover-update` for exactly one interrupted application update. Apply
+  restores the recorded selectors and launcher, keeps the journal, and does not
+  resume the new release. A running bar is not force-stopped. `--restart-bar`
+  starts only a bar that the interrupted update had already stopped. Tests use
+  fixture journals and mocked startup.
+- Added `--source-update` for the reviewed source pins. Apply fetches only missing
+  exact archives into the private cache, refuses redirects and cache conflicts, and
+  does not reset a checkout, build, or deploy. A checksum is recorded as a
+  consistency check, not a publisher signature. Omarchy remains commit-pinned for
+  its separate artwork downloader.
+- Added a user-state schema policy. Schema 1 needs no migration. Any other schema
+  is refused until a reviewed bidirectional migration exists, and no state file is
+  rewritten. `./install.sh --state-schema` only names known files.
+- Added package-closure simulation and guide orchestration for the next PPA or
+  package stage. System apply requires `--guide --allow-system --apply` and still
+  uses the existing approval path. Closure output is not VM acceptance and does
+  not install packages by itself.
+- Recorded the shared-library upgrade decision in code. Missing packages may be
+  added; installed-package upgrades and removals stay refused, including Hyprland,
+  Qt and Hyprlock. A caller-supplied name list is not approval. The current
+  simulation did not need an upgrade to add the missing LayerShellQt packages.
+- Compiled runtime, screenshot and plugin stages are reused only when exactly one
+  verified directory matches. Multiple matches and symlinks are not treated as the
+  newest build. Reuse does not skip isolated checks or package verification.
+- Added `./install.sh --acceptance`, a read-only gate report for host, PPA,
+  packages, font, bundle, session and activation. It never sets native-login
+  acceptance, installs packages or starts the desktop.
+- Next-login activation can record the first release still when no wallpaper choice
+  exists. It writes the state file and lock symlink only, does not call hyprctl or
+  start hyprpaper, and leaves an existing choice untouched.
+- Added `--session-config --adopt-managed` for an untouched installer-owned
+  omabuntu-managed snippet. Extra user lines are refused, the old snippet file is
+  not deleted, and no session is started. The private workstation profile remains
+  unowned and was not modified.
+- The default `./install.sh` entry now shows the live read-only guide instead of
+  only the static readiness preview. `--check` and `--json` keep the readiness
+  report. Default mode does not apply, install, or start anything.
+- Added `./install.sh --rehearse`, a fixture lifecycle for install, repeat install,
+  failed bar start, update, rollback, generic session preparation and next-login
+  activation. It uses a temporary home, simulates the bar, and does not change
+  host configuration or claim VM acceptance.
+- The guide now treats an unmanaged Hyprland PPA source as a manual review, not as
+  a command to add the managed source. It does not rewrite or duplicate APT sources.
+- The package guide stage now names the missing requested packages, bounded to
+  the first five, and still does not install them.
+- The package review now prints the addition names before any approval. The
+  reviewed transaction remains three additions and no removals or upgrades.
+  No package was installed.
+- Long build steps now print a still-running line every 15 seconds. Compiler output
+  remains in the private log. This does not change the already running build.
+- Added local `dev` and `stable` channel pins. A channel file stores only a
+  version and metadata SHA-256, never a URL, signature claim, or artwork grant.
+  `--update --channel` resolves a local release directory and does not download
+  or publish.
+- Pinned the built release `source-447226aa17e9898a` as both `dev` and `stable`
+  in `channels/omabuntu.json`. The file is an unsigned local pin. It was not
+  published, installed, or used to start the desktop.
+- Documented the current installer, stage order, development-target package and
+  build results, and local dev/stable channels in `docs/installer.md`. README and
+  the older installer pages now point there. Publication remains unapproved.
+- The remaining stock-Ubuntu native first-login acceptance, ABI-gated live plugin activation,
+  native build/upgrade acceptance and clean-VM testing remain tracked in plan 043
+  and docs/fresh-installation.md. No live source, package or application apply
+  was run during this installer work.
+
 ## Original weather location interaction (plan 042)
 
 - Restored the original Omarchy weather city editor, suggestion list, persisted

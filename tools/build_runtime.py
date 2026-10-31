@@ -16,6 +16,8 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import threading
+import time
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +28,23 @@ MAX_EXPANDED_BYTES = 512 * 1024 * 1024
 
 class BuildError(RuntimeError):
     pass
+
+
+def run_with_heartbeat(label, function, interval=15):
+    """Show life during a long logged command without printing compiler noise."""
+    stop = threading.Event()
+    started = time.monotonic()
+    def beat():
+        while not stop.wait(interval):
+            elapsed = int(time.monotonic() - started)
+            print('  %s still running (%ds). Details stay in the log.' % (label, elapsed), flush=True)
+    thread = threading.Thread(target=beat, daemon=True)
+    thread.start()
+    try:
+        return function()
+    finally:
+        stop.set()
+        thread.join(timeout=1)
 
 
 def digest(path):
@@ -241,7 +260,8 @@ def build(root=ROOT, jobs=4):
         print(f"Running {name}; log: {log_path}", flush=True)
         with log_path.open("x") as stream:
             try:
-                result = subprocess.run(argv, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout, check=False)
+                result = run_with_heartbeat(name, lambda: subprocess.run(
+                    argv, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout, check=False))
                 step.update(returncode=result.returncode, status="passed" if result.returncode == 0 else "failed")
             except subprocess.TimeoutExpired:
                 step.update(returncode=None, status="timeout")

@@ -4,6 +4,48 @@ An Ubuntu-native, reversible integration of selected Omarchy desktop components
 with Hyprland and Quickshell. This is not an Arch installer or a complete Ubuntu
 provisioner, and it does not run Omarchy installers or migrations.
 
+## Install and update
+
+Run these commands as your normal user from this repository, not with `sudo`.
+The default command only shows the next step and changes nothing. The full
+guide is [docs/installer.md](docs/installer.md).
+
+```sh
+./install.sh
+```
+
+Install or update the local application release after a bundle has been built
+or placed in a release directory:
+
+```sh
+# First install of a prepared bundle. Review first, then add --apply.
+./install.sh --bundle work/user-releases/VERSION
+
+# Update an existing install. An older unversioned install needs --allow-legacy-state.
+./install.sh --bundle work/user-releases/VERSION --update --allow-legacy-state
+
+# Restore the previous application release. This does not undo APT packages.
+./install.sh --rollback
+```
+
+Add `--apply` only after the review. Add `--restart-bar` only when the recorded
+bar should stop and start. Without it, a running bar blocks the switch.
+
+To build that bundle on Ubuntu 26.04, follow the guide: PPA, additive packages,
+font, then `./install.sh --build-release`. Package installation must be confirmed
+in your own terminal. It does not upgrade or remove installed packages.
+
+`dev` and `stable` are exact release pins, not branches. They are not a signed
+or published download yet:
+
+```sh
+./install.sh --channels --set-channel dev --bundle work/user-releases/VERSION
+./install.sh --update --channel dev --channels-file channels/omabuntu.json --release-dir work/user-releases
+```
+
+Background images are not cleared for redistribution. A channel checksum is not
+a publisher signature.
+
 ## Status
 
 The development target is **Ubuntu 26.04, Hyprland 0.56.2 and Qt 6.10.2**.
@@ -53,6 +95,29 @@ python3 tools/check_clean_source.py --run
 See [clean-source verification](docs/clean-source.md) for what is and is not
 exercised. The regular unit suite does not require imported wallpaper images or
 a prebuilt runtime; executable Lua tests explicitly skip if Lua 5.4 is absent.
+
+## Fresh-machine installer and update work
+
+`./install.sh` is the staged Ubuntu 26.04 installer. The default command shows
+the live guide and changes nothing. Each stage is reviewed before `--apply`.
+The full operator guide is [docs/installer.md](docs/installer.md).
+
+```sh
+./install.sh                 # live guide, no changes
+./install.sh --plain
+./install.sh --check         # readiness report, nonzero while incomplete
+```
+
+Implemented stages include signed PPA preparation, additive packages, font
+registration, pinned source builds, local release update/rollback, generic
+session files, next-login activation, and unsigned `dev`/`stable` channel pins.
+Channels are exact version pins, not branches or a publication. Background
+images stay outside Git and are not cleared for redistribution.
+
+This is not yet a completed stock-machine installation. Native login, VM
+acceptance, and remote publication remain open. See also
+[fresh-installation status](docs/fresh-installation.md) and
+[user installation](docs/user-installation.md).
 
 ## Build and local installation
 

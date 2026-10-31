@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/ryanoasis/nerd-fonts",
+  "tag": "v3.4.0",
+  "commit": "fa7b859994228a9c8759f99c55a8d31ee92a1b5e",
+  "family": "JetBrainsMono Nerd Font",
+  "filename": "JetBrainsMonoNerdFont-Regular.ttf",
+  "url": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/fa7b859994228a9c8759f99c55a8d31ee92a1b5e/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf",
+  "bytes": 2469104,
+  "sha256": "0ec29a68b539ece7078fc714cebff0c0accb2f4948f8f7963d9f5e86633b12d9",
+  "git_blob_sha1": "235a07aef9028e2953076efc9038f1b1182f8b2b",
+  "license": "OFL-1.1",
+  "notices": [
+    {"path": "licenses/Desktop-JetBrainsMonoNerd-OFL.txt", "sha256": "30f0c136e3c88e422d0791acd97238870f9054a9729bc34cf2ff0d4ed8cac4ad"},
+    {"path": "licenses/Desktop-Nerd-Fonts-LICENSE.txt", "sha256": "1f6ad4edae6479aaace3112ede5279a23284ae54b2a34db66357aef5f64df160"}
+  ],
+  "required_glyphs": ["f011", "f030", "f488", "f01e9"],
+  "limitations": ["Only Regular is staged; no global GTK/terminal font preference is changed.", "Downloading/staging is not user-font installation or cache-refresh approval."]
+}
