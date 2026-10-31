@@ -5,6 +5,13 @@ processes, package transactions or desktop sessions. Detailed operational logs,
 old deployment histories and cleanup backups are retained privately under
 ignored `work/`. Historical Git objects are not changed by editing this file.
 
+## README project positioning
+
+- Added a disclaimer before installation recommending Omarchy where users can
+  choose their distribution. Explained that Omabuntu targets Ubuntu LTS constraints,
+  especially corporate environments, and recreates selected workflows rather
+  than replacing Omarchy or promising feature parity.
+
 ## Release-first README (plan 047)
 
 - Put the one-command curl installation and identical update command first.

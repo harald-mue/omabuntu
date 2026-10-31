@@ -11,6 +11,18 @@ An Ubuntu-native Hyprland desktop integration with the Omarchy bar, menus and
 selected panels, adapted for Ubuntu. Keep Ubuntu, GNOME and your personal
 configuration — install and update Omabuntu without building it yourself.
 
+## Prefer Omarchy if you can
+
+> **Omabuntu is not a replacement for [Omarchy](https://omarchy.org/).**
+> Omarchy offers a broader feature set and is the better choice for most users
+> looking for the Omarchy experience. If you are free to choose your distribution,
+> use Omarchy instead.
+>
+> Omabuntu exists primarily for people who are required to use Ubuntu LTS,
+> particularly in corporate environments. It aims to recreate selected Omarchy
+> behavior and workflows within those constraints — not to match every feature
+> or replace the original project.
+
 ## Install
 
 **Target: Ubuntu 26.04 · x86_64**
