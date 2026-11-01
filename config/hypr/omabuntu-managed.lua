@@ -14,7 +14,10 @@ hl.config({
     disable_hyprland_logo = true,
     col = { splash = 0x00000000 },
   },
-  ecosystem = { no_donation_nag = true },
+  -- Suppress the two Hyprland notification popups: the twice-a-year donation
+  -- nag and the update-news window. hyprland-update-screen renders through
+  -- Hyprtoolkit/EGL, which segfaults without hardware GL (plan 067).
+  ecosystem = { no_donation_nag = true, no_update_news = true },
 })
 
 -- Title-bar plugin (plan 020): registering the path during the config load is

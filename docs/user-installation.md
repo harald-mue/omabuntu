@@ -98,6 +98,12 @@ wallpaper by default. This explains why the message remained visible despite
 The separate wallpaper setting below is necessary; repeatedly changing the
 compositor flags cannot control that other renderer.
 
+The same `ecosystem` table also disables both Hyprland notification popups:
+the donation nag and the update-news window (`ecosystem.no_donation_nag`,
+`ecosystem.no_update_news`, plan 067). The update-news window is drawn by
+`hyprland-update-screen` through Hyprtoolkit/EGL and segfaults on systems
+without hardware GL, so it is suppressed.
+
 The reviewed file is `config/hypr/omabuntu-managed.lua`; it contains those
 settings, a guarded title-bar plugin registration (plan 020: `hl.plugin.load`
 during the config load, because a `hyprland.start` handler only queues a path

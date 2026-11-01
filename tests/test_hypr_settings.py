@@ -36,6 +36,7 @@ class ManagedTemplateTests(unittest.TestCase):
         self.assertIn('disable_hyprland_logo = true', self.text)
         self.assertIn('col = { splash = 0x00000000 }', self.text)
         self.assertIn('no_donation_nag = true', self.text)
+        self.assertIn('no_update_news = true', self.text)
 
     def test_loads_the_titlebar_plugin_at_config_time(self):
         # Plan 020: only this guarded load; no other plugin route.
