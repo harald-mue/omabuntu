@@ -199,7 +199,10 @@ make artwork-apply      # download missing pinned files (one confirmation)
 Downloads use only the pinned per-file URLs, sizes and blob hashes recorded in
 `upstream/theme-backgrounds.json` (commit
 `03ff1eff3812933f7088484533784d2f63eaf19a`), refuse redirects, never
-overwrite existing conflicting files, and write a 0600 receipt. Declining or
+overwrite existing conflicting files, and write a 0600 receipt. The download
+prints one plain progress line per file (`[k/n] path`) and a start line with
+file count and size, so a slow pinned fetch is visible progress rather than a
+silent pause. Declining or
 failing changes nothing else; rerun the same `install.sh` to retry. The files
 stay private user data: they are never bundled into a release, published, or
 cleared for redistribution. A release that ships its own artwork is used

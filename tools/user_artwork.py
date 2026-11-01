@@ -57,7 +57,12 @@ def plan(data_home=None, root=ROOT):
     return report
 
 
-def apply(reviewed, approval, data_home=None, fetcher=None, root=ROOT):
+def terminal_progress(position, total, item):
+    """One plain flushed line per file; long downloads must not look stuck."""
+    print('  [%d/%d] %s (%.1f KiB)' % (position, total, item['target'], item['bytes'] / 1024), flush=True)
+
+
+def apply(reviewed, approval, data_home=None, fetcher=None, root=ROOT, progress=None):
     if (os.getuid() == 0 or os.environ.get('SUDO_USER')
             or not isinstance(reviewed, dict) or reviewed.get('kind') != 'omabuntu-user-artwork'
             or reviewed.get('schema_version') != 1 or guided.digest(reviewed) != approval):
@@ -73,7 +78,8 @@ def apply(reviewed, approval, data_home=None, fetcher=None, root=ROOT):
         raise ValueError('Artwork destination differs; review a new plan')
     if destination.is_symlink():
         raise ValueError('Artwork data home is a symlink')
-    report = download_backgrounds.materialize(destination, record, download=True, fetcher=fetcher)
+    report = download_backgrounds.materialize(destination, record, download=True, fetcher=fetcher,
+                                                 progress=progress)
     receipt = {'schema_version': 1, 'kind': 'omabuntu-user-artwork',
                 'source_commit': record['source']['commit'],
                 'destination': str(destination), 'report': report,
@@ -120,11 +126,14 @@ def main(argv=None):
             print('Artwork already complete: ' + reviewed['destination'])
             return 0
         print(reviewed['notice'])
+        print('Downloading %d pinned artwork files (%.1f MiB) into %s:'
+              % (len(reviewed['missing']), reviewed['bytes'] / (1024 * 1024), reviewed['destination']), flush=True)
         if not setup_ui.confirm('Download the %d missing pinned artwork files into %s?'
                                 % (len(reviewed['missing']), reviewed['destination'])):
             print('Cancelled. No artwork download.')
             return 0
-        report = apply(reviewed, guided.digest(reviewed), data_home=args.output)
+        report = apply(reviewed, guided.digest(reviewed), data_home=args.output,
+                        progress=terminal_progress)
         print(json.dumps(report, sort_keys=True))
         return 0
     except (OSError, ValueError) as error:

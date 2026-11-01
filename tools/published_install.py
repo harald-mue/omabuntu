@@ -166,7 +166,8 @@ def offer_artwork(installation):
         print('Theme artwork deferred. Menus stay without Omarchy backgrounds; rerun this installer to retry.')
         return
     try:
-        user_artwork.apply(reviewed, guided.digest(reviewed))
+        user_artwork.apply(reviewed, guided.digest(reviewed),
+                           progress=user_artwork.terminal_progress)
     except (OSError, ValueError) as error:
         print('Theme artwork download failed; menus stay without Omarchy backgrounds: ' + str(error))
         return

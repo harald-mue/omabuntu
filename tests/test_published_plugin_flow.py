@@ -303,6 +303,7 @@ class PublishedArtworkTests(unittest.TestCase):
         apply.assert_called_once()
         self.assertEqual(apply.call_args.args[0], plan)
         self.assertEqual(apply.call_args.args[1], published.guided.digest(plan))
+        self.assertEqual(apply.call_args.kwargs.get('progress'), published.user_artwork.terminal_progress)
 
     def test_release_local_artwork_never_offers_a_download(self):
         (self.release / 'config/menu/backgrounds').mkdir(parents=True)

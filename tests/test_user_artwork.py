@@ -51,10 +51,10 @@ class UserArtworkTests(unittest.TestCase):
     def plan(self, root=None):
         return user_artwork.plan(data_home=self.data, root=root or self.fixture['root'])
 
-    def apply(self, reviewed, fetcher=None, root=None, approval=None):
+    def apply(self, reviewed, fetcher=None, root=None, approval=None, progress=None):
         return user_artwork.apply(reviewed, approval or guided.digest(reviewed),
                                    data_home=self.data, fetcher=fetcher,
-                                   root=root or self.fixture['root'])
+                                   root=root or self.fixture['root'], progress=progress)
 
     def test_plan_is_read_only_and_reports_missing_files(self):
         before = sorted(str(p) for p in self.base.rglob('*'))
@@ -67,14 +67,20 @@ class UserArtworkTests(unittest.TestCase):
 
     def test_apply_downloads_verified_bytes_atomically_with_receipt(self):
         fetches = []
+        seen = []
 
         def fetcher(item):
             fetches.append(item['url'])
             return next(data for key, data in self.fixture['data'].items() if item['target'] == key)
+
+        def progress(position, total, item):
+            seen.append((position, total, item['target']))
         reviewed = self.plan()
-        report = self.apply(reviewed, fetcher)
+        report = self.apply(reviewed, fetcher, progress=progress)
         self.assertEqual(report['downloaded'], 2)
         self.assertEqual(fetches, sorted(fetches))
+        self.assertEqual(sorted(seen), [(1, 2, 'backgrounds/tokyo/0-still.webp'),
+                                         (2, 2, 'themes-previews/tokyo.png')])
         still = self.data / 'omabuntu/artwork/backgrounds/tokyo/0-still.webp'
         self.assertEqual(still.read_bytes(), b'fixture-artwork-bytes')
         receipt = json.loads((self.data / 'omabuntu/artwork/receipt.json').read_text())

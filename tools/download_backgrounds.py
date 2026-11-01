@@ -99,11 +99,12 @@ def fetch(item):
         return response.read(item['bytes'] + 1)
 
 
-def materialize(destination, record, download=False, fetcher=None, cache_roots=()):
+def materialize(destination, record, download=False, fetcher=None, cache_roots=(), progress=None):
     items = entries(record)
     destination = safe_path(destination)
     report = {'downloaded': 0, 'reused': 0, 'missing': [], 'files': {}}
-    for item in items:
+    total = len(items)
+    for position, item in enumerate(items, 1):
         target = safe_path(destination / item['target'])
         if target.exists():
             if not target.is_file() or target.stat().st_size != item['bytes']:
@@ -147,6 +148,8 @@ def materialize(destination, record, download=False, fetcher=None, cache_roots=(
                 Path(temporary).unlink(missing_ok=True)
             report['reused' if reused else 'downloaded'] += 1
         report['files'][item['target']] = {'sha256': digest, 'bytes': item['bytes']}
+        if progress is not None:
+            progress(position, total, item)
     report['ok'] = not report['missing']
     return report
 
