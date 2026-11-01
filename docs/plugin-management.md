@@ -20,7 +20,11 @@ For a new manager-mode release, the public installer offers distinct steps:
 
 1. Review PPA/runtime prerequisites for the published application.
 2. Separately offer the local plugin compiler/header prerequisites. Declining
-   this offer does not rebuild or cancel installation of the application.
+   this offer does not rebuild or cancel installation of the application. The
+   installer first reviews the exact package plan without applying it. If the
+   plan is blocked, explicitly choose whether to continue without plugin builds;
+   installed-package upgrades are never enabled as a workaround. A failure after
+   attempting package application still stops for review.
 3. Install/update the prebuilt application under separate deployment/bar consent.
    From GNOME/TTY, optionally prepare a generic owned profile and next-login
    titlebar/wallpaper files. Choose keyboard layout explicitly. Existing private
@@ -33,8 +37,16 @@ For a new manager-mode release, the public installer offers distinct steps:
 Manager preparation requires a running compatible compositor. A first installer
 run from GNOME therefore **defers** that stage, prints the reason, and never logs
 out or starts Hyprland automatically. After a separately approved first login,
-rerun the same installer to receive the build/load offers. An unprepared login
-hook fails closed rather than compiling or requesting sudo at login.
+rerun the same installer to receive the build/load offers. No temporary-cache
+paths or internal `--plugins` commands are required for this user workflow.
+Deferred compiler packages suppress new build offers, not reuse of an existing
+independently verified healthy manager build. An unprepared login hook fails
+closed rather than compiling or requesting sudo at login.
+
+Use `install.sh` again to revisit deferred profile/login stages as well. Answer
+with ordinary Enter (or `y` then Enter), not Shift+Enter. Unrecognized terminal
+sequences are not interpreted as approval. Session transitions remain separate;
+the installer does not log out, replace the current desktop or bypass blockers.
 
 An application-installed message is not a titlebar/native acceptance claim.
 Updates do not silently disable, unload, rebuild or adopt manager repositories.

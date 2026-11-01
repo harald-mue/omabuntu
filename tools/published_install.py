@@ -2,9 +2,9 @@
 """Interactive entry point for a verified public bundle; never rebuild it."""
 import argparse
 from pathlib import Path
-import shlex
 import subprocess
 
+import bootstrap_packages
 import plugin_manager
 import native_transition
 import session_activation
@@ -25,16 +25,46 @@ def apply_stage(options):
         raise SystemExit('Reviewed setup stage failed; inspect its report before retrying.')
 
 
+def review_plugin_packages():
+    # Planning is read-only except for private reports; apply rechecks under its lock.
+    root = Path(__file__).resolve().parents[1]
+    parent = user_install.private_directory(root / 'work')
+    parent = user_install.private_directory(parent / 'bootstrap')
+    case = user_install.private_directory(parent / user_install.stamp())
+    plan = bootstrap_packages.prepare(case, plugin_build_only=True)
+    return plan, case / 'package-plan.json'
+
+
 def offer_plugin_packages():
     stage = setup_guide.packages_stage(setup_guide.default_installed, plugin_build_only=True)
     if stage['status'] == 'done':
-        return
+        return True
     print('Local hyprbars builds need their own compiler/header packages, not the Omabuntu application build chain.')
     print(stage['summary'])
-    if ask('Review and install these plugin-build prerequisites? This may request sudo'):
-        apply_stage(['--packages', '--plugin-build-only', '--apply'])
-    else:
+    if not ask('Review and install these plugin-build prerequisites? This may request sudo'):
         print('Plugin build prerequisites deferred; application installation can continue without titlebars.')
+        return False
+    try:
+        plan, path = review_plugin_packages()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('Optional plugin package review failed without applying packages: ' + str(error))
+        blockers = ['Plugin package prerequisites could not be reviewed']
+    else:
+        blockers = plan['blockers']
+        print('Plugin package review: ' + str(path))
+        for blocker in blockers:
+            print('  BLOCKED: ' + blocker)
+    if blockers:
+        print('No plugin packages applied. System upgrades are not permitted by this installer.')
+        if not ask('Continue application installation with the optional plugin build deferred?'):
+            raise SystemExit('Cancelled; application deployment not attempted.')
+        return False
+    # A failure after attempted application is not safe to downgrade to a deferral.
+    apply_stage(['--packages', '--plugin-build-only', '--plan', str(path), '--apply'])
+    ready = setup_guide.packages_stage(setup_guide.default_installed, plugin_build_only=True)['status'] == 'done'
+    if not ready:
+        print('Plugin prerequisites remain incomplete; plugin preparation deferred. Rerun this installer to revisit.')
+    return ready
 
 
 def offer_session(root):
@@ -49,6 +79,7 @@ def offer_session(root):
         return
     if reviewed['changes']:
         if not ask('Review a generic next-login profile? Existing private profiles are never merged'):
+            print('Generic profile deferred. Rerun this installer to revisit; answer with y then Enter, not Shift+Enter.')
             return
         keyboard = input('XKB keyboard layout [' + reviewed['keyboard_layout'] + ']: ').strip() or reviewed['keyboard_layout']
         apply_stage(['--session-config', '--keyboard-layout', keyboard, '--apply'])
@@ -67,7 +98,7 @@ def offer_session(root):
         apply_stage(options)
 
 
-def offer_plugins(root):
+def offer_plugins(root, prerequisites_ready=True):
     try:
         reviewed = plugin_manager.plan(root)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
@@ -86,10 +117,13 @@ def offer_plugins(root):
             elif ask('Review live hyprbars enable/load? Loading a plugin can crash this session'):
                 apply_stage(['--plugins-activate', '--apply'])
             return
+    if not prerequisites_ready:
+        print('Plugin build deferred because its package prerequisites are incomplete. Rerun this installer to revisit.')
+        return
     if reviewed['blockers']:
         print('Plugin preparation deferred: ' + '; '.join(reviewed['blockers']))
         print('Use a separately approved matching, plugin-free Hyprland session; no logout or reload was performed.')
-        print('Then rerun the same installer, or: ' + shlex.join([str(root / 'install.sh'), '--plugins', '--apply']))
+        print('Rerun the same installer to continue; no internal plugin command is needed.')
         return
     if not ask('Review pinned hyprpm preparation? It downloads/builds locally and may request sudo'):
         return
@@ -121,8 +155,9 @@ def main():
             options = [mode, '--apply'] + (['--runtime-only'] if mode == '--packages' else [])
             if setup.main(options) != 0:
                 raise SystemExit('Prerequisite stage failed; published bundle not installed.')
+    prerequisites_ready = True
     if management is not None:
-        offer_plugin_packages()
+        prerequisites_ready = offer_plugin_packages()
     installation = user_install.Installation(*user_install.defaults())
     options = ['--bundle', str(args.bundle), '--apply']
     if installation.selected():
@@ -145,8 +180,9 @@ def main():
     print('Generic session and login activation are separate opt-in steps; see docs/installer.md.')
     if management is not None:
         offer_session(root)
-        offer_plugins(root)
+        offer_plugins(root, prerequisites_ready=prerequisites_ready)
         print('Application installation is not native/titlebar acceptance; deferred stages remain explicit.')
+        print('To continue deferred steps later, rerun the same install.sh entry point. No temporary-cache commands are needed.')
     # Keep the installed release: do not leave references into the temporary download.
 
 

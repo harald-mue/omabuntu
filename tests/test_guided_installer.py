@@ -152,6 +152,37 @@ class InstallerTests(unittest.TestCase):
         self.assertNotIn('Unrecognized or unsafe APT install line', reviewed['blockers'])
         self.assertEqual(reviewed['resolved']['python3'], '2.0')
 
+    def test_upgrade_dependency_diagnostics_do_not_mask_upgrade_refusal(self):
+        for suffix in (' []', ' [systemd:amd64 ]',
+                       ' [udev:amd64 systemd-cryptsetup:amd64 ]',
+                       ' [systemd:amd64 on libsystemd-shared:amd64] [udev:amd64 systemd:amd64 ]'):
+            with self.subTest(suffix=suffix):
+                self.host.simulation = 'Inst python3 [1.0] (2.0 Ubuntu [amd64])' + suffix + '\n'
+                reviewed = guided.package_review(True, run=self.host.run)
+                self.assertEqual(reviewed['status'], 'blocked')
+                self.assertIn('Removals or changes to installed packages are not permitted', reviewed['blockers'])
+                self.assertNotIn('Unrecognized or unsafe APT install line', reviewed['blockers'])
+                self.assertEqual(reviewed['resolved']['python3'], '2.0')
+
+    def test_addition_with_dependency_diagnostics_retains_candidate_checks(self):
+        self.host.simulation = 'Inst hyprpaper (0.8.4 Ubuntu [amd64]) [python3:amd64 ]\n'
+        reviewed = guided.package_review(True, run=self.host.run)
+        self.assertEqual(reviewed['status'], 'review-required')
+        self.assertEqual(reviewed['resolved'], {'hyprpaper': '0.8.4'})
+        self.host.simulation = self.host.simulation.replace('0.8.4', '0.9.0')
+        reviewed = guided.package_review(True, run=self.host.run)
+        self.assertEqual(reviewed['status'], 'blocked')
+        self.assertIn('Solver version differs from reviewed candidate: hyprpaper', reviewed['blockers'])
+
+    def test_unknown_or_unsafe_apt_suffixes_are_still_rejected(self):
+        for suffix in (' arbitrary', ' [systemd:amd64;command]', ' [$(command)]',
+                       ' [systemd:amd64', ' [] unexpected', ' [systemd:amd64] (extra)'):
+            with self.subTest(suffix=suffix):
+                self.host.simulation = 'Inst hyprpaper (0.8.4 Ubuntu [amd64])' + suffix + '\n'
+                reviewed = guided.package_review(True, run=self.host.run)
+                self.assertEqual(reviewed['status'], 'blocked')
+                self.assertIn('Unrecognized or unsafe APT install line', reviewed['blockers'])
+
     def test_package_plan_blocks_missing_candidate_and_unsupported_host(self):
         self.host.candidate = '(none)'
         self.assertEqual(guided.package_review(True, run=self.host.run)['status'], 'blocked')
@@ -290,6 +321,14 @@ class InstallerTests(unittest.TestCase):
             self.assertNotIn('HYPRLAND_INSTANCE_SIGNATURE', c)
         result = guided.runtime_probe(self.bundle, guided.private_case(),
                                      run=lambda c, timeout: {'status': 'ok', 'stdout': '', 'stderr': ''})
+        self.assertEqual(result['status'], 'failed')
+
+    def test_missing_widgets_library_blocks_even_with_successful_ldd_exit(self):
+        def run(command, timeout):
+            output = ('libQt6Core libQt6Qml libQt6Quick\nlibQt6Widgets.so.6 => not found\n'
+                      if 'ldd' in command else 'Configuration Loaded\nOMABUNTU_INSTALL_WEBP_READY')
+            return {'status': 'ok', 'returncode': 0, 'stdout': output, 'stderr': ''}
+        result = guided.runtime_probe(self.bundle, guided.private_case(), run=run)
         self.assertEqual(result['status'], 'failed')
 
     def test_failed_decode_or_runtime_timeout_blocks_deployment(self):

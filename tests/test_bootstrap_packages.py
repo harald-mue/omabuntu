@@ -95,7 +95,7 @@ class BootstrapPackageTests(unittest.TestCase):
     def test_published_runtime_scope_excludes_source_and_plugin_toolchains(self):
         spec, _ = packages.request_manifest(runtime_only=True)
         names = spec['groups']['runtime']
-        for name in ('hyprland', 'hyprpaper', 'bubblewrap', 'python3', 'libqt6core6t64',
+        for name in ('hyprland', 'hyprpaper', 'bubblewrap', 'python3', 'libqt6core6t64', 'libqt6widgets6',
                      'liblayershellqtinterface6', 'libdeflate0', 'libjemalloc2', 'libdwarf1', 'libunwind8'):
             self.assertIn(name, names)
         for name in ('cmake', 'g++', 'libdeflate-dev', 'qt6-base-dev', 'glslang-dev'):
