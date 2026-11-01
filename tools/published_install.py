@@ -5,10 +5,12 @@ from pathlib import Path
 import subprocess
 
 import bootstrap_packages
+import install as guided
 import plugin_manager
 import native_transition
 import session_activation
 import session_config
+import user_artwork
 
 import setup
 import setup_guide
@@ -143,6 +145,34 @@ def offer_plugins(root, prerequisites_ready=True):
     print('No full configuration reload was performed. Unapplied titlebars remain deferred until an approved rules action or configured next login.')
 
 
+def offer_artwork(installation):
+    """Offer the pinned private theme artwork once when the release has none."""
+    selected = installation.selected()
+    if selected is None:
+        return
+    bundled = installation.root / selected / 'config/menu/backgrounds'
+    if bundled.is_dir() and not bundled.is_symlink():
+        return  # Release-local artwork wins; no private download needed.
+    try:
+        reviewed = user_artwork.plan()
+    except (OSError, ValueError) as error:
+        print('Theme artwork check deferred: ' + str(error))
+        return
+    if not reviewed['missing']:
+        print('Theme backgrounds/previews already downloaded privately; menus can use them.')
+        return
+    if not ask('Download the pinned Omarchy theme backgrounds/previews into your private user directory? %d files, %d bytes; they stay local, releases ship artwork-free' % (
+            len(reviewed['missing']), reviewed['bytes'])):
+        print('Theme artwork deferred. Menus stay without Omarchy backgrounds; rerun this installer to retry.')
+        return
+    try:
+        user_artwork.apply(reviewed, guided.digest(reviewed))
+    except (OSError, ValueError) as error:
+        print('Theme artwork download failed; menus stay without Omarchy backgrounds: ' + str(error))
+        return
+    print('Theme backgrounds/previews downloaded privately. Menus can list them after this installer run.')
+
+
 def manager_reusable(root, installation):
     if installation.selected() is None:
         return False
@@ -204,6 +234,7 @@ def main():
                 return
     print('Application installed. Your personal Hyprland configuration was preserved.')
     print('Generic session and login activation are separate opt-in steps; see docs/installer.md.')
+    offer_artwork(installation)
     if management is not None:
         if manager_reusable(root, installation):
             print('Verified manager build reused; no compiler packages or rebuild are needed.')

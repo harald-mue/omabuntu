@@ -180,6 +180,31 @@ Rollback restores the previous application release. It does not undo packages.
 `--recover-update` restores one interrupted update to its recorded prestate and
 does not resume the new release.
 
+### Theme artwork on published releases
+
+Public release archives ship **artwork-free**: the Omarchy stills/previews are
+not cleared for redistribution, so a normal install alone would leave the
+themes/backgrounds menus without the Omarchy images. The published installer
+checks this itself and, after installation, offers **one** download of the
+pinned upstream set into your private
+`~/.local/share/omabuntu/artwork` (`XDG_DATA_HOME` respected). The menus,
+theme previews, recorded stills and the next-login wallpaper record all fall
+back to that private directory when the selected release ships none.
+
+```sh
+make artwork            # read-only completeness report
+make artwork-apply      # download missing pinned files (one confirmation)
+```
+
+Downloads use only the pinned per-file URLs, sizes and blob hashes recorded in
+`upstream/theme-backgrounds.json` (commit
+`03ff1eff3812933f7088484533784d2f63eaf19a`), refuse redirects, never
+overwrite existing conflicting files, and write a 0600 receipt. Declining or
+failing changes nothing else; rerun the same `install.sh` to retry. The files
+stay private user data: they are never bundled into a release, published, or
+cleared for redistribution. A release that ships its own artwork is used
+without any private download.
+
 ### Session and next login
 
 ```sh

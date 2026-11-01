@@ -22,7 +22,7 @@ DEV_VERSION := $(if $(VERSION),$(VERSION),dev-$(shell date -u +%Y%m%dT%H%M%S.%NZ
 .DEFAULT_GOAL := help
 
 .PHONY: help test doctor guide release release-resume build packages runtime-packages plugin-packages \
-        plugins plugins-prepare plugins-migrate plugins-migrate-apply plugins-recover plugins-recover-apply plugins-activate font acceptance rollback \
+        plugins plugins-prepare plugins-migrate plugins-migrate-apply plugins-recover plugins-recover-apply plugins-repair plugins-repair-apply plugins-activate artwork artwork-apply font acceptance rollback \
         package preflight plan install update start stop status \
         autostart autostart-plan autostart-remove hypr-settings hypr-settings-plan \
         hypr-settings-remove reload restart dev-update check-version check-build
@@ -47,6 +47,8 @@ help:
 	@echo '  make plugins-activate                  explicit live hyprbars enable/load; may request sudo'
 	@echo '  make plugins-repair                    review the enabled-but-unloaded hyprbars repair; no load'
 	@echo '  make plugins-repair-apply              one explicit live reload of the verified hyprbars'
+	@echo '  make artwork                            review the pinned private theme artwork; no download'
+	@echo '  make artwork-apply                     download missing pinned artwork into your private directory'
 	@echo '  make font                              review the desktop font; no install'
 	@echo '  make acceptance                        read-only stock-install gates'
 	@echo '  make rollback                          review the previous application release'
@@ -140,6 +142,12 @@ plugins-repair:
 
 plugins-repair-apply:
 	./install.sh --plugins-repair --apply --plain
+
+artwork:
+	python3 tools/user_artwork.py
+
+artwork-apply:
+	python3 tools/user_artwork.py --download
 
 font:
 	./install.sh --font --plain

@@ -114,7 +114,9 @@ class ThemeTests(TempState):
 
     def test_theme_rows_work_without_local_preview_images(self):
         with tempfile.TemporaryDirectory() as directory:
-            with patch.object(theme_backend, 'PREVIEWS', Path(directory) / 'absent'):
+            # Patch both preview roots: tests must never read the real HOME.
+            with patch.object(theme_backend, 'PREVIEWS', Path(directory) / 'absent'), \
+                 patch.object(background_backend, 'USER_PREVIEWS', Path(directory) / 'user-absent'):
                 rows = theme_backend.rows()
             self.assertEqual(len(rows), 23)
             self.assertTrue(all(not row['image'] for row in rows))
@@ -536,3 +538,63 @@ class BackgroundRestoreTests(TempState):
         link = menu_common.state_home() / 'current' / 'lock-background'
         self.assertEqual(os.readlink(link),
                          str((self.assets / 'tokyo-night' / '1-winding-road.webp').resolve()))
+
+
+class ArtworkFallbackTests(TempState):
+    def setUp(self):
+        super().setUp()
+        self.data = tempfile.TemporaryDirectory()
+        self.addCleanup(self.data.cleanup)
+        self.user_backgrounds = Path(self.data.name) / 'omabuntu/artwork/backgrounds'
+        self.user_previews = Path(self.data.name) / 'omabuntu/artwork/themes-previews'
+        for name, value in (('THEME_BACKGROUNDS', Path(self.data.name) / 'release/config/menu/backgrounds'),
+                            ('USER_BACKGROUNDS', self.user_backgrounds)):
+            patch.object(background_backend, name, value).start()
+            self.addCleanup(patch.stopall)
+        patch.object(background_backend, 'USER_PREVIEWS', self.user_previews).start()
+        patch.object(theme_backend, 'PREVIEWS', Path(self.data.name) / 'release/config/menu/themes-previews').start()
+
+    def test_public_artwork_free_release_falls_back_to_private_downloads(self):
+        (self.user_backgrounds / 'tokyo-night').mkdir(parents=True)
+        (self.user_backgrounds / 'tokyo-night/0-liftoff.webp').write_bytes(b'x')
+        ids = background_backend.theme_ids()
+        self.assertEqual(ids, ['tokyo-night'])
+        self.assertEqual([str(p) for p in background_backend.theme_backgrounds('tokyo-night')],
+                         [str(self.user_backgrounds / 'tokyo-night/0-liftoff.webp')])
+        self.assertEqual(background_backend.all_theme_backgrounds(),
+                         [self.user_backgrounds / 'tokyo-night/0-liftoff.webp'])
+
+    def test_release_local_artwork_wins_over_private_downloads(self):
+        release = Path(self.data.name) / 'release/config/menu/backgrounds'
+        release_local = Path(self.data.name) / 'release-local/config/menu/backgrounds'
+        (release_local / 'gruvbox').mkdir(parents=True)
+        (release_local / 'gruvbox/0-a.jpg').write_bytes(b'x')
+        (self.user_backgrounds / 'tokyo-night').mkdir(parents=True)
+        (self.user_backgrounds / 'tokyo-night/0-liftoff.webp').write_bytes(b'x')
+        with patch.object(background_backend, 'THEME_BACKGROUNDS', release_local):
+            self.assertEqual(background_backend.theme_ids(), ['gruvbox'])
+        self.assertEqual(background_backend.theme_ids(assets=self.user_backgrounds), ['tokyo-night'])
+
+    def test_recorded_still_rebases_onto_private_artwork_after_release_change(self):
+        (self.user_backgrounds / 'tokyo-night').mkdir(parents=True)
+        (self.user_backgrounds / 'tokyo-night/0-liftoff.webp').write_bytes(b'x')
+        recorded = '/old/releases/v1/config/menu/backgrounds/tokyo-night/0-liftoff.webp'
+        self.assertEqual(str(background_backend.resolve_recorded(recorded)),
+                         str(self.user_backgrounds / 'tokyo-night/0-liftoff.webp'))
+
+    def test_theme_preview_falls_back_to_private_downloads(self):
+        self.user_previews.mkdir(parents=True)
+        (self.user_previews / 'tokyo-night.png').write_bytes(b'x')
+        self.assertEqual(theme_backend.preview_path('tokyo-night'), str(self.user_previews / 'tokyo-night.png'))
+        self.assertEqual(theme_backend.preview_path('nord'), '')
+
+    def test_default_still_falls_back_to_private_artwork(self):
+        import wallpaper_record
+        (self.user_backgrounds / 'tokyo-night').mkdir(parents=True)
+        (self.user_backgrounds / 'tokyo-night/0-liftoff.webp').write_bytes(b'x')
+        release = Path(self.data.name) / 'release'
+        self.assertEqual(wallpaper_record.default_still(release),
+                         self.user_backgrounds / 'tokyo-night/0-liftoff.webp')
+        empty = Path(self.data.name) / 'empty'
+        empty.mkdir()
+        self.assertIsNone(wallpaper_record.default_still(release, assets=empty))

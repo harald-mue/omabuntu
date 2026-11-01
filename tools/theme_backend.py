@@ -100,11 +100,17 @@ def current(root=None):
 
 
 def preview_path(theme_id):
-    """Imported picker preview for one theme, or ''."""
+    """Imported picker preview for one theme, or ''.
+
+    Falls back to the private downloaded artwork previews when the release
+    ships none (public artwork-free bundles)."""
     if not theme_id or '/' in theme_id or theme_id.startswith('.') or theme_id.endswith('.png'):
         return ''
-    candidate = PREVIEWS / ('%s.png' % theme_id)
-    return str(candidate) if candidate.is_file() and not candidate.is_symlink() else ''
+    for directory in (PREVIEWS, background_backend.USER_PREVIEWS):
+        candidate = directory / ('%s.png' % theme_id)
+        if candidate.is_file() and not candidate.is_symlink():
+            return str(candidate)
+    return ''
 
 
 def hyprland_config_path(config_path=None):

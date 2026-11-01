@@ -35,6 +35,10 @@ import menu_common
 
 ROOT = Path(__file__).resolve().parents[1]
 THEME_BACKGROUNDS = ROOT / 'config' / 'menu' / 'backgrounds'
+USER_BACKGROUNDS = (Path(os.environ.get('XDG_DATA_HOME') or Path.home() / '.local' / 'share')
+                   / 'omabuntu' / 'artwork' / 'backgrounds')
+USER_PREVIEWS = (Path(os.environ.get('XDG_DATA_HOME') or Path.home() / '.local' / 'share')
+                 / 'omabuntu' / 'artwork' / 'themes-previews')
 IMAGE_SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp'}
 MAX_FILES = 512
 MAX_LABEL = 96
@@ -61,8 +65,23 @@ def _images(directory):
     return found
 
 
+def _assets(assets=None):
+    """Release-imported backgrounds, else the private downloaded artwork.
+
+    Public releases ship artwork-free (redistribution is uncleared); the
+    installer downloads the pinned upstream set into the private user
+    directory, which the menus then fall back to."""
+    if assets is not None:
+        return Path(assets)
+    release = THEME_BACKGROUNDS
+    if release.is_dir() and not release.is_symlink() and any(
+            entry.is_dir() and not entry.is_symlink() for entry in release.iterdir()):
+        return release
+    return USER_BACKGROUNDS
+
+
 def theme_ids(assets=None):
-    assets = Path(assets) if assets is not None else THEME_BACKGROUNDS
+    assets = _assets(assets)
     if assets.is_symlink() or not assets.is_dir():
         return []
     return sorted(entry.name for entry in assets.iterdir()
@@ -73,7 +92,7 @@ def theme_backgrounds(theme_id, assets=None):
     """Imported still backgrounds of one theme, sorted like upstream."""
     if not theme_id or '/' in theme_id or theme_id.startswith('.'):
         return []
-    return _images((Path(assets) if assets is not None else THEME_BACKGROUNDS) / theme_id)
+    return _images(_assets(assets) / theme_id)
 
 
 def all_theme_backgrounds(assets=None):
@@ -288,10 +307,13 @@ def resolve_recorded(path_text, assets=None):
     marker = '/config/menu/backgrounds/'
     if marker in text:
         relative = text[text.rindex(marker) + len(marker):]
-        candidate = (Path(assets) if assets is not None else THEME_BACKGROUNDS) / relative
-        if (not candidate.is_symlink() and candidate.is_file()
-                and candidate.suffix.lower() in IMAGE_SUFFIXES):
-            return candidate
+        bases = ([THEME_BACKGROUNDS, USER_BACKGROUNDS] if assets is None
+                 else [Path(assets), USER_BACKGROUNDS])
+        for base in bases:
+            candidate = base / relative
+            if (not candidate.is_symlink() and candidate.is_file()
+                    and candidate.suffix.lower() in IMAGE_SUFFIXES):
+                return candidate
     return Path(text)
 
 

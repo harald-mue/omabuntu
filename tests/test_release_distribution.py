@@ -215,6 +215,7 @@ class PublishedInstallerTests(unittest.TestCase):
              patch.object(published_install.setup_guide, 'packages_stage', return_value={'status': 'done'}), \
              patch.object(published_install.setup_guide, 'font_stage', return_value={'status': 'done'}), \
              patch.object(published_install.user_install, 'Installation') as factory, \
+             patch.object(published_install, 'offer_artwork'), \
              patch.object(published_install, 'ask', return_value=True) as ask, \
              patch.object(published_install.setup, 'main', return_value=0) as main:
             factory.return_value.selected.return_value = 'releases/old'
@@ -230,6 +231,7 @@ class PublishedInstallerTests(unittest.TestCase):
              patch.object(published_install.setup_guide, 'packages_stage', side_effect=[{'status': 'command'}, {'status': 'done'}]) as packages, \
              patch.object(published_install.setup_guide, 'font_stage', return_value={'status': 'done'}), \
              patch.object(published_install.user_install, 'Installation') as factory, \
+             patch.object(published_install, 'offer_artwork'), \
              patch.object(published_install, 'ask', return_value=True), \
              patch.object(published_install.setup, 'main', return_value=0) as main:
             factory.return_value.selected.return_value = None
@@ -244,6 +246,7 @@ class PublishedInstallerTests(unittest.TestCase):
         with patch.object(sys, 'argv', ['published', '--bundle', '/fixture/bundle']), \
              patch.object(published_install.user_install, 'verify_bundle'), \
              patch.object(published_install.setup_guide, 'ppa_stage', return_value={'status': 'command'}), \
+             patch.object(published_install, 'offer_artwork'), \
              patch.object(published_install, 'ask') as ask, \
              patch.object(published_install.setup, 'main', return_value=0) as main:
             with self.assertRaises(SystemExit):

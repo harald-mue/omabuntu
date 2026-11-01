@@ -147,6 +147,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.setup_guide, 'packages_stage', return_value={'status': 'done'}), \
              patch.object(published.setup_guide, 'font_stage', return_value={'status': 'done'}), \
              patch.object(published.user_install, 'Installation') as installation, \
+             patch.object(published, 'offer_artwork'), \
              patch.object(published, 'ask', return_value=True) as ask, \
              patch.object(published.setup, 'main', return_value=0) as apply:
             installation.return_value.selected.return_value = 'releases/old'
@@ -194,6 +195,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.user_install, 'Installation') as installation, \
              patch.object(published.plugin_manager, 'plan', return_value={'receipt_before': {'activated': True}, 'blockers': ['enabled']}), \
              patch.object(published.native_transition, 'manager_ready', return_value={'loaded': []}), \
+             patch.object(published, 'offer_artwork'), \
              patch.object(published, 'ask') as ask, patch.object(published.setup, 'main', return_value=0) as apply:
             installation.return_value.selected.return_value = 'releases/current'
             installation.return_value.running.return_value = {'pid': 1}
@@ -267,3 +269,57 @@ class PublishedPluginFlowTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+class PublishedArtworkTests(unittest.TestCase):
+    def setUp(self):
+        self.stream = io.StringIO()
+        self.output = contextlib.redirect_stdout(self.stream)
+        self.output.__enter__()
+        self.addCleanup(self.output.__exit__, None, None, None)
+        self.temp = tempfile.TemporaryDirectory(dir=ROOT / 'work')
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+        self.installation = published.user_install.Installation(
+            self.base / 'data', self.base / 'state', self.base / 'bin')
+        self.release = self.installation.root / 'releases/public'
+        self.release.mkdir(parents=True)
+        patch.object(self.installation, 'selected', return_value='releases/public').start()
+        self.addCleanup(patch.stopall)
+
+    def flow(self, plan):
+        with patch.object(published, 'ask', return_value=True) as ask, \
+             patch.object(published.user_artwork, 'plan', return_value=plan) as review, \
+             patch.object(published.user_artwork, 'apply') as apply:
+            published.offer_artwork(self.installation)
+        return ask, review, apply
+
+    def test_artwork_free_release_offers_one_private_download(self):
+        plan = {'missing': ['backgrounds/tokyo/0.webp'], 'bytes': 10, 'blockers': []}
+        ask, review, apply = self.flow(plan)
+        review.assert_called_once_with()
+        ask.assert_called_once()
+        apply.assert_called_once()
+        self.assertEqual(apply.call_args.args[0], plan)
+        self.assertEqual(apply.call_args.args[1], published.guided.digest(plan))
+
+    def test_release_local_artwork_never_offers_a_download(self):
+        (self.release / 'config/menu/backgrounds').mkdir(parents=True)
+        ask, review, apply = self.flow({'missing': ['x'], 'bytes': 1, 'blockers': []})
+        ask.assert_not_called()
+        review.assert_not_called()
+        apply.assert_not_called()
+
+    def test_complete_artwork_skips_the_download_question(self):
+        ask, review, apply = self.flow({'missing': [], 'bytes': 1, 'blockers': []})
+        ask.assert_not_called()
+        apply.assert_not_called()
+
+    def test_failed_download_is_reported_without_silent_success(self):
+        with patch.object(published, 'ask', return_value=True), \
+             patch.object(published.user_artwork, 'plan',
+                          return_value={'missing': ['a'], 'bytes': 1, 'blockers': []}), \
+             patch.object(published.user_artwork, 'apply', side_effect=ValueError('network')):
+            published.offer_artwork(self.installation)
+        self.assertIn('download failed', self.stream.getvalue())

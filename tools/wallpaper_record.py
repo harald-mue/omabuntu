@@ -5,8 +5,15 @@ from pathlib import Path
 SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp'}
 
 
-def default_still(release):
+def default_still(release, assets=None):
+    """First release still, else the private downloaded artwork fallback.
+
+    Public releases ship artwork-free; the installer downloads the pinned
+    set into the private user directory, which this falls back to."""
+    import background_backend
     root = Path(release) / 'config/menu/backgrounds'
+    if root.is_symlink() or not root.is_dir():
+        root = background_backend.USER_BACKGROUNDS if assets is None else Path(assets)
     if root.is_symlink() or not root.is_dir():
         return None
     chosen = None
