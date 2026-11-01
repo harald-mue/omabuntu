@@ -1,5 +1,10 @@
 # Floating-workspace titlebar (hyprbars)
 
+> **Current source-build workflow:** [hyprpm-managed titlebars](plugin-management.md).
+> New default bundles carry a source policy, not a native plugin library.
+> The bundled-library preparation and live-maintenance notes below describe
+> older releases and are not the new default installation procedure.
+
 ## Purpose and safety
 
 Omarchy's close/maximise/minimise titlebar comes from hyprbars; its dock restores

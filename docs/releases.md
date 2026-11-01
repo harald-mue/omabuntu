@@ -2,11 +2,43 @@
 
 ## Status
 
-The workflow is implemented but has not published anything or passed stock-VM
-acceptance. The publisher public key is configured; private-key access and the
-first real release remain manual gates. Do not advertise a working public
-download until those gates are complete.
+The signed v0.1.0 release is published, but its stock-VM installation failed.
+It is not fresh-machine accepted. New source builds use a separate hyprpm policy
+instead of shipping a native titlebar library; existing artifacts are immutable
+and do not acquire this change. New builds target source-reviewed Hyprland
+0.57.0. On the development workstation, the pinned manager build/recovery,
+live plugin activation and explicit application handoff completed; the user
+reported that the bar/menus appear to work. This is not stock-VM, first/repeat
+login, generic migration or security acceptance: those remain outstanding.
 The project remains an Ubuntu-native integration, not an Omarchy provisioner.
+
+### v0.1.1 release scope
+
+- Separate runtime, application-source-build and plugin-build package scopes;
+  published application installation does not require the application toolchain.
+- Source-reviewed Hyprland 0.57.0 target; pinned local hyprpm builds instead of
+  shipping an ABI-specific titlebar library in new application bundles.
+- Independent preparation, live load, titlebar-rule and persistent-login consent;
+  explicit legacy manager migration and narrowly scoped failed-checkpoint recovery.
+- Reviewed Ubuntu PPA system-header support, verified backups/headers and inactive
+  ownership receipts only after successful preparation. Header updates run
+  without a compositor socket; plugin activation remains a separate live action.
+- Explicit 0.56.2 to 0.57.0 application handoff on an already matching session;
+  private profiles and healthy active manager plugins are preserved.
+- Ordinary installer questions default to Yes on Enter. Typed safety phrases,
+  noninteractive approval guards and commit/publication prompts remain separate.
+- Next-login preparation detects unit-state drift, rolls back its initial
+  wallpaper record on file-stage failure, and requires manual review after a
+  failed systemd operation instead of claiming complete restoration.
+
+GitHub release metadata and verified signed artifacts determine availability;
+this source scope section does not itself claim that v0.1.1 has been published.
+
+No blanket APT upgrades/removals, general native-target bypass, automatic private
+profile conversion or legacy login-loader adoption is added. First/repeat login,
+stock-VM dependency closure and a second distinct live application update/rollback
+still need acceptance. Current automated coverage and actual-payload rehearsals
+do not remove those limitations. Artwork remains excluded from public builds.
 
 ## One-time publisher setup
 
@@ -36,7 +68,7 @@ No tool here generates keys or changes SSH/Git configuration.
 ## Publish
 
 ```sh
-make release VERSION=0.1.0
+make release VERSION=0.1.1
 ```
 
 Use numeric `major.minor.patch` versions. Existing tags and local publication
@@ -50,7 +82,8 @@ Ignored files are not automatically included. Review staged files for secrets;
 After explicit commit confirmation it runs tests, checks whitespace, and commits
 tracked changes with an English Conventional Commit. Hooks are not skipped.
 A clean tree reuses HEAD. It exports exactly that commit into an isolated private
-workspace, builds all native components there without theme artwork, and verifies
+workspace, builds the runtime and screenshot components without theme artwork,
+records the hyprpm policy without compiling/loading its plugin, and verifies
 the bundle. This can take significantly longer than a cached development build.
 GNOME, user preferences, desktop processes, services and selectors are unchanged.
 
@@ -93,7 +126,7 @@ minutes. Existing tags or remote releases require separate manual review.
 If you prefer not to rebuild and packaging finished but signing stopped, keep the workspace:
 
 ```sh
-make release-resume VERSION=0.1.0
+make release-resume VERSION=0.1.1
 ```
 
 This is an explicit pre-publication recovery path, not a fresh build. Review and
@@ -129,8 +162,10 @@ The bootstrap requires Python 3, curl, OpenSSH, Ubuntu 26.04 and x86_64. It
 fetches the latest published GitHub Release, verifies the SSH signature before
 trusting checksums, verifies the downloaded archive and metadata, and safely
 extracts it with path/type/size restrictions. Downloads have time and size limits.
-Native ABI checks in the existing installer remain mandatory: Ubuntu and CPU
-alone do not prove compatibility with the installed Hyprland/Qt stack.
+Native/runtime checks in the existing installer remain mandatory: Ubuntu and CPU
+alone do not prove compatibility with the installed Hyprland/Qt stack. New bundles
+use separately reviewed [hyprpm stages](plugin-management.md); the source policy
+is not permission to activate a plugin or accept an unreviewed compositor version.
 
 System prerequisite plans and application deployment retain their own confirmation
 and refusal rules. No blanket upgrades, source builds, automatic login, plugin
@@ -145,8 +180,14 @@ under `$XDG_CACHE_HOME/omabuntu/published/` (default `~/.cache`). Do not publish
 that cache. Installed releases and rollback journals stay in their normal XDG
 locations; deleting a cache is not an uninstall.
 
-Repeat the command to update. From a checkout `make update` takes the same public
-release path. `make build` and `make guide` remain the source-development path.
+Repeat the command to update. For the exact 0.56.2 to 0.57.0 application pair,
+the installer offers a separate [native application handoff](installer.md#explicit-application-handoff-after-a-native-upgrade).
+It requires an already upgraded matching session and verified manager build; it
+is not a compositor/profile migration or general target bypass. Existing
+next-login loaders require their own handoff. Healthy enabled manager plugins
+are preserved without a duplicate build/load. Later same-target updates need no
+native-transition flag. Real VM/update/login acceptance remains separate.
+From a checkout `make update` takes the same public release path. `make build` and `make guide` remain the source-development path.
 Published versions are selected through GitHub Releases; development versions
 are built from the checkout.
 

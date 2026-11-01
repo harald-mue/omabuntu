@@ -4,7 +4,10 @@ The goal is a single `./install.sh` entry point on stock Ubuntu 26.04, with
 `--update`, `--check` and `--rollback`. **The default entry now shows the live
 guide. It can apply one reviewed stage at a time, but it is not yet a
 working stock-system provisioner.** Explicit PPA and additive package stages
-and a source-to-bundle runtime/Omasnap/plugin build stage are implemented. Generic
+and a source-to-bundle runtime/Omasnap build stage are implemented. New default
+bundles carry a pinned [hyprpm policy](plugin-management.md), not a native plugin.
+Hyprpm preparation/live activation are separate; new builds target source-reviewed
+0.57.0, with native acceptance still outstanding. Generic
 session files and next-login activation files can be prepared separately. Native
 first-login validation and clean-target validation still remain. `--guide`
 now shows the next implemented stage and can apply only that local stage.
@@ -109,10 +112,12 @@ source changes future APT candidate availability; review its trust accordingly.
 
 `packages/bootstrap.json` supplies the initial compositor/session, native
 services, base tools, Omasnap and plugin build requests. The planner merges
-these with the existing runtime and Quickshell build manifests. This is an
+the selected groups with runtime and/or Quickshell manifests. Published installs
+select `--runtime-only`; manager prerequisites use `--plugin-build-only`.
+The default application build no longer selects plugin build dependencies. This is an
 initial request set, **not a fresh-VM-validated complete dependency closure**.
 The pinned Nerd Font now has a separate verified staging/user-install step.
-ABI-matched plugin pipeline integration remains separate work. The Omasnap
+Manager activation and native acceptance remain separate work. The Omasnap
 builder is implemented but not yet native-build accepted.
 No Ghostty, browser/editor, VPN or corporate-agent installation is inferred.
 
@@ -145,10 +150,10 @@ Once the planned runtime/build packages are actually installed:
 ./install.sh --build-release --apply --skip-artwork
 ```
 
-The pipeline builds the bar runtime (Quickshell/cpptrace), Omasnap and hyprbars,
-stages the pinned desktop Nerd Font with its notices, then prepares a local
-bundle. Hyprbars uses exact source headers and an isolated private build copy,
-not installed mismatching headers or an old development binary. It does not
+The pipeline builds the bar runtime (Quickshell/cpptrace) and Omasnap,
+stages the pinned desktop Nerd Font and hyprpm source policy with notices, then
+prepares a local bundle. Hyprbars is built separately by the reviewed manager,
+not embedded as a compositor-specific application artifact. The pipeline does not
 register the font, load the plugin or activate the session configuration.
 It never installs packages, changes current/previous, starts the desktop, locks,
 or captures. Build/deploy are distinct approval scopes. `--restart-bar` and
@@ -263,7 +268,8 @@ release, without a checkout or local build. Development checkouts use
 
 ## Next-login activation: files only
 
-After session configuration and a release that contains an ABI-checked plugin:
+After session configuration and a release with a hyprpm policy (or a legacy
+ABI-checked plugin). Manager bundles do not add an automatic login plugin load:
 
 ```sh
 ./install.sh --session-activate
@@ -303,10 +309,12 @@ files and a private `font-transactions/` journal rather than deleting fonts.
 The actual pinned face's family/glyph coverage was probed read-only during
 development; real user registration was not performed.
 
-The standalone hyprbars builder now reads installed Hyprland's exit-only
+### Legacy bundled-plugin builders (not the default pipeline)
+
+The standalone hyprbars builder reads installed Hyprland's exit-only
 `--version-json`, without needing a running desktop. It uses fresh outputs,
 retains existing builds, records library hash and refuses binary drift during
-compilation. The bootstrap pipeline now uses a separate isolated builder:
+compilation. Legacy bundle preparation can use a separate isolated builder:
 `build_plugin.py` locks both source archives, verifies BSD notices, generates
 private headers/protocol bindings and checks the exact installed client ABI.
 ELF architecture, absence of an ELF interpreter, linked shared-library availability
@@ -315,7 +323,7 @@ probe occurs; unresolved compositor symbols are expected, not a linkage error.
 All scanner failures/timeouts block the build rather than being silently ignored.
 Protocol notices are preserved with the two root notices.
 
-The packager receives the exact returned stage and embeds `native/hyprbars.so`,
+When explicitly supplied a legacy plugin stage, the packager embeds `native/hyprbars.so`,
 a byte-hash/ABI descriptor and notices. No executable directory is added to PATH
 and the old `~/.local/lib` plugin is not overwritten. Input/dependency/native
 identity changes stop packaging; old build directories are retained. Candidate

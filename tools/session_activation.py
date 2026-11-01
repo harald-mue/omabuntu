@@ -11,6 +11,7 @@ import shlex
 import subprocess
 
 import build_plugin
+import plugin_manager
 import install as guided
 import session_config
 import user_install
@@ -37,7 +38,7 @@ def paths_for(home, app, config):
 
 def render(root, app, selected, plugin):
     release = app.root / selected
-    library = release / 'native/hyprbars.so'
+    library = None if plugin.get('manager') == 'hyprpm' else release / 'native/hyprbars.so'
     titlebar_path = plugin['titlebar_path']
     minimize = shlex.join(['/usr/bin/env', 'PYTHONDONTWRITEBYTECODE=1', '/usr/bin/python3',
                            str(release / 'helpers/omabuntu_hyprland_window_minimize.py')])
@@ -57,6 +58,18 @@ def render(root, app, selected, plugin):
         'hl.plugin.load(library)\n'
         'dofile(' + json.dumps(str(titlebar_path), ensure_ascii=False) + ')\n'
     )
+    if library is None:
+        activation_text = (
+            '-- SPDX-License-Identifier: MIT\n'
+            '-- Plugin loading is managed explicitly by hyprpm, not this file.\n'
+            'dofile(' + json.dumps(str(titlebar_path), ensure_ascii=False) + ')\n'
+        )
+        if plugin.get('login_enabled'):
+            command = shlex.join(['/usr/bin/env', 'PYTHONDONTWRITEBYTECODE=1',
+                                  '/usr/bin/python3', str(release / 'helpers/plugin_login.py')])
+            activation_text += ('-- Explicit persistent grant; no builds or sudo at login.\n'
+                                'hl.on("hyprland.start", function()\n'
+                                '  hl.exec_cmd(' + json.dumps(command, ensure_ascii=False) + ')\nend)\n')
     wallpaper = (root / 'config/hypr/hyprpaper.conf').read_text()
     if 'splash = false' not in wallpaper or 'preload' in wallpaper:
         raise ValueError('Wallpaper template must only disable the hyprpaper splash')
@@ -67,7 +80,7 @@ def render(root, app, selected, plugin):
     if not unit.endswith('\n') or not wait.endswith('\n') or not wallpaper.endswith('\n'):
         raise ValueError('Activation templates must end with a newline')
     return {'activation': activation_text, 'titlebars': titlebar, 'wallpaper': wallpaper,
-            'unit': unit, 'wait': wait, 'library': str(library)}
+            'unit': unit, 'wait': wait, 'library': str(library) if library is not None else None}
 
 
 def login_state(run):
@@ -102,13 +115,19 @@ def pending(app):
     return result
 
 
-def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe=None):
+def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe=None, plugin_login=None):
     home, app, session_paths = session_config.locations(home)
     config = session_paths['entry'].parent.parent
     paths = paths_for(home, app, config)
     before = {name: session_config.state(path) for name, path in paths.items()}
     previous = user_install.read_json(paths['receipt']) if before['receipt']['existed'] else None
     blockers = []
+    if plugin_login is not None and type(plugin_login) is not bool:
+        raise ValueError('Plugin login choice must be boolean')
+    desired_plugin = ((previous.get('plugin_login_enabled', False) if isinstance(previous, dict) else False)
+                      if plugin_login is None else plugin_login)
+    if type(desired_plugin) is not bool:
+        raise ValueError('Invalid previous plugin login grant')
     if session_config.pending(app) or pending(app):
         blockers.append('Interrupted session or activation transaction requires review')
     if not session_paths['receipt'].is_file():
@@ -130,11 +149,13 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
         release = app.root / selected
         user_install.verify_bundle(release, installed=True)
         try:
-            descriptor = (plugin_check or build_plugin.verify_bundle_plugin)(release)
+            management = plugin_manager.bundle_policy(release)
+            descriptor = ({'manager': 'hyprpm'} if management is not None else
+                          (plugin_check or build_plugin.verify_bundle_plugin)(release))
         except (OSError, ValueError, build_plugin.builder.BuildError, subprocess.SubprocessError) as error:
             blockers.append('Plugin ABI/descriptor blocked activation: ' + str(error))
         if not descriptor:
-            blockers.append('Selected release has no ABI-checked hyprbars artifact')
+            blockers.append('Selected release has neither a hyprpm policy nor an ABI-checked hyprbars artifact')
         helper = release / 'helpers/omabuntu_hyprland_window_minimize.py'
         if not helper.is_file():
             blockers.append('Release lacks the titlebar minimize helper')
@@ -143,16 +164,22 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
     wallpaper = None
     if descriptor and selected:
         rendered = render(root, app, selected, {
-            'activation_path': paths['activation'], 'titlebar_path': paths['titlebars']})
+            'activation_path': paths['activation'], 'titlebar_path': paths['titlebars'],
+            'manager': descriptor.get('manager'), 'login_enabled': desired_plugin})
         library = rendered.pop('library')
         payload = rendered
-        try:
-            actual = hashlib.sha256(Path(library).read_bytes()).hexdigest()
-        except OSError as error:
-            blockers.append('Plugin library is not readable: ' + type(error).__name__)
-        else:
-            if actual != descriptor.get('library_sha256'):
-                blockers.append('Plugin bytes differ from the ABI descriptor')
+        if desired_plugin and descriptor.get('manager') != 'hyprpm':
+            blockers.append('Plugin login grant requires a manager-only bundle; migrate legacy activation explicitly')
+        if desired_plugin and not (app.root / selected / 'helpers/plugin_login.py').is_file():
+            blockers.append('Release lacks the receipt-checked plugin login helper')
+        if library is not None:
+            try:
+                actual = hashlib.sha256(Path(library).read_bytes()).hexdigest()
+            except OSError as error:
+                blockers.append('Plugin library is not readable: ' + type(error).__name__)
+            else:
+                if actual != descriptor.get('library_sha256'):
+                    blockers.append('Plugin bytes differ from the ABI descriptor')
         try:
             still = wallpaper_record.default_still(release)
         except (OSError, ValueError) as error:
@@ -161,8 +188,12 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
         recorded = app.state / 'current/background.json'
         recorded_state = session_config.state(recorded)
         if still is not None and not recorded_state['existed']:
+            lock = recorded.with_name('lock-background')
+            lock_present = lock.exists() or lock.is_symlink()
+            if lock_present:
+                blockers.append('Existing lock background without a wallpaper record requires separate review')
             wallpaper = {'path': str(recorded), 'before': recorded_state,
-                         'bytes': wallpaper_record.record(still), 'still': str(still)}
+                         'bytes': wallpaper_record.record(still), 'still': str(still), 'lock_before_existed': lock_present}
     if previous and (not isinstance(previous, dict) or previous.get('schema_version') != 1
                      or not isinstance(previous.get('files'), dict)):
         raise ValueError('Activation receipt differs; manual review required')
@@ -192,12 +223,12 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
         if wallpaper:
             changes.append('wallpaper-record')
     receipt = {'schema_version': 1, 'library': library, 'release': selected,
-               'login_enabled': desired,
+               'login_enabled': desired, 'plugin_login_enabled': desired_plugin,
                'files': {name: hashlib.sha256(payload[name].encode()).hexdigest() for name in owned} if payload else {}}
     return {'schema_version': 1, 'kind': 'omabuntu-session-activation', 'root': str(root.absolute()),
             'home': str(home), 'paths': {name: str(path) for name, path in paths.items()},
             'before': before, 'payload': payload, 'receipt_payload': receipt, 'changes': changes,
-            'wallpaper_record': wallpaper, 'enable_login': enable_login, 'login_enabled': enabled, 'blockers': blockers,
+            'wallpaper_record': wallpaper, 'enable_login': enable_login, 'plugin_login': plugin_login, 'login_enabled': enabled, 'blockers': blockers,
             'started': False, 'plugin_loaded': False,
             'status': 'blocked' if blockers else 'review-required'}
 
@@ -228,7 +259,7 @@ def apply(reviewed, approval, check_stopped=daemons_stopped, run=None, plugin_ch
     with os.fdopen(fd, 'w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fresh = plan(root, home, reviewed['enable_login'], plugin_check=plugin_check,
-                     login_probe=lambda: reviewed['login_enabled'])
+                     login_probe=lambda: login_state(run or default_run), plugin_login=reviewed.get('plugin_login'))
         if fresh != reviewed:
             raise ValueError('Activation inputs changed; review again')
         if not reviewed['changes']:
@@ -243,6 +274,8 @@ def apply(reviewed, approval, check_stopped=daemons_stopped, run=None, plugin_ch
                 (parent / name).chmod(0o600)
         user_install.atomic_json(record, journal)
         written = []
+        wallpaper_attempted = False
+        service_attempted = False
         try:
             check_stopped()
             for name, data in reviewed['payload'].items():
@@ -260,9 +293,17 @@ def apply(reviewed, approval, check_stopped=daemons_stopped, run=None, plugin_ch
                 target = Path(item['path'])
                 if session_config.state(target) != item['before']:
                     raise ValueError('Wallpaper record changed before write')
+                lock = target.with_name('lock-background')
+                if lock.exists() or lock.is_symlink():
+                    raise ValueError('Lock background appeared before initial wallpaper write')
+                wallpaper_attempted = True
                 session_config.write(target, item['bytes'].encode(), 0o600)
-                wallpaper_record.publish_lock(target.with_name('lock-background'), item['still'])
+                if not wallpaper_record.publish_lock(lock, item['still']):
+                    raise ValueError('Initial lock background could not be recorded')
+            if login_state(run or default_run) != reviewed['login_enabled']:
+                raise ValueError('Login enablement changed during file preparation; preserving external state')
             if 'login-enablement' in reviewed['changes'] or 'user-systemd-reload' in reviewed['changes']:
+                service_attempted = True
                 systemctl([SYSTEMCTL, '--user', 'daemon-reload'], run or default_run)
             if 'login-enablement' in reviewed['changes']:
                 command = [SYSTEMCTL, '--user', 'enable' if reviewed['receipt_payload']['login_enabled'] else 'disable', UNIT]
@@ -272,6 +313,18 @@ def apply(reviewed, approval, check_stopped=daemons_stopped, run=None, plugin_ch
         except BaseException as error:
             try:
                 check_stopped()
+                if wallpaper_attempted:
+                    item = reviewed['wallpaper_record']
+                    target = Path(item['path'])
+                    lock = target.with_name('lock-background')
+                    if lock.exists() or lock.is_symlink():
+                        if not wallpaper_record.os_readlink_matches(lock, item['still']):
+                            raise ValueError('Concurrent lock-background edit requires manual recovery')
+                        lock.unlink()
+                    if target.exists() or target.is_symlink():
+                        if target.is_symlink() or target.read_bytes() != item['bytes'].encode():
+                            raise ValueError('Concurrent wallpaper-record edit requires manual recovery')
+                        target.unlink()
                 for name in reversed(written):
                     path = paths[name]
                     current = session_config.state(path)
@@ -284,7 +337,9 @@ def apply(reviewed, approval, check_stopped=daemons_stopped, run=None, plugin_ch
                         session_config.write(path, (parent / name).read_bytes(), before['mode'])
                     else:
                         path.unlink()
-                journal['status'] = 'restored-after-failure'
+                journal['status'] = 'recovery-required' if service_attempted else 'restored-after-failure'
+                if service_attempted:
+                    journal['recovery_scope'] = 'Files restored; systemd cache/enablement requires explicit manual review'
             except BaseException as recovery:
                 journal.update(status='recovery-required', recovery_failure=type(recovery).__name__)
             journal['failure'] = type(error).__name__

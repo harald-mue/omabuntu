@@ -64,6 +64,15 @@ class ReleaseUpdateTests(unittest.TestCase):
         self.assertFalse(self.app.state.exists())
         self.assertEqual(plan['scope'], 'local-application-release-only')
 
+    def test_bundled_activation_requires_explicit_hyprpm_migration(self):
+        self.app.state.mkdir(parents=True)
+        (self.app.state / 'session-activation.json').write_text(json.dumps({'library': '/immutable/old/hyprbars.so'}))
+        with patch.object(update, 'candidate_plugin', return_value={'manager': 'hyprpm'}):
+            with self.assertRaisesRegex(update.UpdateError, 'explicit migration'):
+                self.review()
+        self.assertFalse(self.app.root.exists())
+        self.assertEqual(self.events, [])
+
     def test_bad_approval_has_no_writes(self):
         plan = self.review()
         with self.assertRaisesRegex(update.UpdateError, 'Approval'):

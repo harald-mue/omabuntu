@@ -26,6 +26,11 @@ class AcceptanceTests(unittest.TestCase):
         self.assertTrue(reviewed['ready_for_native_login'])
         self.assertEqual(reviewed['gates'][-1]['status'], 'manual')
 
+    def test_runtime_acceptance_does_not_require_build_toolchains(self):
+        with patch.object(acceptance.setup_guide, 'packages_stage', return_value={'status': 'done', 'summary': 'runtime'}) as packages:
+            self.assertEqual(acceptance.packages_gate()['status'], 'done')
+            self.assertTrue(packages.call_args.kwargs['runtime_only'])
+
     def test_blocked_gate_is_not_ready(self):
         with patch.object(acceptance, 'host_gate', return_value=acceptance.gate('host', 'blocked', 'wrong system')), \
              patch.object(acceptance, 'ppa_gate', return_value=acceptance.gate('ppa', 'done', 'ok')), \

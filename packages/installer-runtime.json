@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "name": "omabuntu-local-bundle",
-  "target": {"ubuntu": "26.04", "hyprland": "0.56.2", "qt": "6.10.2"},
+  "target": {"ubuntu": "26.04", "hyprland": "0.57.0", "qt": "6.10.2"},
   "groups": {
     "runtime": [
       "python3", "bubblewrap", "fontconfig", "procps",
@@ -11,7 +11,9 @@
       "qml6-module-qtquick-shapes", "qml6-module-qtquick-effects",
       "qml6-module-qtquick-window", "qml6-module-qtquick-templates",
       "qml6-module-qtqml-models", "qml6-module-qt-labs-folderlistmodel",
-      "libxkbcommon-tools"
+      "libxkbcommon-tools",
+      "libjemalloc2", "libdwarf1", "libunwind8",
+      "liblayershellqtinterface6", "libdeflate0"
     ],
     "wallpaper": ["hyprpaper"]
   },

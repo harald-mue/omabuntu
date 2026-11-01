@@ -1,4 +1,4 @@
-"""Explicit source-to-bundle pipeline: runtime, screenshots, plugin and artwork.
+"""Explicit source-to-bundle pipeline: runtime, screenshots, plugin policy and artwork.
 
 No package install, source checkout mutation, selector switch or desktop start.
 Plugin/font deployment and the complete stock-system setup remain separate.
@@ -13,6 +13,7 @@ import bootstrap_packages
 import bootstrap_sources
 import build_omasnap
 import build_plugin
+import plugin_manager
 import build_runtime
 import check_clock_preview
 import check_runtime
@@ -32,7 +33,7 @@ def code_inputs(root):
              *sorted((root / 'packages').glob('*.json')),
              root / 'upstream/source-lock.json', root / 'upstream/omasnap-source.json',
              root / 'upstream/clock-preview.json', root / 'upstream/theme-backgrounds.json',
-             root / 'upstream/desktop-font.json', root / 'upstream/hyprbars-build.json']
+             root / 'upstream/desktop-font.json', root / 'upstream/hyprpm.json']
     for prefix in ('config/hypr', 'config/systemd', 'config/lock'):
         paths.extend(path for path in sorted((root / prefix).rglob('*'))
                      if path.suffix in ('.lua', '.in', '.conf', '.service', '.py'))
@@ -55,7 +56,7 @@ def create_plan(root=ROOT, jobs=4, artwork=True, version=None, state=None):
     _, runtime_sources = build_runtime.load_inputs(root)
     screenshot = build_omasnap.inputs(root)
     font_pin = desktop_font.inputs(root)
-    plugin_pin = build_plugin.inputs(root)
+    plugin_pin = plugin_manager.policy(root)
     spec, _ = bootstrap_packages.request_manifest()
     state = guided.package_state(omabuntu.probe) if state is None else state
     versions = {name: guided.package_version(state, name) for name in spec['groups']['runtime']}
@@ -64,15 +65,9 @@ def create_plan(root=ROOT, jobs=4, artwork=True, version=None, state=None):
         actual = (versions.get(name) or '').split(':')[-1].split('+')[0].split('-')[0]
         if actual != expected:
             blockers.append('Native build target differs: ' + name)
-    plugin_target = None
-    if not blockers:
-        try:
-            plugin_target = build_plugin.native_target()
-        except (OSError, ValueError, build_runtime.BuildError, build_plugin.subprocess.SubprocessError) as error:
-            blockers.append('Plugin native target unavailable: ' + str(error))
     inputs = {'files': code_inputs(root), 'package_versions': versions, 'artwork': artwork,
               'update_contract': release_update.contract(), 'desktop_font': font_pin,
-              'plugin_source': plugin_pin, 'plugin_target': plugin_target}
+              'plugin_management': plugin_pin}
     digest = guided.digest(inputs)
     chosen = version or 'source-' + digest[:16]
     if not isinstance(chosen, str) or not user_install.VERSION.fullmatch(chosen):
@@ -82,7 +77,7 @@ def create_plan(root=ROOT, jobs=4, artwork=True, version=None, state=None):
             'inputs': inputs, 'runtime_commits': {name: data['commit'] for name, data in runtime_sources.items()},
             'omasnap_commit': screenshot['commit'], 'blockers': blockers,
             'status': 'blocked' if blockers else 'review-required',
-            'scope': 'runtime/screenshot/plugin/font-assets bundle; no plugin/config deployment or font registration'}
+            'scope': 'runtime/screenshot/font-assets bundle with hyprpm policy; no plugin/config deployment or font registration'}
 
 
 def assert_same(plan):
@@ -146,9 +141,10 @@ def apply(plan, approval):
                 provenance = user_install.read_json(output / 'PROVENANCE.json')
                 if (provenance.get('bootstrap_input_sha256') != plan['input_digest']
                         or not (output / 'runtime/bin/omasnap').is_file()
-                        or not (output / 'native/hyprbars.so').is_file()):
+                        or not (output / 'native/hyprpm.json').is_file()):
                     raise ValueError('Release version already exists with different build inputs')
-                build_plugin.verify_bundle_plugin(output)
+                if plugin_manager.bundle_policy(output) is None:
+                    raise ValueError('Existing bundle lacks the hyprpm policy')
                 report, _ = guided.preflight(output)
                 if report['status'] != 'passed':
                     raise ValueError('Existing prepared bundle no longer passes native preflight')
@@ -181,24 +177,14 @@ def apply(plan, approval):
             save()
             build_omasnap.verify_stage(root, screenshot_dir)
             assert_same(plan)
-            journal['status'] = 'plugin'
-            save()
-            plugin_dir = one_verified(root / 'work/plugin-builds', lambda path: build_plugin.verify_stage(root, path))
-            journal['plugin_reused'] = plugin_dir is not None
-            if plugin_dir is None:
-                plugin_dir = build_plugin.build(root=root, jobs=plan['jobs'], target=plan['inputs']['plugin_target']).parent
-            journal['plugin_build'] = str(plugin_dir)
-            save()
-            build_plugin.verify_stage(root, plugin_dir)
-            assert_same(plan)
             journal['status'] = 'packaging'
             save()
             output = package_user.prepare(plan['version'], runtime_dir,
                                           screenshot_build=screenshot_dir,
-                                          image_assets=assets, build_inputs=plan['input_digest'], font_file=font_file,
-                                          plugin_build=plugin_dir)
+                                          image_assets=assets, build_inputs=plan['input_digest'], font_file=font_file)
             user_install.verify_bundle(output)
-            build_plugin.verify_bundle_plugin(output)
+            if plugin_manager.bundle_policy(output) is None:
+                raise ValueError('Prepared bundle lacks the hyprpm policy')
             report, _ = guided.preflight(output)
             if report['status'] != 'passed':
                 raise ValueError('Prepared bundle native preflight failed')

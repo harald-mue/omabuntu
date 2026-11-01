@@ -14,7 +14,7 @@ import install as guided
 class FakeAPT:
     def __init__(self, names):
         self.versions = {name: '1.0-1' for name in names}
-        self.versions.update(hyprland='0.56.2-1', libqt6core6t64='6.10.2-1', hyprlock='0.9.6-1')
+        self.versions.update(hyprland='0.57.0-1', libqt6core6t64='6.10.2-1', hyprlock='0.9.6-1')
         self.installed = dict(self.versions)
         self.installed.pop('libdeflate-dev')
         self.commands = []
@@ -86,11 +86,33 @@ class BootstrapPackageTests(unittest.TestCase):
         spec, _ = packages.request_manifest()
         names = spec['groups']['runtime']
         for name in ('hyprland', 'hyprlock', 'hyprpaper', 'uwsm', 'gnupg', 'bubblewrap',
-                     'liblayershellqtinterface-dev', 'libdeflate-dev', 'glslang-dev', 'cmake', 'g++'):
+                     'liblayershellqtinterface-dev', 'libdeflate-dev', 'cmake', 'g++'):
             self.assertIn(name, names)
         self.assertEqual(len(names), len(set(names)))
         self.assertNotIn('ghostty', names)
         self.assertNotIn('google-chrome-stable', names)
+
+    def test_published_runtime_scope_excludes_source_and_plugin_toolchains(self):
+        spec, _ = packages.request_manifest(runtime_only=True)
+        names = spec['groups']['runtime']
+        for name in ('hyprland', 'hyprpaper', 'bubblewrap', 'python3', 'libqt6core6t64',
+                     'liblayershellqtinterface6', 'libdeflate0', 'libjemalloc2', 'libdwarf1', 'libunwind8'):
+            self.assertIn(name, names)
+        for name in ('cmake', 'g++', 'libdeflate-dev', 'qt6-base-dev', 'glslang-dev'):
+            self.assertNotIn(name, names)
+        self.assertFalse(any(name.endswith('-dev') for name in names))
+
+    def test_plugin_build_scope_is_separate_from_quickshell_and_omasnap(self):
+        spec, _ = packages.request_manifest(plugin_build_only=True)
+        names = spec['groups']['runtime']
+        for name in ('cmake', 'cpio', 'gcc', 'g++', 'liblua5.4-dev', 'glslang-dev',
+                     'wayland-protocols', 'hyprland-protocols', 'libeis-dev', 'libcanberra-dev',
+                     'libsdbus-c++-dev', 'libxcursor-dev', 'libxcb-render0-dev'):
+            self.assertIn(name, names)
+        for name in ('qt6-declarative-private-dev', 'libdeflate-dev', 'liblayershellqtinterface-dev'):
+            self.assertNotIn(name, names)
+        with self.assertRaises(ValueError):
+            packages.request_manifest(runtime_only=True, plugin_build_only=True)
 
     def test_prepare_only_queries_and_simulates(self):
         plan = self.prepare()
@@ -107,9 +129,9 @@ class BootstrapPackageTests(unittest.TestCase):
                            execute=lambda _: self.fail('Unexpected sudo'))
 
     def test_native_target_mismatch_blocks(self):
-        self.apt.installed['hyprland'] = '0.57.0-1'
+        self.apt.installed['hyprland'] = '0.56.2-1'
         plan = self.prepare()
-        self.assertIn('Native target differs: hyprland requires 0.56.2', plan['blockers'])
+        self.assertIn('Native target differs: hyprland requires 0.57.0', plan['blockers'])
 
     def test_approved_apply_pins_dependencies_and_verifies_result(self):
         plan = self.prepare()

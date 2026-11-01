@@ -5,6 +5,7 @@ preflight are simulated. This is not a stock-VM acceptance result.
 """
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import release_update
@@ -86,7 +87,8 @@ def run(base, native):
         activation = session_activation.plan(ROOT, home, plugin_check=lambda release: descriptor, login_probe=lambda: False)
         if not activation['blockers']:
             activation_result = session_activation.apply(activation, session_activation.guided.digest(activation),
-                                                        check_stopped=lambda: None, plugin_check=lambda release: descriptor)
+                                                        check_stopped=lambda: None, plugin_check=lambda release: descriptor,
+                                                        run=lambda argv: subprocess.CompletedProcess(argv, 1, 'disabled', ''))
         else:
             activation_result = {'status': 'blocked', 'blockers': activation['blockers']}
     finally:

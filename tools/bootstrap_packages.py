@@ -16,10 +16,10 @@ import user_install
 import upgrade_policy
 
 ROOT = Path(__file__).resolve().parents[1]
-NATIVE_VERSIONS = {'hyprland': '0.56.2', 'libqt6core6t64': '6.10.2', 'hyprlock': '0.9.6'}
+NATIVE_VERSIONS = {'hyprland': '0.57.0', 'libqt6core6t64': '6.10.2', 'hyprlock': '0.9.6'}
 
 
-def request_manifest(base_only=False):
+def request_manifest(base_only=False, runtime_only=False, plugin_build_only=False):
     bootstrap = bootstrap_sources.manifest()
     runtime, runtime_names = guided.manifest(wallpaper=True)
     quickshell, build_names = package_plan.load_manifest(ROOT / 'packages/quickshell-plan.json')
@@ -27,7 +27,17 @@ def request_manifest(base_only=False):
     if not isinstance(groups, dict) or set(groups) != {'bootstrap', 'desktop', 'omasnap_build', 'plugin_build'}:
         raise ValueError('Invalid bootstrap package groups')
     names = []
-    requested = [groups['bootstrap']] if base_only else [*groups.values(), runtime_names, build_names]
+    if sum((base_only, runtime_only, plugin_build_only)) > 1:
+        raise ValueError('Package scopes are mutually exclusive')
+    if base_only:
+        requested = [groups['bootstrap']]
+    elif runtime_only:
+        requested = [groups['bootstrap'], groups['desktop'], runtime_names]
+    elif plugin_build_only:
+        requested = [groups['bootstrap'], groups['plugin_build'],
+                     ['cmake', 'cpio', 'pkg-config', 'gcc', 'g++', 'make', 'ninja-build']]
+    else:
+        requested = [groups['bootstrap'], groups['desktop'], groups['omasnap_build'], runtime_names, build_names]
     for values in requested:
         if not isinstance(values, list) or not values:
             raise ValueError('Empty bootstrap package group')
@@ -55,9 +65,9 @@ def native_blockers(payload):
     return blockers
 
 
-def prepare(case, run=omabuntu.probe, base_only=False):
+def prepare(case, run=omabuntu.probe, base_only=False, runtime_only=False, plugin_build_only=False):
     bootstrap_sources.host_check()
-    manifest, inputs = request_manifest(base_only)
+    manifest, inputs = request_manifest(base_only, runtime_only, plugin_build_only)
     case = user_install.private_directory(case)
     path = case / 'packages.json'
     user_install.atomic_json(path, manifest)
@@ -66,7 +76,8 @@ def prepare(case, run=omabuntu.probe, base_only=False):
     blockers = [*payload['blockers'], *([] if decision['permitted'] else [decision['reason']]),
                 *([] if base_only else native_blockers(payload))]
     plan = {'schema_version': 1, 'kind': 'omabuntu-bootstrap-packages', 'case': str(case.absolute()),
-            'inputs': inputs, 'base_only': base_only, 'payload': payload, 'blockers': blockers,
+            'inputs': inputs, 'base_only': base_only, 'runtime_only': runtime_only,
+            'plugin_build_only': plugin_build_only, 'payload': payload, 'blockers': blockers,
             'status': 'blocked' if blockers else 'review-required'}
     user_install.atomic_json(case / 'package-plan.json', plan)
     return plan
@@ -81,7 +92,9 @@ def apply(plan, approval, run=omabuntu.probe, execute=guided.terminal_install):
         raise ValueError('Bootstrap package approval differs or is blocked')
     if type(plan.get('base_only')) is not bool:
         raise ValueError('Missing bootstrap package scope')
-    expected_manifest, inputs = request_manifest(plan['base_only'])
+    if any(type(plan.get(name)) is not bool for name in ('runtime_only', 'plugin_build_only')):
+        raise ValueError('Missing package scope selection; review a fresh plan')
+    expected_manifest, inputs = request_manifest(plan['base_only'], plan['runtime_only'], plan['plugin_build_only'])
     if plan['inputs'] != inputs:
         raise ValueError('Bootstrap package inputs changed; review again')
     case = user_install.safe_parents(Path(plan['case']))

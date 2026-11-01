@@ -15,6 +15,7 @@ import release_update
 import build_omasnap
 import build_plugin
 import desktop_font
+import plugin_manager
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -100,6 +101,15 @@ def stage_plugin(root, destination, candidate):
     return report
 
 
+def stage_manager_policy(root, destination):
+    data = plugin_manager.policy(root)
+    path = destination / 'native/hyprpm.json'
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + '\n')
+    path.chmod(0o444)
+    return data
+
+
 def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None):
     if not isinstance(version, str) or not user_install.VERSION.fullmatch(version):
         raise ValueError('Invalid release version')
@@ -129,7 +139,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
                      'keybindings_menu.py', 'menu_model.py', 'menu_common.py',
                      'theme_backend.py', 'font_backend.py', 'background_backend.py',
                      'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py',
-                     'capture_screenshot.py', 'weather_probe.py', 'omabuntu_hyprland_window_minimize.py'):
+                     'capture_screenshot.py', 'weather_probe.py', 'omabuntu_hyprland_window_minimize.py', 'plugin_login.py'):
             target = temporary / 'helpers' / name
             target.parent.mkdir(exist_ok=True)
             target.write_bytes((ROOT / 'tools' / name).read_bytes())
@@ -184,6 +194,8 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
         if screenshot:
             stage_screenshot(ROOT, temporary, screenshot_build)
         plugin = stage_plugin(ROOT, temporary, plugin_build) if plugin_build is not None else None
+        if plugin is None:
+            stage_manager_policy(ROOT, temporary)
         font_pin = desktop_font.stage(ROOT, temporary, font_file) if font_file is not None else None
         (temporary / 'PROVENANCE.json').write_text(json.dumps({
             'omarchy': profile['source'], 'runtime_sources': source_lock,

@@ -466,7 +466,7 @@ class Installation:
         summary = (result.stdout or result.stderr or '').strip().splitlines()
         print('Wallpaper restore: ' + (summary[-1] if summary else 'exit ' + str(result.returncode)), flush=True)
 
-    def start(self):
+    def start(self, *, restore_background=True):
         self.require_settled()
         running = self.running()
         if running:
@@ -495,7 +495,8 @@ class Installation:
         current.mkdir(mode=0o700, exist_ok=True)
         if current.stat().st_uid != os.getuid():
             raise ValueError('Require an owned state directory: ' + str(current))
-        self.restore_wallpaper(release)
+        if restore_background:
+            self.restore_wallpaper(release)
         logdir = private_directory(self.state / 'runs' / stamp())
         env = {key: os.environ[key] for key in ('HOME', 'USER', 'LOGNAME', 'LANG', 'DBUS_SESSION_BUS_ADDRESS',
                'XDG_DATA_HOME', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME', 'XDG_DATA_DIRS', 'XDG_STATE_HOME') if key in os.environ}

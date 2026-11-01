@@ -6,6 +6,7 @@ rewrite configuration. A passing automated gate is not VM or visual acceptance.
 import os
 
 import desktop_font
+import plugin_manager
 import session_activation
 import session_config
 import setup_guide
@@ -31,7 +32,7 @@ def ppa_gate():
 
 
 def packages_gate():
-    item = setup_guide.packages_stage(setup_guide.default_installed)
+    item = setup_guide.packages_stage(setup_guide.default_installed, runtime_only=True)
     return gate('packages', 'done' if item['status'] == 'done' else 'blocked', item['summary'])
 
 
@@ -49,9 +50,12 @@ def bundle_gate(installation):
     if selected is None:
         return gate('bundle', 'blocked', 'No verified Omabuntu release is installed.')
     release = installation.root / selected
+    management = plugin_manager.bundle_policy(release)
+    if (release / 'runtime/bin/omasnap').is_file() and management is not None:
+        return gate('bundle', 'done', 'Installed release contains the screenshot tool and pinned hyprpm policy; plugin loading is separate.')
     if (release / 'runtime/bin/omasnap').is_file() and (release / 'native/hyprbars.so').is_file():
         return gate('bundle', 'done', 'Installed release contains the screenshot tool and plugin artifact.')
-    return gate('bundle', 'blocked', 'Installed release lacks the screenshot tool or plugin artifact.')
+    return gate('bundle', 'blocked', 'Installed release lacks the screenshot tool or plugin management/artifact.')
 
 
 def session_gate(root=ROOT):

@@ -23,12 +23,16 @@ import omabuntu
 import setup_ui
 import user_install
 import release_update
+import plugin_manager
+import plugin_migration
+import plugin_recovery
 import bootstrap_sources
 import bootstrap_packages
 import bootstrap_build
 import desktop_font
 import session_config
 import session_activation
+import plugin_login
 import setup_guide
 import source_update
 import state_schema
@@ -139,6 +143,11 @@ def display_release(plan, console):
     console.step(4, 'Bar lifetime', 'PLANNED',
                  'Stop/start only the recorded bar; restore the previous release on startup failure.'
                  if plan['restart_bar'] else 'No bar start or restart is approved.')
+    if plan.get('migrate_native'):
+        console.step(5, 'Explicit native application handoff', 'CHECK',
+                     '0.56.2 application to 0.57.0 application on an already verified 0.57.0 session.\n'
+                     'No packages, compositor, plugin state, private profile or login files are changed.\n'
+                     'Bar restart preserves wallpaper. Old-target rollback remains refused; startup failure restores application prestate only.')
     console.line('  Approval digest: ' + release_update.approve_digest(plan))
     console.line('  No changes yet. --apply asks for confirmation; --approve DIGEST supports explicit automation.\n')
 
@@ -168,7 +177,7 @@ def recover_stage(args):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive recovery requires --approve DIGEST')
-        if input('  Restore the interrupted update prestate without resuming it? [y/N] ').strip().lower() not in ('y', 'yes'):
+        if not setup_ui.confirm('  Restore the interrupted update prestate without resuming it? '):
             print('  Cancelled. The journal remains unresolved.')
             return 0
         approval = digest
@@ -180,7 +189,8 @@ def recover_stage(args):
 def local_release(args, parser):
     installation = user_install.Installation(*user_install.defaults())
     chosen = 'rollback' if args.rollback else 'update' if args.update else 'install'
-    plan = release_update.review(installation, args.bundle, chosen, args.restart_bar, args.allow_legacy_state)
+    plan = release_update.review(installation, args.bundle, chosen, args.restart_bar, args.allow_legacy_state,
+                                 migrate_native=args.migrate_native)
     digest = release_update.approve_digest(plan)
     if args.json:
         if not args.apply:
@@ -193,8 +203,7 @@ def local_release(args, parser):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive apply requires --approve DIGEST from the exact reviewed plan')
-        answer = input('  Apply this local release plan? [y/N] ').strip().lower()
-        if answer not in ('y', 'yes'):
+        if not setup_ui.confirm('  Apply this local release plan?'):
             print('  Cancelled. No release or desktop changes.')
             return 0
         approval = digest
@@ -240,7 +249,7 @@ def session_stage(args):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive session setup requires --approve DIGEST')
-        if input('  Write the reviewed configuration for your next Hyprland login? [y/N] ').strip().lower() not in ('y', 'yes'):
+        if not setup_ui.confirm('  Write the reviewed configuration for your next Hyprland login? '):
             print('  Cancelled. No session configuration changes.')
             return 0
         approval = digest
@@ -251,7 +260,8 @@ def session_stage(args):
 
 def activation_stage(args):
     choice = True if args.enable_login else False if args.disable_login else None
-    reviewed = session_activation.plan(ROOT, enable_login=choice)
+    plugin_choice = True if args.enable_plugin_login else False if args.disable_plugin_login else None
+    reviewed = session_activation.plan(ROOT, enable_login=choice, plugin_login=plugin_choice)
     digest = guided.digest(reviewed)
     if args.json and not args.apply:
         print(json.dumps({'approval': digest, 'plan': reviewed}, indent=2))
@@ -259,13 +269,15 @@ def activation_stage(args):
         console = setup_ui.Console(plain=args.plain)
         console.welcome('Prepare next login')
         console.step(1, 'Plugin and titlebar', 'PLANNED',
-                     'Write a guarded load of the immutable release library and the reviewed titlebar rules.\nNothing is loaded or reloaded now.')
+                     'Prepare reviewed titlebar rules; legacy bundles retain their guarded library load.\nNothing is loaded or reloaded now.')
         console.step(2, 'Wallpaper splash', 'PLANNED',
                      'Disable only the hyprpaper splash. A missing wallpaper choice can be recorded for next login.\nNo daemon start or service change.')
         console.step(3, 'Login hand-off', 'CHECK' if choice else 'OK',
                      'Enable the existing oneshot user unit without starting it.' if choice is True else
                      'Disable the login unit without stopping a running shell.' if choice is False else
                      'Leave login enablement unchanged. Pass --enable-login to opt in.')
+        console.line('  Plugin login loading: ' + ('enabled by explicit persistent grant; may load code at future logins'
+                     if reviewed['receipt_payload']['plugin_login_enabled'] else 'not granted'))
         console.line('  Approval digest: ' + digest)
         for blocker in reviewed['blockers']:
             console.line('  BLOCKED: ' + blocker)
@@ -277,7 +289,7 @@ def activation_stage(args):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive activation requires --approve DIGEST')
-        if input('  Write next-login files without starting anything? [y/N] ').strip().lower() not in ('y', 'yes'):
+        if not setup_ui.confirm('  Write next-login files without starting anything? '):
             print('  Cancelled. No activation changes.')
             return 0
         approval = digest
@@ -294,7 +306,7 @@ def install_ready_release(command):
     installation = user_install.Installation(*user_install.defaults())
     current = installation.selected()
     restart = '--restart-bar' in command
-    if restart and input('  Restart the recorded bar and switch to this release? [y/N] ').strip().lower() not in ('y', 'yes'):
+    if restart and not setup_ui.confirm('  Restart the recorded bar and switch to this release? '):
         print('  Cancelled. The running bar was left alone.')
         return 0
     mode = 'update' if current else 'install'
@@ -322,7 +334,7 @@ def guide_stage(args):
             console.line('  Next command: ' + nxt['command'])
         console.line('  Approval digest: ' + digest)
         if (nxt and nxt['id'] == 'release' and nxt['status'] == 'apply' and sys.stdin.isatty()
-                and input('  Install this prepared development release now? [y/N] ').strip().lower() in ('y', 'yes')):
+                and setup_ui.confirm('  Install this prepared development release now? ')):
             return install_ready_release(nxt['command'])
     if not args.apply:
         return 0 if nxt is None or nxt['status'] != 'blocked' else 1
@@ -332,7 +344,7 @@ def guide_stage(args):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive guide apply requires --approve DIGEST')
-        if input('  Run only this stage: ' + nxt['id'] + '? [y/N] ').strip().lower() not in ('y', 'yes'):
+        if not setup_ui.confirm('  Run only this stage: ' + nxt['id'] + '? '):
             print('  Cancelled. No stage was started.')
             return 0
         approval = digest
@@ -459,7 +471,7 @@ def source_stage(args):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive source fetch requires --approve DIGEST')
-        if input('  Download missing pinned source archives into the private cache? [y/N] ').strip().lower() not in ('y', 'yes'):
+        if not setup_ui.confirm('  Download missing pinned source archives into the private cache? '):
             print('  Cancelled. No download started.')
             return 0
         approval = digest
@@ -494,7 +506,7 @@ def font_stage(args):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive font install requires --approve DIGEST')
-        if input('  Download/install the pinned user font and refresh its cache? [y/N] ').strip().lower() not in ('y', 'yes'):
+        if not setup_ui.confirm('  Download/install the pinned user font and refresh its cache? '):
             print('  Cancelled. No font installation.')
             return 0
         approval = digest
@@ -517,13 +529,13 @@ def build_stage(args):
         console = setup_ui.Console(plain=args.plain)
         console.welcome('Build a local release')
         console.step(1, 'Pinned sources', 'OK',
-                     'Quickshell + cpptrace, Omasnap and hyprbars/exact Hyprland headers.\nVerify notices and archive hashes.')
+                     'Quickshell + cpptrace and Omasnap; hyprpm manages the plugin separately.\nVerify notices and archive hashes.')
         console.step(2, 'Build and verify', 'PLANNED',
                      'Compile in isolated sandboxes, check linkage/imports, then package.\nNo screenshot, desktop start, package installation or selector switch.')
         console.step(3, 'Artwork', 'PLANNED',
                      'Download/reuse verified backgrounds and previews.' if plan['artwork'] else 'Artwork explicitly skipped.')
         console.step(4, 'Scope', 'CHECK',
-                     'Runtime, screenshot, ABI-checked plugin and font assets.\nFont registration uses --font --apply; session config is separate. No plugin loading.')
+                     'Runtime, screenshot, font assets and a pinned hyprpm policy.\nNo native plugin is bundled. Font/session/plugin stages remain separate.')
         console.line('  Release: ' + plan['version'])
         console.line('  Approval digest: ' + digest)
         for blocker in plan['blockers']:
@@ -538,7 +550,7 @@ def build_stage(args):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive build requires the exact --approve DIGEST')
-        if input('  Download sources/artwork/font and build this release? [y/N] ').strip().lower() not in ('y', 'yes'):
+        if not setup_ui.confirm('  Download sources/artwork/font and build this release? '):
             print('  Cancelled. No build started.')
             return 0
         print('  Started. Long steps print a still-running line every 15 seconds.', flush=True)
@@ -553,6 +565,83 @@ def build_stage(args):
         print('  Result: ' + result['status'])
         print('  Bundle: ' + result['bundle'])
         print('  Not installed or started.')
+    return 0
+
+
+def plugins_stage(args):
+    migrating = args.plugins_migrate
+    recovering = args.plugins_recover is not None
+    reviewed = (plugin_recovery.plan(args.plugins_recover, ROOT) if recovering else
+                plugin_migration.plan(ROOT) if migrating else
+                plugin_manager.plan(ROOT, action='activate' if args.plugins_activate else 'prepare'))
+    digest = guided.digest(reviewed)
+    if args.json:
+        print(json.dumps({'approval': digest, 'plan': reviewed}, indent=2))
+    else:
+        print('  Plugin action: ' + reviewed['action'])
+        print('  hyprpm may request sudo internally. No APT/PPA changes are implicit.')
+        if reviewed['action'] in ('prepare', 'migrate'):
+            print('  Header setup may overwrite ' + reviewed.get('shared_pkgconfig', '/usr/share/pkgconfig/hyprland.pc')
+                  + '; its previous bytes/owner/mode and cache state will be backed up before manager commands.')
+        print('  Live plugin loading is approved only by --plugins-activate --apply.')
+        if migrating:
+            print('  Recognized mixed legacy state: ' + ('yes' if reviewed.get('migration', {}).get('recognized') else 'no'))
+            print('  Migration replaces ONLY the recognized official legacy repository after verified backups.')
+            print('  It leaves all plugins disabled. No private configuration or login grant is changed.')
+            print('  Header refresh runs without the compositor socket, so it cannot reconcile live plugins.')
+            print('  Disable/header-refresh exit 1 is accepted only after the exact reviewed postconditions are verified.')
+        if recovering:
+            print('  Recovery preserves the failed journal and runs only the missing pinned add/build.')
+            print('  No repeated disable/remove/update, plugin loading, private configuration or login change.')
+            print('  Verified header layout: ' + reviewed.get('headers', {}).get('layout', 'unknown'))
+        if not migrating and not recovering and reviewed.get('ownership_blockers'):
+            print('  Existing manager state is preserved. Review --plugins-migrate for the supported legacy case.')
+        for command in reviewed['commands']:
+            print('    ' + ' '.join(command))
+        for blocker in reviewed['blockers']:
+            print('  BLOCKED: ' + blocker)
+        print('  Approval digest: ' + digest)
+    if reviewed['blockers']:
+        return 1
+    if not args.apply:
+        return 0
+    if args.json or not sys.stdin.isatty():
+        raise ValueError('Plugin apply requires an interactive terminal for authentication and live-action consent')
+    if args.approve is not None and args.approve != digest:
+        raise ValueError('Plugin approval differs')
+    prompt = ('Back up this exact checkpoint and finish the pinned build? It may request sudo; plugins remain disabled.'
+              if recovering else 'Back up and migrate this exact legacy manager state? It may request sudo and replaces the repository.'
+              if migrating else 'Load hyprbars into the running compositor? This can crash your session.'
+              if args.plugins_activate else
+              'Back up manager/system metadata and run the reviewed hyprpm header/plugin setup (may use sudo)?')
+    if not setup_ui.confirm('  ' + prompt + ' '):
+        return 0
+    if recovering:
+        if input('  Confirm continuation by typing "' + plugin_recovery.CONFIRMATION + '": ').strip() != plugin_recovery.CONFIRMATION:
+            print('  Cancelled. No manager changes.')
+            return 0
+        result = plugin_recovery.apply(reviewed, digest, resume_approved=True)
+    elif migrating:
+        if input('  Confirm repository removal/re-registration by typing "' + plugin_migration.CONFIRMATION + '": ').strip() != plugin_migration.CONFIRMATION:
+            print('  Cancelled. No manager changes.')
+            return 0
+        result = plugin_migration.apply(reviewed, digest, replace_approved=True)
+    else:
+        result = plugin_manager.apply(reviewed, digest)
+    print('  Result: ' + result['status'])
+    print('  No configuration reload or login autostart was performed.')
+    if migrating or recovering:
+        print('  Migration left hyprbars disabled. Review --plugins-activate separately; nothing was loaded.')
+    if args.plugins_activate and result.get('plugin_loaded'):
+        _, app, _ = session_config.locations()
+        selected = app.selected()
+        if selected and setup_ui.confirm('  Apply the owned titlebar rules now, without a full configuration reload or login grant? '):
+            try:
+                plugin_login.run(app.root / selected, configure_only=True)
+            except (OSError, ValueError, TypeError, KeyError, AttributeError, subprocess.SubprocessError) as error:
+                print('  Plugin remains loaded; titlebar rules deferred: ' + str(error))
+            else:
+                print('  Owned titlebar rules applied. No login grant or full configuration reload.')
     return 0
 
 
@@ -571,13 +660,15 @@ def system_stage(args):
             plan = user_install.read_json(path)
         else:
             case = user_install.private_directory(parent / user_install.stamp())
-            plan = bootstrap_sources.prepare(case) if args.ppa else bootstrap_packages.prepare(case, base_only=args.base_only)
+            plan = bootstrap_sources.prepare(case) if args.ppa else bootstrap_packages.prepare(case, base_only=args.base_only,
+                    runtime_only=args.runtime_only, plugin_build_only=args.plugin_build_only)
             path = case / ('plan.json' if args.ppa else 'package-plan.json')
         expected = 'omabuntu-ppa-plan' if args.ppa else 'omabuntu-bootstrap-packages'
         if not isinstance(plan, dict) or plan.get('kind') != expected:
             raise ValueError('Saved plan has the wrong source/package scope')
-        if args.packages and plan.get('base_only') is not args.base_only:
-            raise ValueError('Saved package plan scope differs from --base-only selection')
+        if args.packages and any(plan.get(name) is not getattr(args, name)
+                                 for name in ('base_only', 'runtime_only', 'plugin_build_only')):
+            raise ValueError('Saved package plan scope differs from the selected package scope')
         digest = guided.digest(plan)
         if args.json:
             print(json.dumps({'approval': digest, 'path': str(path), 'plan': plan}, indent=2))
@@ -615,8 +706,7 @@ def system_stage(args):
         if approval is None:
             if not sys.stdin.isatty():
                 raise ValueError('Noninteractive apply requires the exact --approve DIGEST')
-            answer = input('  Apply this source/package plan using sudo? [y/N] ').strip().lower()
-            if answer not in ('y', 'yes'):
+            if not setup_ui.confirm('  Apply this source/package plan using sudo?'):
                 print('  Cancelled. No system changes.')
                 return 0
             approval = digest
@@ -642,6 +732,10 @@ def main(argv=None):
     mode.add_argument('--state-schema', action='store_true', help='Show the user-state schema policy; it never rewrites state')
     mode.add_argument('--font', action='store_true', help='Plan the pinned desktop icon font; --apply installs only a user font and refreshes its cache')
     mode.add_argument('--build-release', action='store_true', help='Plan pinned runtime/Omasnap builds; --apply downloads/builds/packages locally without deployment')
+    mode.add_argument('--plugins', action='store_true', help='Review pinned hyprpm preparation; --apply downloads/builds only with no enabled plugins')
+    mode.add_argument('--plugins-migrate', action='store_true', help='Review explicit known legacy hyprpm migration; --apply requires separate repository-replacement consent')
+    mode.add_argument('--plugins-recover', type=Path, metavar='JOURNAL', help='Review the exact interrupted PPA-header migration checkpoint; --apply requires separate continuation consent')
+    mode.add_argument('--plugins-activate', action='store_true', help='Review hyprpm enable/load; --apply is explicit live plugin activation')
     mode.add_argument('--packages', action='store_true', help='Plan bootstrap packages using local APT policy; --apply explicitly installs the additive-only transaction')
     parser.add_argument('--keyboard-layout', help='With --session-config: XKB layout list; default keeps the receipt choice or starts with us')
     parser.add_argument('--adopt-managed', action='store_true', help='With --session-config: replace only an untouched omabuntu-managed snippet')
@@ -653,10 +747,16 @@ def main(argv=None):
     login = parser.add_mutually_exclusive_group()
     login.add_argument('--enable-login', action='store_true', help='With --session-activate: enable the user unit without starting it')
     login.add_argument('--disable-login', action='store_true', help='With --session-activate: disable the user unit without stopping a running shell')
+    plugin_login = parser.add_mutually_exclusive_group()
+    plugin_login.add_argument('--enable-plugin-login', action='store_true', help='With --session-activate: explicitly grant receipt-checked plugin loading at future logins')
+    plugin_login.add_argument('--disable-plugin-login', action='store_true', help='With --session-activate: remove the future plugin login grant; do not unload anything')
     parser.add_argument('--jobs', type=int, choices=range(1, 9), metavar='1..8', help='Parallel build jobs with --build-release (default: 4)')
     parser.add_argument('--release-version', help='Optional release name with --build-release; otherwise derived from source/package inputs')
     parser.add_argument('--skip-artwork', action='store_true', help='With --build-release: explicitly omit downloaded wallpapers/previews')
-    parser.add_argument('--base-only', action='store_true', help='With --packages: prepare only Ubuntu tools needed before PPA verification')
+    scopes = parser.add_mutually_exclusive_group()
+    scopes.add_argument('--base-only', action='store_true', help='With --packages: only tools needed before PPA verification')
+    scopes.add_argument('--runtime-only', action='store_true', help='With --packages: published-runtime dependencies, no source-build toolchain')
+    scopes.add_argument('--plugin-build-only', action='store_true', help='With --packages: explicitly requested hyprpm build dependencies')
     parser.add_argument('--plan', type=Path, help='Reuse a saved --ppa/--packages plan with explicit approval')
     parser.add_argument('--check', action='store_true', help='Exit nonzero while any apply gate remains blocked')
     parser.add_argument('--plain', action='store_true', help='Disable ANSI colors')
@@ -667,12 +767,17 @@ def main(argv=None):
     parser.add_argument('--allow-system', action='store_true', help='With --guide --apply: allow the next PPA or package stage only')
     parser.add_argument('--restart-bar', action='store_true', help='Explicit session-lifetime grant to stop/start only the recorded bar')
     parser.add_argument('--allow-legacy-state', action='store_true', help='Acknowledge an unversioned installed release; no migration is performed')
+    parser.add_argument('--migrate-native', action='store_true', help='With --update --bundle: explicitly review the 0.56.2 application handoff to an already verified 0.57.0 session; no compositor/package/profile migration')
     args = parser.parse_args(argv)
     if os.getuid() == 0 or os.environ.get('SUDO_USER'):
         parser.error('Run as your normal user, not with sudo')
     system = args.ppa or args.packages
+    if args.migrate_native and (not args.update or args.bundle is None or args.allow_legacy_state):
+        parser.error('--migrate-native requires --update --bundle and cannot adopt legacy/unversioned state')
     if (args.keyboard_layout is not None or args.manual_lock is not None or args.adopt_managed) and not args.session_config:
         parser.error('Keyboard/lock/adopt options require --session-config')
+    if (args.enable_plugin_login or args.disable_plugin_login) and not args.session_activate:
+        parser.error('Plugin login choices require --session-activate')
     if (args.enable_login or args.disable_login) and not args.session_activate:
         parser.error('Login enablement requires --session-activate')
     if args.session_activate and (args.bundle or args.restart_bar or args.allow_legacy_state or args.plan):
@@ -691,8 +796,10 @@ def main(argv=None):
         parser.error('Font preparation cannot be combined with release/bar or saved-system-plan options')
     if args.build_release and (args.bundle or args.restart_bar or args.allow_legacy_state or args.plan):
         parser.error('Build preparation cannot be combined with deployment/saved-system-plan options')
-    if args.base_only and not args.packages:
-        parser.error('--base-only requires --packages')
+    if any((args.base_only, args.runtime_only, args.plugin_build_only)) and not args.packages:
+        parser.error('Package scope flags require --packages')
+    if (args.plugins or args.plugins_activate or args.plugins_migrate or args.plugins_recover) and (args.bundle or args.restart_bar or args.allow_legacy_state):
+        parser.error('Plugin stages cannot be combined with release/bar options')
     if args.plan and not system:
         parser.error('--plan is only for --ppa or --packages')
     if system and (args.bundle or args.restart_bar or args.allow_legacy_state):
@@ -707,6 +814,12 @@ def main(argv=None):
         parser.error('--approve requires --apply')
     if args.apply and args.check:
         parser.error('--apply and --check cannot be combined')
+    if args.plugins or args.plugins_activate or args.plugins_migrate or args.plugins_recover:
+        try:
+            return plugins_stage(args)
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            print('  Plugin stage blocked: ' + str(error), file=sys.stderr)
+            return 1
     if args.recover_update:
         try:
             return recover_stage(args)

@@ -28,6 +28,15 @@ def wordmark(ascii_only=False):
                      for row in range(5))
 
 
+def confirm(message):
+    """Keep a separate approval gate, with Enter accepting its displayed default."""
+    try:
+        answer = input(message.rstrip() + ' [Y/n] ').strip().lower()
+    except EOFError:
+        return False  # Missing terminal input is never an affirmative answer.
+    return answer in ('', 'y', 'yes')
+
+
 class Console:
     def __init__(self, stream=None, plain=False, environ=None, width=None):
         self.stream = sys.stdout if stream is None else stream

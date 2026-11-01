@@ -15,6 +15,13 @@ live guide and changes nothing. Each later stage is reviewed first. `--apply`
 performs only the stage you named, after confirmation or an exact `--approve`
 digest.
 
+Ordinary installer confirmations show `[Y/n]`: press Enter to accept, or type
+`n`/`no` to decline. Missing input (EOF) and unrecognized answers decline rather
+than grant permission. This is not an unattended `--yes` mode: every independent
+package, deployment, restart, plugin-load or login approval is still requested.
+Exact typed migration/recovery phrases and explicit opt-in flags remain required;
+sudo/APT/hyprpm and release-publication prompts keep their own behavior.
+
 The installer keeps these domains separate:
 
 | Domain | What an update may change | What it does not change |
@@ -27,6 +34,44 @@ The installer keeps these domains separate:
 
 A checksum proves that bytes match a pin. It is not a publisher signature.
 Application rollback does not undo APT changes.
+
+### Explicit application handoff after a native upgrade
+
+Normal updates still refuse a different native target. One separate approval
+exists for an application built for Ubuntu 26.04 / Hyprland 0.56.2 / Qt 6.10.2
+to a manager-policy application targeting Hyprland 0.57.0 with the same Ubuntu,
+Qt and state schema. It does not upgrade or restart the compositor. The clean
+matching 0.57.0 compositor must already be installed/running and the exact
+receipted plugin build, headers and enable/load state must be verified.
+
+Review the application handoff without changing anything:
+
+```sh
+./install.sh --update --bundle /absolute/path/to/new-bundle --migrate-native --restart-bar --plain
+```
+
+`--restart-bar` describes the separately approved bar stop/start in this plan;
+without `--apply` nothing is stopped. After review, add `--apply` to request
+interactive deployment approval. The transition stages/preflights the complete
+candidate, backs up selectors/launcher and journals its prestate, then rechecks
+native, manager and private-profile fingerprints before stopping the recorded
+bar. The restart intentionally does not restore/write wallpaper configuration.
+No packages, native plugins, private profile, session, service or login grant is
+changed. Arbitrary Lua includes are not evaluated or adopted; profile hashes
+prove preservation/drift only, not next-login or visual acceptance.
+
+An existing owned session must already match the reviewed renderer. Existing
+next-login activation (including an old bundled-plugin loader) requires its own
+configuration handoff and is refused here. Unversioned state, other native
+pairs, Qt/Ubuntu changes and schema conversion cannot use this flag.
+
+After a successful handoff, omit `--migrate-native`: normal same-target updates
+and rollback work through the existing transaction path. Rollback to the old
+0.56.2 target is still refused. A startup failure restores the recorded previous
+application/bar only, not packages, compositor, plugin state or user edits. An
+interrupted handoff uses `--recover-update` review, never a blind retry. The
+published installer offers this exact pair separately; an already valid active
+manager build is preserved rather than needlessly rebuilt or enabled again.
 
 ## Guide
 
@@ -109,7 +154,8 @@ publication workflow; see [releases.md](releases.md). Other commands are `make g
 `make packages`, `make font`, `make acceptance`, and `make rollback`.
 
 Apply downloads pinned sources, artwork, and the font when they are missing,
-then builds the runtime, Omasnap, and hyprbars in isolated sandboxes. The result
+then builds the runtime and Omasnap in isolated sandboxes. It packages a pinned
+hyprpm policy rather than a native titlebar library. The result
 is a private bundle under `work/user-releases/`. It is not installed, loaded, or
 started. A compiled stage is reused only when it is the single verified match.
 
@@ -150,8 +196,11 @@ release can still be updated. `--adopt-managed` replaces
 only an untouched `omabuntu-managed` snippet. Extra lines, including private
 monitor rules, block adoption.
 
-Activation writes next-login files for the plugin, titlebar, splash, and an
-optional wallpaper record. It does not load the plugin, start hyprpaper, or
+Activation writes next-login titlebar/splash files and an optional wallpaper
+record. Manager-mode activation does not load any library; hyprpm preparation
+and live activation are separate [plugin-management stages](plugin-management.md).
+Legacy bundled-plugin activation remains supported for old immutable releases.
+File apply does not load the plugin, start hyprpaper, or
 lock the screen. Login enablement is a separate flag and does not start the
 service.
 
@@ -175,14 +224,20 @@ acceptance. `--state-schema` reports schema 1 and does not rewrite preferences.
 Use `make release VERSION=0.1.0` to prepare and publish a signed GitHub Release
 after explicit commit and publication confirmations. Use `make update` to fetch
 the latest published release, rather than building from the checkout.
-The publisher public key is configured; the first real publication is still pending.
+The publisher public key is configured and v0.1.0 is published. Its fresh-VM
+installation failed on runtime package scope and the newer Hyprland candidate;
+new source changes are not retroactively applied to that immutable release.
 See [release setup, trust and recovery](releases.md).
 
 A checkout is the development path; GitHub Releases are the published path.
 
 ## Not done
 
-- The first signed GitHub Release has not been published.
+- Source builds now use hyprpm, but existing v0.1.0 artifacts are unchanged.
+- New builds target source-reviewed Hyprland 0.57.0; real manager/build/login
+  acceptance remains outstanding. A source pin does not authorize a live action.
+- The published installer offers plugin prerequisites separately, defers manager
+  work outside a matching live session and offers an explicit plugin-login grant.
 - No stock Ubuntu VM install, reinstall, update, or rollback has been accepted.
 - Native first-login, plugin loading, and wallpaper appearance still need a real
   Hyprland login.

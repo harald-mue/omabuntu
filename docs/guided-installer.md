@@ -7,12 +7,14 @@ stages PPA, packages, font, build, release, session, and activation. `tools/inst
 engine used by that entry. Package apply still requires an approved plan and an
 interactive terminal. Session start is separate.
 
-This is not a universal fresh-desktop provisioner. Native login, VM acceptance,
-and the first real publication remain open. Signed GitHub release distribution
-is described in [releases.md](releases.md).
+This is not a universal fresh-desktop provisioner. v0.1.0 is published but its
+fresh-VM install failed; native login and VM acceptance remain open. New source
+builds use separate [hyprpm stages](plugin-management.md), an explicit persistent
+plugin-login grant, and source-reviewed 0.57 APIs (not native acceptance). Signed release distribution is
+described in [releases.md](releases.md).
 
 The supported development target is Ubuntu 26.04 on x86_64 with Hyprland
-0.56.2 and system Qt 6.10.2. This is tested target context, not a compatibility claim
+0.57.0 and system Qt 6.10.2. This is source-reviewed target context, not a native acceptance or compatibility claim
 for arbitrary Ubuntu releases, Qt versions or Hyprland configurations.
 Upstream behavior is compared against Omarchy commit
 `03ff1eff3812933f7088484533784d2f63eaf19a`; never run its Arch installers.

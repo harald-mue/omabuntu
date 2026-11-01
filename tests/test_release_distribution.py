@@ -223,6 +223,23 @@ class PublishedInstallerTests(unittest.TestCase):
             ask.assert_called_once()
             main.assert_called_once_with(['--bundle', '/fixture/bundle', '--apply', '--update', '--restart-bar'])
 
+    def test_downloaded_bundle_requests_runtime_only_and_no_plugin_operations(self):
+        with patch.object(sys, 'argv', ['published', '--bundle', '/fixture/bundle']), \
+             patch.object(published_install.user_install, 'verify_bundle'), \
+             patch.object(published_install.setup_guide, 'ppa_stage', return_value={'status': 'done'}), \
+             patch.object(published_install.setup_guide, 'packages_stage', return_value={'status': 'command'}) as packages, \
+             patch.object(published_install.setup_guide, 'font_stage', return_value={'status': 'done'}), \
+             patch.object(published_install.user_install, 'Installation') as factory, \
+             patch.object(published_install, 'ask', return_value=True), \
+             patch.object(published_install.setup, 'main', return_value=0) as main:
+            factory.return_value.selected.return_value = None
+            factory.return_value.running.return_value = None
+            published_install.main()
+            self.assertTrue(packages.call_args.kwargs['runtime_only'])
+            self.assertEqual(main.call_args_list[0].args[0], ['--packages', '--apply', '--runtime-only'])
+            self.assertEqual(main.call_count, 2)
+            self.assertEqual(main.call_args_list[1].args[0], ['--bundle', '/fixture/bundle', '--apply'])
+
     def test_refused_prerequisites_never_deploy(self):
         with patch.object(sys, 'argv', ['published', '--bundle', '/fixture/bundle']), \
              patch.object(published_install.user_install, 'verify_bundle'), \

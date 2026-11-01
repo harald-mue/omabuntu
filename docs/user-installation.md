@@ -177,7 +177,11 @@ See [dependencies](dependencies.md) for recorded packages and the
 [guided workflow](guided-installer.md#use-the-implemented-workflow) for
 commands, approval digests and remaining fresh-target acceptance work.
 
-The development target uses Ubuntu 26.04, Hyprland 0.56.2 and Qt 6.10.2.
+New builds target Ubuntu 26.04, Hyprland 0.57.0 and Qt 6.10.2. The manager/Lua
+APIs are source-reviewed, not clean-VM or native accepted. See
+[plugin management](plugin-management.md) for build prerequisites, explicit live
+activation and the separate persistent login grant. Old immutable bundles keep
+their original native contract.
 Confirm compatibility before building or installing on a different target.
 The existing [Quickshell package plan](package-plan.md) is a source-build
 plan, not a minimal end-user runtime dependency list.

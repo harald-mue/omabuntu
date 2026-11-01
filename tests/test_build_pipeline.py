@@ -156,7 +156,8 @@ class BuildPipelineTests(unittest.TestCase):
                    patch.object(pipeline.desktop_font, 'obtain', return_value=self.root / 'cached-font.ttf'),
                    patch.object(pipeline.build_plugin, 'build', return_value=self.plugin),
                    patch.object(pipeline.build_plugin, 'verify_stage'),
-                   patch.object(pipeline.build_plugin, 'verify_bundle_plugin')]
+                   patch.object(pipeline.build_plugin, 'verify_bundle_plugin'),
+                   patch.object(pipeline.plugin_manager, 'bundle_policy', return_value={'manager': 'hyprpm'})]
         self.mocks = [item.start() for item in patches]
         for item in patches:
             self.addCleanup(item.stop)
@@ -194,7 +195,9 @@ class BuildPipelineTests(unittest.TestCase):
         packager = self.mocks[6]
         self.assertEqual(packager.call_args.args, ('fixture', self.runtime.parent))
         self.assertEqual(packager.call_args.kwargs['screenshot_build'], self.capture.parent)
-        self.assertEqual(packager.call_args.kwargs['plugin_build'], self.plugin.parent)
+        self.assertNotIn('plugin_build', packager.call_args.kwargs)
+        self.mocks[10].assert_not_called()
+        self.mocks[11].assert_not_called()
         self.assertEqual(packager.call_args.kwargs['build_inputs'], 'a' * 64)
 
     def test_runtime_failure_never_builds_capture_or_packages(self):
@@ -212,12 +215,10 @@ class BuildPipelineTests(unittest.TestCase):
             self.apply()
         self.mocks[6].assert_not_called()
 
-    def test_plugin_failure_never_packages_or_deploys(self):
-        self.mocks[10].side_effect = build_runtime.BuildError('fixture plugin failure')
-        with self.assertRaises(build_runtime.BuildError):
-            self.apply()
-        self.mocks[6].assert_not_called()
-        self.assertFalse(self.output.exists())
+    def test_native_plugin_builder_is_not_part_of_the_default_pipeline(self):
+        self.mocks[10].side_effect = build_runtime.BuildError('must not run')
+        self.assertEqual(self.apply()['status'], 'bundle-prepared-and-checked')
+        self.mocks[10].assert_not_called()
 
     def test_approval_is_checked_before_any_build(self):
         with self.assertRaises(ValueError):
@@ -229,7 +230,7 @@ class BuildPipelineTests(unittest.TestCase):
         (self.output / 'runtime/bin').mkdir(parents=True)
         (self.output / 'runtime/bin/omasnap').write_bytes(b'fixture')
         (self.output / 'native').mkdir()
-        (self.output / 'native/hyprbars.so').write_bytes(b'fixture')
+        (self.output / 'native/hyprpm.json').write_text('{}')
         (self.output / 'PROVENANCE.json').write_text(json.dumps({'bootstrap_input_sha256': 'a' * 64}))
         self.assertEqual(self.apply()['status'], 'verified-existing-bundle')
         self.mocks[2].assert_not_called()

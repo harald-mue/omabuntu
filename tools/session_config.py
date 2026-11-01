@@ -1,4 +1,4 @@
-"""Generic Hyprland 0.56.2 profile: review, backed-up apply, no activation.
+"""Generic source-reviewed Hyprland 0.56.2/0.57.0 profile: review, backed-up apply, no activation.
 
 Refuse unowned profiles and changes to the owned module. Keep the main config
 editable, preserve options, and never write while a user Hyprland is running.
@@ -16,6 +16,7 @@ import subprocess
 import bootstrap_sources
 import build_hyprbars
 import install as guided
+import plugin_manager
 import user_install
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -172,9 +173,10 @@ def plan(root=ROOT, home=None, keyboard=None, manual_lock=None, native=None, kno
     if type(manual_lock) is not bool:
         raise ValueError('Manual lock shortcut choice must be boolean')
     native = build_hyprbars.installed_version() if native is None else native
-    if (native.get('version') != '0.56.2' or native.get('commit') != build_hyprbars.HYPRLAND_COMMIT
+    target = plugin_manager.policy(root)['targets'].get(native.get('version'))
+    if (not target or not target['apply_reviewed'] or native.get('commit') != target['hyprland_commit']
             or native.get('dirty') is not False):
-        blockers.append('Generic session requires the reviewed clean Hyprland 0.56.2 build')
+        blockers.append('Generic session requires a source-reviewed clean Hyprland version/commit')
     app.require_settled()
     selected = app.selected()
     release_digest = None

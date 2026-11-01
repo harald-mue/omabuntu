@@ -1,5 +1,5 @@
 -- SPDX-License-Identifier: MIT
--- Rendered floating-workspace titlebar for hyprbars v0.56.0.
+-- Rendered floating-workspace titlebar for the reviewed 0.56/0.57 plugin pins.
 -- Included only by the separate next-login activation file, never directly.
 -- No autostart, plugin load, lock, idle or private monitor rules.
 
@@ -7,7 +7,7 @@ if not hl.plugin.hyprbars then
   return
 end
 
--- hyprbars v0.56.0 has no per-button window placeholder; focus happens first.
+-- The reviewed plugins have no per-button window placeholder; focus happens first.
 local window = [[window = "activewindow"]]
 local minimize_cmd = @MINIMIZE_COMMAND@
 
@@ -18,7 +18,7 @@ hl.window_rule({
 })
 hl.window_rule({
   name = "omabuntu-hyprbars-show-floated",
-  -- Title updates emit TITLE|CLASS in Hyprland 0.56.2. Both overrides must
+  -- Title updates emit TITLE|CLASS in the reviewed Hyprland versions. Both overrides must
   -- match CLASS: custom effects do not trigger dependent-rule reevaluation.
   match = { class = ".*", tag = "omabuntu-floating-workspace" },
   ["hyprbars:no_bar"] = "0",

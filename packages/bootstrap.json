@@ -26,12 +26,17 @@
       "libegl-dev", "libxcb1-dev", "libxcb-xfixes0-dev", "libxcb-icccm4-dev",
       "libxcb-composite0-dev", "libxcb-res0-dev", "libxcb-errors-dev",
       "libxcb-shape0-dev", "hyprwayland-scanner", "liblua5.4-dev",
-      "libinput-dev", "libudev-dev", "libpixman-1-dev", "libxkbcommon-dev"
+      "libinput-dev", "libudev-dev", "libpixman-1-dev", "libxkbcommon-dev",
+      "libwayland-dev", "wayland-protocols", "hyprland-protocols", "uuid-dev",
+      "libxcursor-dev", "libeis-dev", "libgbm-dev", "libglib2.0-dev", "libglvnd-dev",
+      "libre2-dev", "libmuparser-dev", "liblcms2-dev", "libcanberra-dev",
+      "libsdbus-c++-dev", "libxcb-render0-dev"
     ]
   },
   "limitations": [
     "Initial request inventory; clean stock-Ubuntu dependency closure remains unverified.",
-    "Quickshell build groups and local runtime manifest are merged by the planner.",
+    "Runtime, Omabuntu source build and hyprpm header/plugin build scopes are separate.",
+    "The hyprpm scope includes dependencies of the official Hyprland 0.57 CMake configure/installheaders path; clean-VM build acceptance remains outstanding.",
     "The pinned desktop Nerd Font is separately downloaded/staged and explicitly registered per user.",
     "Package maintainer scripts may start native system services; show this before approval.",
     "No blanket upgrade, removal, browser/editor install or corporate provisioning is requested."

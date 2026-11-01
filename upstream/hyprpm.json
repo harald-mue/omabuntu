@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "manager": "hyprpm",
+  "repository": "https://github.com/hyprwm/hyprland-plugins",
+  "plugin": "hyprbars",
+  "targets": {
+    "0.56.2": {
+      "hyprland_commit": "efb50993780079460b0cbed1363e2166a2de1d9f",
+      "plugin_commit": "7644cecdb947060682891a0db2a0cdc5c0b9e704",
+      "apply_reviewed": true
+    },
+    "0.57.0": {
+      "hyprland_commit": "0aa6745f705f2c4b0a5004eb019ef76e5bbdb426",
+      "plugin_commit": "d2427d4d15b36df40468f5a58bbd67cdba19835d",
+      "apply_reviewed": true
+    }
+  },
+  "evidence": [
+    "https://github.com/hyprwm/Hyprland/blob/efb50993780079460b0cbed1363e2166a2de1d9f/hyprpm/src/main.cpp",
+    "https://github.com/hyprwm/Hyprland/blob/0aa6745f705f2c4b0a5004eb019ef76e5bbdb426/hyprpm/src/main.cpp",
+    "https://github.com/hyprwm/Hyprland/blob/0aa6745f705f2c4b0a5004eb019ef76e5bbdb426/hyprpm/src/core/DataState.cpp",
+    "https://github.com/hyprwm/Hyprland/blob/0aa6745f705f2c4b0a5004eb019ef76e5bbdb426/example/hyprland.lua",
+    "https://github.com/hyprwm/Hyprland/blob/0aa6745f705f2c4b0a5004eb019ef76e5bbdb426/docs/hyprctl.1.rst",
+    "https://github.com/hyprwm/Hyprland/blob/0aa6745f705f2c4b0a5004eb019ef76e5bbdb426/CMakeLists.txt",
+    "https://github.com/hyprwm/Hyprland/blob/0aa6745f705f2c4b0a5004eb019ef76e5bbdb426/Makefile"
+  ],
+  "limitations": [
+    "A plugin source pin is not native, visual or security acceptance.",
+    "Hyprland 0.57 Lua/manager APIs are source-reviewed; native and fresh-VM acceptance remains outstanding.",
+    "hyprpm update and enable can reconcile live plugin load state and request sudo internally.",
+    "Header setup may overwrite /usr/share/pkgconfig/hyprland.pc; its previous state must be backed up.",
+    "The Ubuntu PPA backend currently links Lua 5.4; its process-scoped include workaround is retained.",
+    "Preparation refuses enabled plugins and unrelated manager repositories.",
+    "Startup reload requires separate backed-up plugin-login consent; no legacy plugin unload is authorized."
+  ]
+}

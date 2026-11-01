@@ -30,7 +30,7 @@ class ReadmeTests(unittest.TestCase):
     def test_wordmark_and_safety_boundaries_remain_visible(self):
         self.assertIn('█▀█ █▀▄▀█ ▄▀█ █▄▄ █░█ █▄░█ ▀█▀ █░█', self.text)
         for phrase in ('not with sudo', 'publisher signature', 'separate opt-in steps',
-                       'public GitHub Release is still pending', 'does not undo APT'):
+                       'fresh-machine installation is not yet\naccepted', 'does not undo APT'):
             self.assertIn(phrase, self.text)
 
     def test_local_document_links_exist(self):

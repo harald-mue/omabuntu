@@ -59,7 +59,8 @@ class ActivationTests(unittest.TestCase):
 
     def apply(self, reviewed, run=None):
         return activation.apply(reviewed, activation.guided.digest(reviewed), check_stopped=lambda: None,
-                                run=run or (lambda argv: subprocess.CompletedProcess(argv, 0, '', '')),
+                                run=run or (lambda argv: subprocess.CompletedProcess(
+                                    argv, 1 if 'is-enabled' in argv else 0, 'disabled' if 'is-enabled' in argv else '', '')),
                                 plugin_check=lambda release: self.descriptor)
 
     def test_plan_writes_nothing_and_loads_nothing(self):
@@ -74,23 +75,60 @@ class ActivationTests(unittest.TestCase):
         self.assertIn('PYTHONDONTWRITEBYTECODE=1', reviewed['payload']['titlebars'])
         self.assertNotIn('preload', reviewed['payload']['wallpaper'])
 
+    def test_manager_mode_never_loads_a_bundled_library_or_adds_autoreload(self):
+        rendered = activation.render(ROOT, self.app, 'releases/test', {
+            'manager': 'hyprpm', 'titlebar_path': self.paths['titlebars']})
+        self.assertIsNone(rendered['library'])
+        self.assertNotIn('hl.plugin.load', rendered['activation'])
+        self.assertNotIn('hyprpm reload', rendered['activation'])
+        self.assertIn('dofile(', rendered['activation'])
+        self.assertIn('hyprbars', rendered['titlebars'])
+
+    def test_persistent_plugin_grant_is_backed_up_preserved_and_removable_without_loading(self):
+        release = self.app.root / 'releases/test'
+        (release / 'native/hyprbars.so').unlink()
+        (release / 'native/hyprpm.json').write_text(json.dumps(activation.plugin_manager.policy()))
+        (release / 'helpers/plugin_login.py').write_text('# fixture')
+        metadata = release / 'release.json'
+        meta = json.loads(metadata.read_text())
+        meta['files'] = user_install.file_manifest(release)
+        metadata.chmod(0o644)
+        metadata.write_text(json.dumps(meta))
+        metadata.chmod(0o444)
+        reviewed = self.plan(plugin_login=True)
+        self.assertFalse(reviewed['blockers'])
+        self.assertTrue(reviewed['receipt_payload']['plugin_login_enabled'])
+        self.assertIn('hyprland.start', reviewed['payload']['activation'])
+        self.assertNotIn('hl.plugin.load', reviewed['payload']['activation'])
+        self.assertFalse(self.apply(reviewed)['plugin_loaded'])
+        self.assertTrue(self.plan()['receipt_payload']['plugin_login_enabled'])
+        disabled = self.plan(plugin_login=False)
+        self.assertNotIn('hyprland.start', disabled['payload']['activation'])
+        self.assertFalse(self.apply(disabled)['plugin_loaded'])
+        self.assertFalse(self.plan()['receipt_payload']['plugin_login_enabled'])
+
     def test_apply_does_not_call_start_or_hyprctl(self):
         commands = []
         def run(argv):
             commands.append(argv)
-            return subprocess.CompletedProcess(argv, 0, '', '')
+            return subprocess.CompletedProcess(argv, 1 if 'is-enabled' in argv else 0,
+                                               'disabled' if 'is-enabled' in argv else '', '')
         result = self.apply(self.plan(enable_login=True), run)
         self.assertEqual(result['status'], 'prepared-for-next-login')
         self.assertFalse(result['started'])
         self.assertFalse(result['plugin_loaded'])
-        self.assertEqual(commands, [[activation.SYSTEMCTL, '--user', 'daemon-reload'],
-                                    [activation.SYSTEMCTL, '--user', 'enable', activation.UNIT]])
+        self.assertEqual([cmd for cmd in commands if 'is-enabled' not in cmd],
+                         [[activation.SYSTEMCTL, '--user', 'daemon-reload'],
+                          [activation.SYSTEMCTL, '--user', 'enable', activation.UNIT]])
+        self.assertEqual(sum('is-enabled' in cmd for cmd in commands), 2)
         self.assertTrue(self.paths['activation'].is_file())
         self.assertEqual(self.paths['wait'].stat().st_mode & 0o111, 0o111)
 
     def test_default_apply_does_not_enable_or_disable(self):
         def run(argv):
-            raise AssertionError('systemctl must not be called')
+            if 'is-enabled' in argv:
+                return subprocess.CompletedProcess(argv, 1, 'disabled', '')
+            raise AssertionError('Mutating systemctl command must not be called')
         result = self.apply(self.plan(), run)
         self.assertEqual(result['status'], 'prepared-for-next-login')
         self.assertIn('splash = false', self.paths['wallpaper'].read_text())
@@ -156,6 +194,43 @@ class ActivationTests(unittest.TestCase):
         self.assertNotIn('wallpaper-record', reviewed['changes'])
         self.apply(reviewed)
         self.assertEqual(target.read_text(), '{"path":"user"}\n')
+
+    def test_service_state_drift_is_rechecked_before_file_writes(self):
+        reviewed = self.plan(enable_login=True)
+        commands = []
+        def run(argv):
+            commands.append(argv)
+            return subprocess.CompletedProcess(argv, 0, 'enabled', '')
+        with self.assertRaisesRegex(ValueError, 'inputs changed'):
+            self.apply(reviewed, run)
+        self.assertFalse(self.paths['activation'].exists())
+        self.assertTrue(all('is-enabled' in cmd for cmd in commands))
+
+    def test_failed_service_operation_is_not_claimed_fully_restored(self):
+        def run(argv):
+            return subprocess.CompletedProcess(argv, 1, 'disabled' if 'is-enabled' in argv else '', '')
+        with self.assertRaises(ValueError):
+            self.apply(self.plan(enable_login=True), run)
+        self.assertFalse(self.paths['activation'].exists())
+        self.assertTrue(activation.pending(self.app))
+        journal = next((self.app.state / 'activation-transactions').glob('*/transaction.json'))
+        self.assertEqual(user_install.read_json(journal)['status'], 'recovery-required')
+
+    def test_failed_initial_wallpaper_publish_restores_the_created_record(self):
+        release = self.app.root / 'releases/test'
+        image = release / 'config/menu/backgrounds/tokyo/still.webp'
+        image.parent.mkdir(parents=True)
+        image.write_bytes(b'fixture-image')
+        metadata = user_install.read_json(release / 'release.json')
+        metadata['files'] = user_install.file_manifest(release)
+        user_install.atomic_json(release / 'release.json', metadata)
+        reviewed = self.plan()
+        with patch.object(activation.wallpaper_record, 'publish_lock', return_value=False):
+            with self.assertRaises(ValueError):
+                self.apply(reviewed)
+        self.assertFalse((self.app.state / 'current/background.json').exists())
+        self.assertFalse(self.paths['activation'].exists())
+        self.assertFalse(activation.pending(self.app))
 
     def test_service_start_command_is_refused(self):
         with self.assertRaises(ValueError):

@@ -27,6 +27,145 @@ def plan(mode='install', **kwargs):
                          which=lambda _: '/example', installation=INSTALLED, **kwargs)
 
 
+class PluginFrontendTests(unittest.TestCase):
+    def test_native_handoff_flag_requires_versioned_explicit_update_bundle(self):
+        with patch.object(setup.release_update, 'review') as review:
+            for options in (['--migrate-native'], ['--bundle', '/fixture', '--migrate-native'],
+                            ['--update', '--migrate-native'],
+                            ['--update', '--bundle', '/fixture', '--migrate-native', '--allow-legacy-state']):
+                with self.subTest(options=options), contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        setup.main(options)
+        review.assert_not_called()
+
+    def test_native_handoff_readonly_flag_is_forwarded_without_apply(self):
+        with patch.object(setup.release_update, 'review', return_value={'migrate_native': True}) as review, \
+             patch.object(setup.release_update, 'apply') as apply, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(['--update', '--bundle', '/fixture', '--migrate-native', '--json']), 0)
+        self.assertTrue(review.call_args.kwargs['migrate_native'])
+        apply.assert_not_called()
+
+    def test_recovery_review_never_runs_manager_commands(self):
+        reviewed = {'action': 'migrate-recover', 'commands': [], 'blockers': [],
+                    'headers': {'layout': 'system-package'}}
+        with patch.object(setup.plugin_recovery, 'plan', return_value=reviewed) as plan, \
+             patch.object(setup.plugin_recovery, 'apply') as apply, \
+             patch.object(setup.plugin_manager, 'apply') as normal, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-recover', '/fixture/transaction.json']), 0)
+        self.assertEqual(plan.call_args.args[0], Path('/fixture/transaction.json'))
+        apply.assert_not_called()
+        normal.assert_not_called()
+
+    def test_recovery_apply_requires_terminal_and_exact_continuation_consent(self):
+        reviewed = {'action': 'migrate-recover', 'commands': [], 'blockers': [],
+                    'headers': {'layout': 'system-package'}}
+        with patch.object(setup.plugin_recovery, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_recovery, 'apply') as apply, \
+             patch.object(sys, 'stdin', io.StringIO()), contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-recover', '/fixture/transaction.json', '--apply']), 1)
+        apply.assert_not_called()
+        with patch.object(setup.plugin_recovery, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_recovery, 'apply') as apply, \
+             patch.object(sys, 'stdin', Terminal()), patch('builtins.input', side_effect=['yes', 'yes']), \
+             contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-recover', '/fixture/transaction.json', '--apply']), 0)
+        apply.assert_not_called()
+
+    def test_recovery_confirmation_never_authorizes_live_activation(self):
+        reviewed = {'action': 'migrate-recover', 'commands': [], 'blockers': [],
+                    'headers': {'layout': 'system-package'}}
+        with patch.object(setup.plugin_recovery, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_recovery, 'apply', return_value={'status': 'plugin-migrated-disabled'}) as apply, \
+             patch.object(setup.plugin_manager, 'apply') as normal, \
+             patch.object(sys, 'stdin', Terminal()), \
+             patch('builtins.input', side_effect=['yes', setup.plugin_recovery.CONFIRMATION]), \
+             contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-recover', '/fixture/transaction.json', '--apply']), 0)
+        self.assertTrue(apply.call_args.kwargs['resume_approved'])
+        normal.assert_not_called()
+
+    def test_migration_review_is_separate_and_read_only(self):
+        reviewed = {'action': 'migrate', 'commands': [], 'blockers': []}
+        with patch.object(setup.plugin_migration, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_migration, 'apply') as apply, \
+             patch.object(setup.plugin_manager, 'apply') as normal, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-migrate']), 0)
+        apply.assert_not_called()
+        normal.assert_not_called()
+
+    def test_migration_apply_refuses_noninteractive_or_json_consent(self):
+        reviewed = {'action': 'migrate', 'commands': [], 'blockers': []}
+        with patch.object(setup.plugin_migration, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_migration, 'apply') as apply, \
+             patch.object(sys, 'stdin', io.StringIO()), contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-migrate', '--apply']), 1)
+            self.assertEqual(setup.main(['--plugins-migrate', '--apply', '--json']), 1)
+        apply.assert_not_called()
+
+    def test_migration_options_do_not_leak_to_release_or_other_plugin_stages(self):
+        with patch.object(setup.plugin_migration, 'plan') as plan:
+            for args in (['--plugins-migrate', '--plugins-activate'],
+                         ['--plugins-migrate', '--bundle', '/fixture'],
+                         ['--plugins-migrate', '--restart-bar'], ['--plugins-migrate', '--allow-legacy-state']):
+                with self.subTest(args=args), contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        setup.main(args)
+            plan.assert_not_called()
+
+    def test_migration_replacement_needs_exact_second_confirmation(self):
+        reviewed = {'action': 'migrate', 'commands': [], 'blockers': []}
+        for confirmation in ('yes', '', 'replace something-else'):
+            with self.subTest(confirmation=confirmation), \
+                 patch.object(setup.plugin_migration, 'plan', return_value=reviewed), \
+                 patch.object(setup.plugin_migration, 'apply') as apply, \
+                 patch.object(sys, 'stdin', Terminal()), patch('builtins.input', side_effect=['yes', confirmation]), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(setup.main(['--plugins-migrate', '--apply']), 0)
+                apply.assert_not_called()
+
+    def test_migration_consent_never_implies_live_activation_or_packages(self):
+        reviewed = {'action': 'migrate', 'commands': [], 'blockers': []}
+        with patch.object(setup.plugin_migration, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_migration, 'apply', return_value={'status': 'plugin-migrated-disabled'}) as apply, \
+             patch.object(setup.plugin_manager, 'apply') as normal, \
+             patch.object(setup.bootstrap_packages, 'apply') as packages, \
+             patch.object(sys, 'stdin', Terminal()), \
+             patch('builtins.input', side_effect=['yes', setup.plugin_migration.CONFIRMATION]), \
+             contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-migrate', '--apply']), 0)
+        self.assertTrue(apply.call_args.kwargs['replace_approved'])
+        normal.assert_not_called()
+        packages.assert_not_called()
+
+    def test_plugin_review_never_applies_or_routes_to_release(self):
+        reviewed = {'action': 'prepare', 'commands': [], 'blockers': []}
+        with patch.object(setup.plugin_manager, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_manager, 'apply') as apply, \
+             patch.object(setup, 'local_release') as release, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins']), 0)
+        apply.assert_not_called()
+        release.assert_not_called()
+
+    def test_noninteractive_live_plugin_apply_is_refused(self):
+        reviewed = {'action': 'activate', 'commands': [], 'blockers': []}
+        with patch.object(setup.plugin_manager, 'plan', return_value=reviewed), \
+             patch.object(setup.plugin_manager, 'apply') as apply, \
+             patch.object(sys, 'stdin', io.StringIO()), contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(setup.main(['--plugins-activate', '--apply']), 1)
+        apply.assert_not_called()
+
+    def test_package_scopes_are_mutually_exclusive_and_package_only(self):
+        for args in (['--runtime-only'], ['--plugin-build-only'], ['--enable-plugin-login'],
+                     ['--session-activate', '--enable-plugin-login', '--disable-plugin-login'],
+                     ['--packages', '--runtime-only', '--plugin-build-only']):
+            with self.subTest(args=args), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit):
+                    setup.main(args)
+
+
 class RemovedDistributionOptionsTests(unittest.TestCase):
     def test_obsolete_options_are_rejected_before_any_operation(self):
         options = (['--channels'], ['--update', '--channel', 'stable'],

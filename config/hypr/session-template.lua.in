@@ -1,5 +1,5 @@
 -- SPDX-License-Identifier: MIT
--- Generic Omabuntu session module for Hyprland 0.56.2 (efb509937800).
+-- Generic Omabuntu session module, source-reviewed for Hyprland 0.56.2/0.57.0.
 -- Rendered by the installer, not loaded directly from this source template.
 -- No autostart, plugin loading, idle/suspend policy or automatic session action.
 -- A separate activation file may be read below; its absence is intentional.

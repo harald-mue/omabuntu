@@ -15,6 +15,8 @@ import subprocess
 import install as guided
 import user_install
 import build_plugin
+import plugin_manager
+import native_transition
 import state_schema
 
 
@@ -86,9 +88,13 @@ def recover_review(installation):
     record = user_install.read_json(record_path)
     pre = record.get('prestate')
     plan = record.get('plan')
+    running_before = plan.get('running') if isinstance(plan, dict) else None
+    valid_running = (running_before is None or type(running_before) is bool
+                     or (isinstance(running_before, dict) and type(running_before.get('pid')) is int
+                         and running_before['pid'] > 0 and isinstance(running_before.get('identity'), dict)))
     if (record.get('schema_version') != 1 or not isinstance(pre, dict) or not isinstance(plan, dict)
             or plan.get('operation') not in ('install', 'update', 'rollback')
-            or not isinstance(plan.get('version'), str) or type(plan.get('running')) is not bool):
+            or not isinstance(plan.get('version'), str) or 'running' not in plan or not valid_running):
         raise UpdateError('Interrupted journal is incomplete; no recovery performed')
     current, previous = installation.selected(), installation.selected('previous')
     inner = installation.pending()
@@ -138,7 +144,7 @@ def recover(installation, reviewed, approval, restart=False):
             status = 'recovered-to-prestate'
             restarted = False
             if restart:
-                installation.start()
+                start_bar(installation, record['plan'])
                 restarted = True
         else:
             status = 'recovered-unchanged'
@@ -150,6 +156,15 @@ def recover(installation, reviewed, approval, restart=False):
         user_install.atomic_json(record_path, record)
         return {'status': status, 'journal': str(record_path), 'bar_restarted': restarted,
                 'resumed_new_release': False, 'system_packages_changed': False}
+
+
+def start_bar(installation, plan):
+    # A native application handoff must not rewrite wallpaper/config as a
+    # side effect of restarting its bar. Normal same-target starts keep their
+    # established behavior. Component lifetime is still session-scoped.
+    if plan.get('migrate_native'):
+        return installation.start(restore_background=False)
+    return installation.start()
 
 
 def locker_absent():
@@ -164,12 +179,15 @@ def locker_absent():
 
 def candidate_plugin(bundle):
     try:
+        management = plugin_manager.bundle_policy(bundle)
+        if management is not None:
+            return {'manager': 'hyprpm', 'policy_digest': guided.digest(management)}
         return build_plugin.verify_bundle_plugin(bundle)
     except (OSError, ValueError, build_plugin.builder.BuildError, subprocess.SubprocessError) as error:
         raise UpdateError('Native plugin candidate blocked: ' + str(error)) from error
 
 
-def review(installation, bundle=None, mode='install', restart=False, allow_legacy=False):
+def review(installation, bundle=None, mode='install', restart=False, allow_legacy=False, migrate_native=False):
     if mode not in ('install', 'update', 'rollback'):
         raise UpdateError('Unknown release operation')
     installation.require_settled()
@@ -189,6 +207,14 @@ def review(installation, bundle=None, mode='install', restart=False, allow_legac
     meta = user_install.verify_bundle(bundle)
     incoming = validate_contract(meta)
     native_plugin = candidate_plugin(bundle)
+    activation = installation.state / 'session-activation.json'
+    if (native_plugin and native_plugin.get('manager') == 'hyprpm'
+            and (activation.exists() or activation.is_symlink())):
+        previous_activation = user_install.read_json(activation)
+        if not isinstance(previous_activation, dict):
+            raise UpdateError('Activation receipt requires manual review')
+        if previous_activation.get('library'):
+            raise UpdateError('Bundled titlebar activation requires explicit migration before a hyprpm release switch')
     session_digest = None
     receipt_path = installation.state / 'session-config.json'
     if receipt_path.exists() or receipt_path.is_symlink():
@@ -203,6 +229,9 @@ def review(installation, bundle=None, mode='install', restart=False, allow_legac
         session_digest = guided.digest(receipt)
     if incoming['native_target'] != contract()['native_target']:
         raise UpdateError('Candidate native target requires a separate session plan; no live switch')
+    transition = None
+    if migrate_native and (mode != 'update' or not current or allow_legacy):
+        raise UpdateError('Native handoff requires an explicit versioned update, not install/rollback/legacy adoption')
     legacy = False
     installed_schema = None
     if current:
@@ -214,8 +243,15 @@ def review(installation, bundle=None, mode='install', restart=False, allow_legac
         else:
             old_contract = validate_contract(old)
             if old_contract['native_target'] != incoming['native_target']:
-                raise UpdateError('Installed native target differs; no live switch permitted')
+                if not migrate_native:
+                    raise UpdateError('Installed native target differs; review --migrate-native separately; no live switch permitted')
+                try:
+                    transition = native_transition.evidence(installation, bundle)
+                except (OSError, ValueError, subprocess.SubprocessError) as error:
+                    raise UpdateError('Native application handoff blocked: ' + str(error)) from error
             installed_schema = old_contract['user_state_schema']
+    if migrate_native and transition is None:
+        raise UpdateError('Native handoff requires the supported old/new target difference; ordinary updates need no flag')
     try:
         schema = state_schema.decision(installed_schema, incoming['user_state_schema'])
     except state_schema.SchemaError as error:
@@ -247,7 +283,8 @@ def review(installation, bundle=None, mode='install', restart=False, allow_legac
                           'launcher': str(installation.launcher)},
             'user_state_schema': incoming['user_state_schema'], 'schema_decision': schema,
             'session_config_digest': session_digest,
-            'native_plugin': native_plugin, 'scope': 'local-application-release-only'}
+            'native_plugin': native_plugin, 'migrate_native': migrate_native, 'native_transition': transition,
+            'scope': 'local-application-release-only'}
 
 
 def approve_digest(plan):
@@ -294,7 +331,7 @@ def apply(installation, plan, approval, check=None, check_locker=None):
     with os.fdopen(fd, 'w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fresh = review(installation, None if plan['operation'] == 'rollback' else plan['bundle'],
-                       plan['operation'], plan['restart_bar'], plan['allow_legacy_state'])
+                       plan['operation'], plan['restart_bar'], plan['allow_legacy_state'], plan.get('migrate_native', False))
         if fresh != plan:
             raise UpdateError('Release or desktop state changed; review a new plan')
         if plan['no_op']:
@@ -306,7 +343,7 @@ def apply(installation, plan, approval, check=None, check_locker=None):
         # Repeat after potentially long preflight. No mutation has happened yet
         # except creation of the private control lock/state directory.
         fresh = review(installation, None if plan['operation'] == 'rollback' else plan['bundle'],
-                       plan['operation'], plan['restart_bar'], plan['allow_legacy_state'])
+                       plan['operation'], plan['restart_bar'], plan['allow_legacy_state'], plan.get('migrate_native', False))
         if fresh != plan:
             raise UpdateError('Release or desktop changed during preflight')
         (locker_absent if check_locker is None else check_locker)()
@@ -343,6 +380,9 @@ def apply(installation, plan, approval, check=None, check_locker=None):
                     raise UpdateError('Launcher changed during staging; no stop performed')
             elif installation.launcher.exists() or installation.launcher.is_symlink():
                 raise UpdateError('Launcher appeared during staging; no stop performed')
+            if plan.get('migrate_native'):
+                if native_transition.evidence(installation, candidate) != plan['native_transition']:
+                    raise UpdateError('Native/profile/manager evidence changed during staging; no stop performed')
             (locker_absent if check_locker is None else check_locker)()
             journal['status'] = 'stopping'
             user_install.atomic_json(record, journal)
@@ -360,7 +400,11 @@ def apply(installation, plan, approval, check=None, check_locker=None):
             journal['status'] = 'starting' if plan['restart_bar'] else 'switched'
             user_install.atomic_json(record, journal)
             if plan['restart_bar']:
-                installation.start()  # Bounded readiness, no component lifetime limit.
+                start_bar(installation, plan)  # Bounded readiness, no component lifetime limit.
+            if plan.get('migrate_native'):
+                proof = plan['native_transition']
+                if native_transition.profile_state(Path(proof['profile_root'])) != proof['profile']:
+                    raise UpdateError('Private profile changed during bar start; preserving the edit and restoring application prestate')
             journal['status'] = 'completed'
             user_install.atomic_json(record, journal)
             status = ('installed-and-started' if plan['operation'] == 'install' else 'updated-and-started') if plan['restart_bar'] else 'installed-not-started'
@@ -379,7 +423,7 @@ def apply(installation, plan, approval, check=None, check_locker=None):
                         raise UpdateError('Selectors changed outside this operation; manual recovery required')
                     installation.restore(directory, pre)
                     if plan['running']:
-                        installation.start()
+                        start_bar(installation, plan)
                     journal['status'] = 'restored-after-failure'
                 elif not switched:
                     journal['status'] = 'aborted-before-switch'

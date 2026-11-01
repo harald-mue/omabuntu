@@ -33,8 +33,9 @@ Open a terminal and run this as your normal user, **not with sudo**:
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-**Availability:** the first public GitHub Release is still pending. The command
-requires a published release and the bootstrap files to be available on GitHub.
+**Status:** v0.1.0 is published, but **fresh-machine installation is not yet
+accepted**. Its VM test exposed dependency and Hyprland-version blockers. Source
+fixes do not change the existing release archive.
 See [GitHub Releases](https://github.com/harald-mue/omabuntu/releases).
 
 No Git checkout, Makefile or local compilation is needed. The installer:
@@ -97,10 +98,15 @@ Application rollback does not undo APT package changes.
 - Versioned application installation, verified updates and rollback.
 - Separately approved session and login integration.
 
+New source builds delegate hyprbars to separately approved hyprpm preparation
+and activation instead of shipping a compositor-specific plugin library. Existing
+v0.1.0 artifacts are unchanged. See [plugin management and current limits](docs/plugin-management.md).
+
 Public release builds exclude theme background images because their redistribution
 rights are not cleared. Third-party code and fonts retain their license notices.
 
-The development target is **Hyprland 0.56.2 and Qt 6.10.2 on Ubuntu 26.04**.
+New builds target **Hyprland 0.57.0 and Qt 6.10.2 on Ubuntu 26.04**.
+The 0.57 APIs are source-reviewed; clean-VM and native acceptance are still outstanding.
 This is an integration of selected original components, not the unmodified full
 Omarchy shell or an Arch installer. Stock-machine installation and native-login
 acceptance are still in progress; successful tests do not establish functional
@@ -123,7 +129,7 @@ Maintainers can publish a versioned release after publisher-key and GitHub acces
 setup:
 
 ```bash
-make release VERSION=0.1.0
+make release VERSION=0.1.1
 ```
 
 This asks before committing changes, builds the committed source without theme

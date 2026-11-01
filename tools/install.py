@@ -145,11 +145,12 @@ def package_review(wallpaper=False, run=omabuntu.probe, manifest_path=MANIFEST):
             blockers.append('Removals or changes to installed packages are not permitted')
         for line in simulation.splitlines():
             if line.startswith('Inst '):
-                match = re.fullmatch(r'Inst ([a-z0-9][a-z0-9+.:-]*) \(([^\s]+) .*\)', line)
-                if not match or not package_plan.VERSION.fullmatch(match.group(2)):
+                match = re.fullmatch(r'Inst ([a-z0-9][a-z0-9+.:-]*) (?:\[([^\]\s]+)\] )?\(([^\s]+) .*\)', line)
+                if (not match or not package_plan.VERSION.fullmatch(match.group(3))
+                        or (match.group(2) is not None and not package_plan.VERSION.fullmatch(match.group(2)))):
                     blockers.append('Unrecognized or unsafe APT install line')
                     continue
-                resolved[match.group(1)] = match.group(2)
+                resolved[match.group(1)] = match.group(3)
         if not transaction['new']:
             blockers.append('APT reported no additions for missing packages')
         planned = set(transaction['new'])

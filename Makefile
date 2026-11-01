@@ -6,7 +6,7 @@
 # that change the host keep the tools' own refusals and print what they do.
 #
 # Every target that needs a release name takes VERSION=<name>, for example:
-#   make release VERSION=0.1.0
+#   make release VERSION=0.1.1
 #   make package VERSION=my-change BUILD_DIR=work/builds/<build-id>
 
 PYTHON ?= python3
@@ -21,7 +21,8 @@ DEV_VERSION := $(if $(VERSION),$(VERSION),dev-$(shell date -u +%Y%m%dT%H%M%S.%NZ
 
 .DEFAULT_GOAL := help
 
-.PHONY: help test doctor guide release release-resume build packages font acceptance rollback \
+.PHONY: help test doctor guide release release-resume build packages runtime-packages plugin-packages \
+        plugins plugins-prepare plugins-migrate plugins-migrate-apply plugins-recover plugins-recover-apply plugins-activate font acceptance rollback \
         package preflight plan install update start stop status \
         autostart autostart-plan autostart-remove hypr-settings hypr-settings-plan \
         hypr-settings-remove reload restart dev-update check-version check-build
@@ -32,9 +33,18 @@ help:
 	@echo 'Installer:'
 	@echo '  make guide                             show the next step; may offer to install'
 	@echo '  make build                             build a local development bundle'
-	@echo '  make release VERSION=0.1.0             reviewed commit, build, tag and GitHub publication'
-	@echo '  make release-resume VERSION=0.1.0      verify existing archive, resume signing/publication only'
-	@echo '  make packages                          review missing packages; no install'
+	@echo '  make release VERSION=0.1.1             reviewed commit, build, tag and GitHub publication'
+	@echo '  make release-resume VERSION=0.1.1      verify existing archive, resume signing/publication only'
+	@echo '  make packages                          review source-build packages; no install'
+	@echo '  make runtime-packages                  review published-runtime dependencies only'
+	@echo '  make plugin-packages                   review hyprpm build dependencies only'
+	@echo '  make plugins                           read-only hyprpm plan'
+	@echo '  make plugins-prepare                   approved pinned manager build; refuses enabled plugins'
+	@echo '  make plugins-migrate                   read-only known legacy manager migration plan'
+	@echo '  make plugins-migrate-apply             backed-up migration; explicit repository replacement; no load'
+	@echo '  make plugins-recover JOURNAL=...       review the exact interrupted PPA-header checkpoint'
+	@echo '  make plugins-recover-apply JOURNAL=... backed-up pinned build continuation; no load'
+	@echo '  make plugins-activate                  explicit live hyprbars enable/load; may request sudo'
 	@echo '  make font                              review the desktop font; no install'
 	@echo '  make acceptance                        read-only stock-install gates'
 	@echo '  make rollback                          review the previous application release'
@@ -93,6 +103,35 @@ build:
 
 packages:
 	./install.sh --packages --plain
+
+runtime-packages:
+	./install.sh --packages --runtime-only --plain
+
+plugin-packages:
+	./install.sh --packages --plugin-build-only --plain
+
+plugins:
+	./install.sh --plugins --plain
+
+plugins-prepare:
+	./install.sh --plugins --apply --plain
+
+plugins-migrate:
+	./install.sh --plugins-migrate --plain
+
+plugins-migrate-apply:
+	./install.sh --plugins-migrate --apply --plain
+
+plugins-recover:
+	@test -n "$(JOURNAL)" || (echo 'Specify JOURNAL=/absolute/path/to/transaction.json'; exit 1)
+	./install.sh --plugins-recover "$(JOURNAL)" --plain
+
+plugins-recover-apply:
+	@test -n "$(JOURNAL)" || (echo 'Specify JOURNAL=/absolute/path/to/transaction.json'; exit 1)
+	./install.sh --plugins-recover "$(JOURNAL)" --apply --plain
+
+plugins-activate:
+	./install.sh --plugins-activate --apply --plain
 
 font:
 	./install.sh --font --plain

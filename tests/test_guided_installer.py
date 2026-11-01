@@ -26,7 +26,7 @@ class Host:
         self.calls = []
         self.simulation = 'Inst hyprpaper (0.8.4 Ubuntu:26.04/resolute [amd64])\n'
         self.candidate = '0.8.4'
-        self.hyprland = 'Hyprland 0.56.2'
+        self.hyprland = 'Hyprland 0.57.0'
         self.failure = None
 
     def run(self, command, timeout=30):
@@ -144,6 +144,14 @@ class InstallerTests(unittest.TestCase):
             self.host.simulation = text
             self.assertEqual(guided.package_review(True, run=self.host.run)['status'], 'blocked')
 
+    def test_valid_upgrade_lines_are_explained_not_misreported_as_parse_errors(self):
+        self.host.simulation = 'Inst python3 [1.0] (2.0 Ubuntu [amd64])\n'
+        reviewed = guided.package_review(True, run=self.host.run)
+        self.assertEqual(reviewed['status'], 'blocked')
+        self.assertIn('Removals or changes to installed packages are not permitted', reviewed['blockers'])
+        self.assertNotIn('Unrecognized or unsafe APT install line', reviewed['blockers'])
+        self.assertEqual(reviewed['resolved']['python3'], '2.0')
+
     def test_package_plan_blocks_missing_candidate_and_unsupported_host(self):
         self.host.candidate = '(none)'
         self.assertEqual(guided.package_review(True, run=self.host.run)['status'], 'blocked')
@@ -241,9 +249,9 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue(path.is_file())
         report, _ = self.preflight()
         self.assertEqual(report['status'], 'passed')
-        self.host.hyprland = 'Hyprland 0.56.20'
+        self.host.hyprland = 'Hyprland 0.57.00'
         self.assertEqual(self.preflight()[0]['status'], 'blocked')
-        self.host.hyprland = 'Hyprland 0.56.2'
+        self.host.hyprland = 'Hyprland 0.57.0'
         self.host.installed['libqt6core6t64'] = '6.11.0-1'
         self.assertEqual(self.preflight()[0]['status'], 'blocked')
 

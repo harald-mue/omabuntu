@@ -59,8 +59,9 @@ def ppa_stage(apt_root=Path('/etc/apt')):
     return stage('ppa', 'done', 'Managed signed PPA source is present.')
 
 
-def packages_stage(installed):
-    manifest, _ = bootstrap_packages.request_manifest()
+def packages_stage(installed, runtime_only=False, plugin_build_only=False):
+    manifest, _ = bootstrap_packages.request_manifest(runtime_only=runtime_only, plugin_build_only=plugin_build_only)
+    command = './install.sh --packages' + (' --runtime-only' if runtime_only else ' --plugin-build-only' if plugin_build_only else '')
     missing = [name for name in manifest['groups']['runtime'] if not installed(name)]
     if missing:
         count = len(missing)
@@ -70,7 +71,7 @@ def packages_stage(installed):
             shown += ' and %d more' % (count - 5)
         return stage('packages', 'command',
                      str(count) + ' requested ' + noun + ' absent: ' + shown + '. Review the exact APT transaction separately.',
-                     './install.sh --packages')
+                     command)
     return stage('packages', 'done', 'Requested packages are installed. Upgrades still require --packages.')
 
 
@@ -91,7 +92,7 @@ def build_stage(root, state=None, installation=None):
     bundle = root / 'work/user-releases' / reviewed['version']
     if matching_bundle(bundle, reviewed['input_digest']):
         return stage('build', 'done', 'A verified local bundle matches the current inputs.', str(bundle))
-    return stage('build', 'apply', 'Build the pinned runtime, screenshot tool, plugin and artwork locally.',
+    return stage('build', 'apply', 'Build the pinned runtime and screenshot tool; stage the hyprpm policy and artwork.',
                  './install.sh --build-release --apply')
 
 
@@ -105,7 +106,7 @@ def matching_bundle(bundle, digest):
         return False
     return (provenance.get('bootstrap_input_sha256') == digest
             and (bundle / 'runtime/bin/omasnap').is_file()
-            and (bundle / 'native/hyprbars.so').is_file())
+            and (bundle / 'native/hyprpm.json').is_file())
 
 
 def release_stage(installation, bundle, root=ROOT):
