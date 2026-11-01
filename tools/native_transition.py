@@ -54,7 +54,8 @@ This is a preservation/drift snapshot, not arbitrary Lua dependency evaluation.
             'gid': info.st_gid, 'files': files}
 
 
-def manager_ready(policy, state, *, inspect=manager.probe, directory=None):
+def manager_ready(policy, state, *, inspect=manager.probe, directory=None,
+                  allow_unloaded=False, active_transaction=None):
     """Validate reusable manager state without reconciliation or activation."""
     state = Path(state)
     native = manager.build_hyprbars.installed_version()
@@ -71,6 +72,15 @@ def manager_ready(policy, state, *, inspect=manager.probe, directory=None):
                             ('activation-transactions', ('completed', 'restored-after-failure'))):
         user_install.safe_parents(state / parent)
         for journal in (state / parent).glob('*/transaction.json'):
+            if (parent == 'plugin-transactions' and active_transaction is not None
+                    and str(journal) == active_transaction.get('path')):
+                record = plugin_login.read_json(journal)
+                if (record.get('status') not in ('prepared', 'running')
+                        or record.get('backup_verified') is not True
+                        or record.get('plan', {}).get('kind') != 'omabuntu-hyprbars-repair'
+                        or manager.guided.digest(record['plan']) != active_transaction.get('digest')):
+                    raise ValueError('Active repair transaction does not match its approved verified backup')
+                continue
             if parent == 'plugin-transactions':
                 complete = plugin_login.transaction_complete(journal)
             else:
@@ -111,8 +121,9 @@ def manager_ready(policy, state, *, inspect=manager.probe, directory=None):
         if not isinstance(row, dict) or type(row.get('enabled')) is not bool or row['enabled'] != expected:
             raise ValueError('Manager enablement differs or includes foreign plugins')
     loaded = manager.loaded_plugins(inspect)
+    missing_enabled = allow_unloaded and receipt['activated'] is True and not loaded
     if (any(row.get('name') != 'hyprbars' for row in loaded)
-            or len(loaded) != int(receipt['activated'])):
+            or (len(loaded) != int(receipt['activated']) and not missing_enabled)):
         raise ValueError('Live plugin list and explicit manager activation differ')
     return {'native': native, 'running': running,
             'manager_receipt': plugin_login.fingerprint(receipt_path, 2 * 1024 * 1024),

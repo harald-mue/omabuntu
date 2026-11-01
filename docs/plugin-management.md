@@ -54,6 +54,48 @@ An independently verified healthy manager build is reused; an already active
 hyprbars is not enabled/loaded again. Ordinary installer questions show `[Y/n]`;
 this changes Enter's default, not the independent approval boundaries.
 
+## Repair through the same installer
+
+The normal `install.sh` flow also detects an existing enabled, receipted hyprbars
+that is missing from the current session. If the exact native identity, policy,
+repository, library, headers and persistent manager state verify, it offers a
+live repair instead of demanding another build or a plugin-free session. An
+identical verified application is not redeployed/restarted merely to reach repair;
+a reusable manager build needs no compiler-package installation.
+
+Repair has **one explicit live confirmation** after its plan. It takes verified
+private backups under the existing control lock, repeats drift checks, runs only
+an unforced system `hyprpm reload`, and verifies loaded state and unchanged
+persistent/native evidence. The executable must be protected and package-owned.
+It does not enable/disable, build, download, request sudo, rewrite private Lua,
+apply titlebar rules, start services or grant future-login loading. Existing
+foreign plugins/repositories, failed transactions or stale evidence block repair.
+Do not run external plugin/manager operations concurrently: official reload is a
+reconciliation operation. Failure keeps a manual-review journal; there is no
+automatic unload, restore of a live plugin, or retry. Native code loading can
+crash the compositor, so it is never folded into application update consent.
+
+This repairs the current session's missing plugin, not arbitrary desktop damage
+or missing private-profile login integration. Persistent integration remains a
+separate backed-up approval; repair does not silently adopt an unowned profile.
+
+## Fewer, scoped confirmations
+
+The installer no longer asks an outer "review?" and then the same approval again.
+PPA, mandatory runtime packages, user font, application deployment, generic
+profile writing and plugin preparation/loading each use their final reviewed
+transaction prompt. The deployment prompt explicitly names a proposed recorded
+bar restart when needed. A declined mandatory prerequisite or application switch
+does not proceed to follow-up desktop writes.
+
+The keyboard choice is an input, not another Yes/No gate (`skip` defers it).
+Future plugin loading and bar login enablement remain separate choices before
+the final next-login file plan; current login files do not repeat those questions.
+Optional blocked packages can still be explicitly deferred. Typed migration and
+recovery phrases, sudo/APT/third-party prompts and release publication approvals
+are unchanged. EOF/unknown responses still decline; fewer prompts do not imply
+blanket unattended consent.
+
 ## Package scopes
 
 ```sh

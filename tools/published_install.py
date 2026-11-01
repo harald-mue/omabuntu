@@ -41,9 +41,7 @@ def offer_plugin_packages():
         return True
     print('Local hyprbars builds need their own compiler/header packages, not the Omabuntu application build chain.')
     print(stage['summary'])
-    if not ask('Review and install these plugin-build prerequisites? This may request sudo'):
-        print('Plugin build prerequisites deferred; application installation can continue without titlebars.')
-        return False
+    print('The exact package review asks once; declining it defers only this optional build scope.')
     try:
         plan, path = review_plugin_packages()
     except (OSError, ValueError, subprocess.SubprocessError) as error:
@@ -78,10 +76,11 @@ def offer_session(root):
         print('Session profile preserved: ' + '; '.join(reviewed['blockers']))
         return
     if reviewed['changes']:
-        if not ask('Review a generic next-login profile? Existing private profiles are never merged'):
-            print('Generic profile deferred. Rerun this installer to revisit; answer with y then Enter, not Shift+Enter.')
+        keyboard = input('XKB keyboard layout [' + reviewed['keyboard_layout'] + '], or skip: ').strip()
+        if keyboard.lower() == 'skip':
+            print('Generic profile deferred; existing configuration preserved.')
             return
-        keyboard = input('XKB keyboard layout [' + reviewed['keyboard_layout'] + ']: ').strip() or reviewed['keyboard_layout']
+        keyboard = keyboard or reviewed['keyboard_layout']
         apply_stage(['--session-config', '--keyboard-layout', keyboard, '--apply'])
         if not session_config.locations()[2]['receipt'].is_file():
             return  # The inner review can also be cancelled.
@@ -89,13 +88,15 @@ def offer_session(root):
     if activation['blockers']:
         print('Next-login file preparation deferred: ' + '; '.join(activation['blockers']))
         return
-    if ask('Review next-login titlebar and wallpaper files without starting anything?'):
-        options = ['--session-activate', '--apply']
-        if ask('Grant persistent receipt-checked hyprpm loading at future logins? No builds or sudo at login'):
-            options.append('--enable-plugin-login')
-        if ask('Enable the existing bar login unit without starting it now?'):
-            options.append('--enable-login')
-        apply_stage(options)
+    if not activation.get('changes') and 'changes' in activation:
+        print('Next-login files already current; no repeated grant questions.')
+        return
+    options = ['--session-activate', '--apply']
+    if ask('Grant persistent receipt-checked hyprpm loading at future logins? No builds or sudo at login'):
+        options.append('--enable-plugin-login')
+    if ask('Enable the existing bar login unit without starting it now?'):
+        options.append('--enable-login')
+    apply_stage(options)
 
 
 def offer_plugins(root, prerequisites_ready=True):
@@ -107,14 +108,17 @@ def offer_plugins(root, prerequisites_ready=True):
     if isinstance(reviewed.get('receipt_before'), dict):
         try:
             app = user_install.Installation(*user_install.defaults())
-            ready = native_transition.manager_ready(plugin_manager.policy(root), app.state)
-        except (OSError, ValueError, subprocess.SubprocessError):
-            pass  # A stale receipt is not readiness; preserve the normal guards.
+            ready = native_transition.manager_ready(plugin_manager.policy(root), app.state, allow_unloaded=True)
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            print('Existing manager reuse requires review: ' + str(error))
         else:
             print('Existing exact manager build verified; no rebuild or reconciliation needed.')
             if ready['loaded']:
                 print('Existing live hyprbars activation preserved; no duplicate enable/load.')
-            elif ask('Review live hyprbars enable/load? Loading a plugin can crash this session'):
+            elif reviewed['receipt_before'].get('activated') is True:
+                print('Repair available: the verified enabled hyprbars is not loaded in this session.')
+                apply_stage(['--plugins-repair', '--apply'])
+            else:
                 apply_stage(['--plugins-activate', '--apply'])
             return
     if not prerequisites_ready:
@@ -125,16 +129,28 @@ def offer_plugins(root, prerequisites_ready=True):
         print('Use a separately approved matching, plugin-free Hyprland session; no logout or reload was performed.')
         print('Rerun the same installer to continue; no internal plugin command is needed.')
         return
-    if not ask('Review pinned hyprpm preparation? It downloads/builds locally and may request sudo'):
-        return
     apply_stage(['--plugins', '--apply'])
+    # The reviewed inner action can be declined; no receipt means no load offer.
+    app = user_install.Installation(*user_install.defaults())
+    if not (app.state / 'hyprpm.json').is_file():
+        print('Plugin preparation deferred; no build receipt, so no activation is offered.')
+        return
     activation = plugin_manager.plan(root, action='activate')
     if activation['blockers']:
         print('Plugin live activation deferred: ' + '; '.join(activation['blockers']))
         return
-    if ask('Review live hyprbars enable/load? Loading a plugin can crash this session'):
-        apply_stage(['--plugins-activate', '--apply'])
-        print('No full configuration reload was performed. Unapplied titlebars remain deferred until an approved rules action or configured next login.')
+    apply_stage(['--plugins-activate', '--apply'])
+    print('No full configuration reload was performed. Unapplied titlebars remain deferred until an approved rules action or configured next login.')
+
+
+def manager_reusable(root, installation):
+    if installation.selected() is None:
+        return False
+    try:
+        native_transition.manager_ready(plugin_manager.policy(root), installation.state, allow_unloaded=True)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return False
+    return True
 
 
 def main():
@@ -150,35 +166,47 @@ def main():
                           ('--font', lambda: setup_guide.font_stage(root))):
         stage = inspect()
         if stage['status'] != 'done':
-            if not ask('Review and prepare prerequisites (' + mode + ')?'):
-                raise SystemExit('Cancelled; published bundle not installed.')
             options = [mode, '--apply'] + (['--runtime-only'] if mode == '--packages' else [])
             if setup.main(options) != 0:
                 raise SystemExit('Prerequisite stage failed; published bundle not installed.')
-    prerequisites_ready = True
-    if management is not None:
-        prerequisites_ready = offer_plugin_packages()
+            if inspect()['status'] != 'done':
+                raise SystemExit('Prerequisite deferred; application deployment not attempted.')
     installation = user_install.Installation(*user_install.defaults())
+    prerequisites_ready = True
+    if management is not None and not manager_reusable(root, installation):
+        prerequisites_ready = offer_plugin_packages()
     options = ['--bundle', str(args.bundle), '--apply']
+    unchanged = False
     if installation.selected():
         options.append('--update')
         installed = user_install.verify_bundle(installation.root / installation.selected(), installed=True)
+        unchanged = isinstance(incoming, dict) and installed == incoming
         old_target = installed.get('update_contract', {}).get('native_target')
         new_target = incoming.get('update_contract', {}).get('native_target')
         if old_target == native_transition.FROM and new_target == native_transition.TO:
             if not ask('Review the explicit 0.56.2 to 0.57.0 application handoff? The new compositor and verified manager build must already be ready; no profile/login migration'):
                 raise SystemExit('Native application handoff deferred; existing application preserved.')
             options.append('--migrate-native')
-    if installation.running() is not None:
-        if not ask('Allow stopping and restarting the recorded bar for this update?'):
-            raise SystemExit('Cancelled; running bar left alone.')
+    if not unchanged and installation.running() is not None:
+        # This is a proposed scope, not consent: the inner reviewed transaction
+        # explicitly asks about deployment plus this recorded bar restart once.
         options.append('--restart-bar')
-    result = setup.main(options)
-    if result:
-        raise SystemExit(result)
+    if unchanged:
+        print('Verified application already current; skipping deployment/restart and checking repair needs.')
+    else:
+        result = setup.main(options)
+        if result:
+            raise SystemExit(result)
+        if isinstance(incoming, dict):
+            selected = installation.selected()
+            if selected is None or user_install.verify_bundle(installation.root / selected, installed=True) != incoming:
+                print('Application deployment deferred; existing state preserved. No follow-up desktop actions.')
+                return
     print('Application installed. Your personal Hyprland configuration was preserved.')
     print('Generic session and login activation are separate opt-in steps; see docs/installer.md.')
     if management is not None:
+        if manager_reusable(root, installation):
+            print('Verified manager build reused; no compiler packages or rebuild are needed.')
         offer_session(root)
         offer_plugins(root, prerequisites_ready=prerequisites_ready)
         print('Application installation is not native/titlebar acceptance; deferred stages remain explicit.')

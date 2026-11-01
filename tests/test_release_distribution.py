@@ -220,14 +220,14 @@ class PublishedInstallerTests(unittest.TestCase):
             factory.return_value.selected.return_value = 'releases/old'
             factory.return_value.running.return_value = {'pid': 1}
             published_install.main()
-            ask.assert_called_once()
+            ask.assert_not_called()  # The reviewed deployment asks once, with explicit restart scope.
             main.assert_called_once_with(['--bundle', '/fixture/bundle', '--apply', '--update', '--restart-bar'])
 
     def test_downloaded_bundle_requests_runtime_only_and_no_plugin_operations(self):
         with patch.object(sys, 'argv', ['published', '--bundle', '/fixture/bundle']), \
              patch.object(published_install.user_install, 'verify_bundle'), \
              patch.object(published_install.setup_guide, 'ppa_stage', return_value={'status': 'done'}), \
-             patch.object(published_install.setup_guide, 'packages_stage', return_value={'status': 'command'}) as packages, \
+             patch.object(published_install.setup_guide, 'packages_stage', side_effect=[{'status': 'command'}, {'status': 'done'}]) as packages, \
              patch.object(published_install.setup_guide, 'font_stage', return_value={'status': 'done'}), \
              patch.object(published_install.user_install, 'Installation') as factory, \
              patch.object(published_install, 'ask', return_value=True), \
@@ -244,11 +244,12 @@ class PublishedInstallerTests(unittest.TestCase):
         with patch.object(sys, 'argv', ['published', '--bundle', '/fixture/bundle']), \
              patch.object(published_install.user_install, 'verify_bundle'), \
              patch.object(published_install.setup_guide, 'ppa_stage', return_value={'status': 'command'}), \
-             patch.object(published_install, 'ask', return_value=False), \
-             patch.object(published_install.setup, 'main') as main:
+             patch.object(published_install, 'ask') as ask, \
+             patch.object(published_install.setup, 'main', return_value=0) as main:
             with self.assertRaises(SystemExit):
                 published_install.main()
-            main.assert_not_called()
+            ask.assert_not_called()
+            main.assert_called_once_with(['--ppa', '--apply'])
 
 
 class SigningResumeTests(unittest.TestCase):

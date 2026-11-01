@@ -26,6 +26,7 @@ import release_update
 import plugin_manager
 import plugin_migration
 import plugin_recovery
+import plugin_repair
 import bootstrap_sources
 import bootstrap_packages
 import bootstrap_build
@@ -203,7 +204,9 @@ def local_release(args, parser):
     if approval is None:
         if args.json or not sys.stdin.isatty():
             raise ValueError('Noninteractive apply requires --approve DIGEST from the exact reviewed plan')
-        if not setup_ui.confirm('  Apply this local release plan?'):
+        prompt = ('  Apply this release plan, including stopping/restarting the recorded bar?'
+                  if args.restart_bar else '  Apply this local release plan?')
+        if not setup_ui.confirm(prompt):
             print('  Cancelled. No release or desktop changes.')
             return 0
         approval = digest
@@ -568,6 +571,37 @@ def build_stage(args):
     return 0
 
 
+def plugin_repair_stage(args):
+    reviewed = plugin_repair.plan(ROOT)
+    digest = guided.digest(reviewed)
+    if args.json:
+        print(json.dumps({'approval': digest, 'plan': reviewed}, indent=2))
+    else:
+        print('  Hyprbars repair: verified enabled plugin missing from the current session.')
+        print('  Verified backups precede one unforced hyprpm reload. Loading native code can crash this session.')
+        for exclusion in reviewed['exclusions']:
+            print('  ' + exclusion)
+        for blocker in reviewed['blockers']:
+            print('  BLOCKED: ' + blocker)
+        print('  Approval digest: ' + digest)
+    if reviewed['blockers']:
+        return 1
+    if not reviewed['changes']:
+        print('  Hyprbars is already loaded; no repair needed.')
+        return 0
+    if not args.apply:
+        return 0
+    if args.json or not sys.stdin.isatty():
+        raise ValueError('Live repair requires an interactive terminal and separate approval')
+    if args.approve is not None and args.approve != digest:
+        raise ValueError('Repair approval differs')
+    if not setup_ui.confirm('  Back up the verified state and load the existing hyprbars now? This can crash your session.'):
+        return 0
+    result = plugin_repair.apply(reviewed, digest)
+    print('  Repair result: ' + result['status'])
+    return 0
+
+
 def plugins_stage(args):
     migrating = args.plugins_migrate
     recovering = args.plugins_recover is not None
@@ -742,6 +776,7 @@ def main(argv=None):
     mode.add_argument('--plugins-migrate', action='store_true', help='Review explicit known legacy hyprpm migration; --apply requires separate repository-replacement consent')
     mode.add_argument('--plugins-recover', type=Path, metavar='JOURNAL', help='Review the exact interrupted PPA-header migration checkpoint; --apply requires separate continuation consent')
     mode.add_argument('--plugins-activate', action='store_true', help='Review hyprpm enable/load; --apply is explicit live plugin activation')
+    mode.add_argument('--plugins-repair', action='store_true', help='Repair only verified enabled-but-unloaded hyprbars; --apply asks separately before live loading')
     mode.add_argument('--packages', action='store_true', help='Plan bootstrap packages using local APT policy; --apply explicitly installs the additive-only transaction')
     parser.add_argument('--keyboard-layout', help='With --session-config: XKB layout list; default keeps the receipt choice or starts with us')
     parser.add_argument('--adopt-managed', action='store_true', help='With --session-config: replace only an untouched omabuntu-managed snippet')
@@ -804,7 +839,7 @@ def main(argv=None):
         parser.error('Build preparation cannot be combined with deployment/saved-system-plan options')
     if any((args.base_only, args.runtime_only, args.plugin_build_only)) and not args.packages:
         parser.error('Package scope flags require --packages')
-    if (args.plugins or args.plugins_activate or args.plugins_migrate or args.plugins_recover) and (args.bundle or args.restart_bar or args.allow_legacy_state):
+    if (args.plugins or args.plugins_activate or args.plugins_migrate or args.plugins_recover or args.plugins_repair) and (args.bundle or args.restart_bar or args.allow_legacy_state):
         parser.error('Plugin stages cannot be combined with release/bar options')
     if args.plan and not system:
         parser.error('--plan is only for --ppa or --packages')
@@ -820,9 +855,9 @@ def main(argv=None):
         parser.error('--approve requires --apply')
     if args.apply and args.check:
         parser.error('--apply and --check cannot be combined')
-    if args.plugins or args.plugins_activate or args.plugins_migrate or args.plugins_recover:
+    if args.plugins or args.plugins_activate or args.plugins_migrate or args.plugins_recover or args.plugins_repair:
         try:
-            return plugins_stage(args)
+            return plugin_repair_stage(args) if args.plugins_repair else plugins_stage(args)
         except (OSError, ValueError, subprocess.SubprocessError) as error:
             print('  Plugin stage blocked: ' + str(error), file=sys.stderr)
             return 1

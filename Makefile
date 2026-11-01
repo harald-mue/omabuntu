@@ -45,6 +45,8 @@ help:
 	@echo '  make plugins-recover JOURNAL=...       review the exact interrupted PPA-header checkpoint'
 	@echo '  make plugins-recover-apply JOURNAL=... backed-up pinned build continuation; no load'
 	@echo '  make plugins-activate                  explicit live hyprbars enable/load; may request sudo'
+	@echo '  make plugins-repair                    review the enabled-but-unloaded hyprbars repair; no load'
+	@echo '  make plugins-repair-apply              one explicit live reload of the verified hyprbars'
 	@echo '  make font                              review the desktop font; no install'
 	@echo '  make acceptance                        read-only stock-install gates'
 	@echo '  make rollback                          review the previous application release'
@@ -132,6 +134,12 @@ plugins-recover-apply:
 
 plugins-activate:
 	./install.sh --plugins-activate --apply --plain
+
+plugins-repair:
+	./install.sh --plugins-repair --plain
+
+plugins-repair-apply:
+	./install.sh --plugins-repair --apply --plain
 
 font:
 	./install.sh --font --plain
