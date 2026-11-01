@@ -254,7 +254,11 @@ for _, key in ipairs({'exec_cmd','global','layout','focus'}) do
   hl.dsp[key] = function(arg) return action(key,arg) end
 end
 hl.monitor = function(t) assert(t.output == '' and t.scale == 1 and t.position == 'auto') end
-hl.config = function(t) assert(t.input.kb_layout == 'de,us') end
+hl.config = function(t)
+  assert(t.input.kb_layout == 'de,us')
+  assert(t.ecosystem.no_donation_nag == true)
+  assert(t.ecosystem.no_update_news == true)
+end
 hl.bind = function(key, fn, options) assert(type(fn)=='table'); bindings[key]={fn=fn, options=options} end
 hl.workspace_rule = function(t) error('No layout file in fixture') end
 io.open = function(path, mode) assert(mode=='r'); return nil end

@@ -9,7 +9,10 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 hl.config({
   misc = { disable_splash_rendering = true, disable_hyprland_logo = true,
            col = { splash = 0x00000000 } },
-  ecosystem = { no_donation_nag = true },
+  -- Suppress the two Hyprland notification popups (plan 067/072): the
+  -- donation nag and the update-news screen, which segfaults through
+  -- Hyprtoolkit/EGL on GPU-less systems.
+  ecosystem = { no_donation_nag = true, no_update_news = true },
   general = { layout = "dwindle", gaps_in = 2, gaps_out = 10, border_size = 2 },
   decoration = { rounding = 8, blur = { enabled = false }, shadow = { enabled = true } },
   dwindle = { preserve_split = true, force_split = 2 },
