@@ -120,8 +120,60 @@ def host_blockers(spec, os_info=None):
     return blockers
 
 
+def matching_development_pins(spec, before, pinned, run):
+    """Review one known header/runtime pair; never select installed changes."""
+    pairs = spec.get('matching_development_versions', {})
+    if pairs not in ({}, {'libudev-dev': 'libudev1'}):
+        raise ValueError('Unsupported development/runtime compatibility mapping')
+    selections, attempts, replacements = [], [], {}
+    held = {name.split(':')[0] for name in before['held']}
+    requested = dict(item.split('=', 1) for item in pinned)
+    for development, library in pairs.items():
+        installed = package_version(before, library)
+        if (development not in requested or not installed or installed == requested[development]
+                or development in held or library in held):
+            continue
+        if not package_plan.VERSION.fullmatch(installed):
+            raise ValueError('Invalid installed compatibility version')
+        probe = run(['apt-cache', 'show', '--no-all-versions', development + '=' + installed], timeout=30)
+        attempt = {'package': development, 'runtime_package': library,
+                   'installed_version': installed, 'metadata_probe': probe}
+        attempts.append(attempt)
+        if probe.get('status') != 'ok':
+            continue
+        fields, current, valid = {}, None, True
+        for line in probe.get('stdout', '').strip().splitlines():
+            if line[:1].isspace() and current:
+                fields[current] += ' ' + line.strip()
+            elif ':' in line and not line[:1].isspace():
+                current, value = line.split(':', 1)
+                if current in fields:
+                    valid = False
+                fields[current] = value.strip()
+            else:
+                valid = False
+        dependency = library + r'(?::amd64)?\s*\(=\s*' + re.escape(installed) + r'\s*\)'
+        if (not valid or fields.get('Package') != development or fields.get('Version') != installed
+                or fields.get('Architecture') != 'amd64'
+                or not any(re.fullmatch(dependency, item.strip())
+                           for item in fields.get('Depends', '').split(','))):
+            attempt['rejected'] = 'Matching package/version/architecture/exact runtime dependency not proven'
+            continue
+        replacements[development] = installed
+        selections.append({'package': development, 'candidate_version': requested[development],
+                           'selected_version': installed, 'runtime_package': library,
+                           'installed_version': installed})
+    adjusted = []
+    for item in pinned:
+        name, version = item.split('=', 1)
+        adjusted.append(name + '=' + replacements.get(name, version))
+    return adjusted, {'selections': selections, 'attempts': attempts}
+
+
 def package_review(wallpaper=False, run=omabuntu.probe, manifest_path=MANIFEST):
     spec, names = manifest(manifest_path, wallpaper)
+    if spec.get('matching_development_versions', {}) not in ({}, {'libudev-dev': 'libudev1'}):
+        raise ValueError('Unsupported development/runtime compatibility mapping')
     before = package_state(run)
     policy = checked(run, ['apt-cache', 'policy', *names])
     candidates = package_plan.parse_policy(policy)
@@ -137,10 +189,24 @@ def package_review(wallpaper=False, run=omabuntu.probe, manifest_path=MANIFEST):
     simulation = ''
     transaction = {'new': [], 'upgraded_or_changed': [], 'removed': []}
     resolved = {}
+    compatibility = None
     if pinned and not blockers:
         simulation = checked(run, ['apt-get', '--simulate', '--no-remove',
                                   '--no-install-recommends', 'install', *pinned], timeout=90)
         transaction = package_plan.summarize_simulation(simulation)
+        if (transaction['upgraded_or_changed'] and not transaction['removed']
+                and spec.get('matching_development_versions')):
+            adjusted, compatibility = matching_development_pins(spec, before, pinned, run)
+            compatibility['candidate_simulation'] = simulation
+            if compatibility['selections']:
+                retry = run(['apt-get', '--simulate', '--no-remove', '--no-install-recommends',
+                             'install', *adjusted], timeout=90)
+                compatibility['matching_simulation'] = retry
+                if retry.get('status') == 'ok':
+                    pinned, simulation = adjusted, retry['stdout']
+                    transaction = package_plan.summarize_simulation(simulation)
+                else:
+                    blockers.append('Matching development package simulation failed; no package changes approved')
         if transaction['removed'] or transaction['upgraded_or_changed']:
             blockers.append('Removals or changes to installed packages are not permitted')
         for line in simulation.splitlines():
@@ -165,7 +231,7 @@ def package_review(wallpaper=False, run=omabuntu.probe, manifest_path=MANIFEST):
                 blockers.append('Solver version differs from reviewed candidate: ' + name)
     return {'manifest_sha256': digest(spec), 'wallpaper': wallpaper,
             'packages': names, 'before': before, 'policy': policy,
-            'pinned': pinned, 'resolved': resolved,
+            'pinned': pinned, 'resolved': resolved, 'compatibility': compatibility,
             'simulation': simulation, 'transaction': transaction,
             'blockers': blockers,
             'status': 'blocked' if blockers else 'review-required'}

@@ -77,6 +77,21 @@ source-build inventory. Installed-package upgrades/removals are still refused.
 A valid APT upgrade line is now reported as a prohibited installed-package
 change, not additionally misreported as an unparseable install line.
 
+The plugin package stage handles one reviewed compatibility case itself. If a
+candidate simulation would change installed packages, it checks whether APT
+provides `libudev-dev` in exactly the installed `libudev1` version. It verifies
+package/version/architecture and the exact runtime dependency, then re-simulates
+with that header version. The package review explicitly shows this older-header
+selection and preserves both simulations and metadata in its private report.
+Only an additions-only result can proceed after the normal package approval;
+apply repeats the complete state/metadata/simulation checks. Held packages,
+unavailable/malformed metadata, failed probes and residual upgrades stay blocked.
+This is not an installed-package downgrade or a general old-version solver; no
+repositories, shared runtime versions, systemd, udev or PAM settings are changed.
+No extra flags or package commands are required from the user: the same
+`install.sh` entry point performs this review. An installed old runtime is not
+thereby updated to a newer security baseline.
+
 Read-only inspection confirmed direct runtime requirements for LayerShellQt,
 libdeflate, jemalloc, libdwarf and libunwind; their runtime packages are explicit.
 The current Ubuntu PPA Hyprland binary links Lua 5.4. The process-scoped Lua 5.4

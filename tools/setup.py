@@ -692,6 +692,12 @@ def system_stage(args):
                              'Full private policy, simulation and before-state are in the printed plan.\nNo blanket upgrade, removals or auto-yes.')
                 console.step(3, 'Native service warning', 'CHECK',
                              'Ubuntu package maintainer scripts may activate system services.\nNo desktop start or explicit service restart is requested.')
+            if args.packages:
+                for choice in (plan['payload'].get('compatibility') or {}).get('selections', []):
+                    console.line('  Matching header: %s=%s (candidate %s); preserves installed %s=%s.' %
+                                 (choice['package'], choice['selected_version'], choice['candidate_version'],
+                                  choice['runtime_package'], choice['installed_version']))
+                    console.line('  Older headers are selected explicitly; this does not update the runtime/security baseline.')
             console.line('  Plan: ' + str(path))
             console.line('  Approval digest: ' + digest)
             for blocker in plan.get('blockers', []):

@@ -49,6 +49,9 @@ def request_manifest(base_only=False, runtime_only=False, plugin_build_only=Fals
     manifest = {'schema_version': 1, 'name': 'omabuntu-local-bundle',
                 'target': runtime['target'], 'groups': {'runtime': names, 'wallpaper': ['hyprpaper']},
                 'limitations': bootstrap['limitations']}
+    if plugin_build_only:
+        # Only this reviewed header/runtime pair may replace a newer candidate.
+        manifest['matching_development_versions'] = {'libudev-dev': 'libudev1'}
     inputs = {'bootstrap': guided.digest(bootstrap), 'runtime': guided.digest(runtime),
               'quickshell': guided.digest(quickshell)}
     return manifest, inputs

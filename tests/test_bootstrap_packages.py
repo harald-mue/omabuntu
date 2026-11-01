@@ -1,4 +1,6 @@
 """Additive bootstrap package tests with an in-memory APT fixture."""
+import contextlib
+import io
 from pathlib import Path
 import sys
 import tempfile
@@ -9,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import bootstrap_packages as packages
 import install as guided
+import setup as frontend
 
 
 class FakeAPT:
@@ -46,6 +49,36 @@ class FakeAPT:
             name, version = request.split('=', 1)
             self.installed[name] = version
         return 0
+
+
+class MatchingHeaderAPT(FakeAPT):
+    def __init__(self, names):
+        plugin, _ = packages.request_manifest(plugin_build_only=True)
+        super().__init__(set(names) | set(plugin['groups']['runtime']))
+        self.versions['libudev-dev'] = '2.0-1'
+        self.installed.pop('libudev-dev', None)
+        self.installed.update(libudev1='1.0-1', systemd='1.0-1')
+        self.metadata = ('Package: libudev-dev\nVersion: 1.0-1\nArchitecture: amd64\n'
+                         'Depends: libudev1 (= 1.0-1)\nDescription: fixture\n')
+        self.metadata_status = 'ok'
+        self.retry_status = 'ok'
+        self.residual_upgrade = False
+
+    def run(self, command, timeout=30):
+        if command[:3] == ['apt-cache', 'show', '--no-all-versions']:
+            self.commands.append(command)
+            return {'status': self.metadata_status, 'returncode': 0 if self.metadata_status == 'ok' else 1,
+                    'stdout': self.metadata, 'stderr': ''}
+        result = super().run(command, timeout)
+        if command[0] == 'apt-get' and '--simulate' in command:
+            if 'libudev-dev=2.0-1' in command:
+                result['stdout'] += ('Inst libudev1 [1.0-1] (2.0-1 Ubuntu [amd64]) [systemd:amd64 ]\n'
+                                     'Inst systemd [1.0-1] (2.0-1 Ubuntu [amd64]) []\n')
+            elif 'libudev-dev=1.0-1' in command:
+                result['status'] = self.retry_status
+                if self.residual_upgrade:
+                    result['stdout'] += 'Inst systemd [1.0-1] (2.0-1 Ubuntu [amd64])\n'
+        return result
 
 
 class BootstrapPackageTests(unittest.TestCase):
@@ -149,6 +182,118 @@ class BootstrapPackageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             packages.apply(plan, guided.digest(plan), run=self.apt.run,
                            execute=lambda _: self.fail('Unexpected sudo'))
+
+    def matching_plan(self):
+        return packages.prepare(self.base / 'matching', run=self.apt.run, plugin_build_only=True)
+
+    def test_plugin_scope_can_pin_headers_matching_unchanged_runtime(self):
+        self.apt = MatchingHeaderAPT(self.apt.versions)
+        before = dict(self.apt.installed)
+        plan = self.matching_plan()
+        self.assertFalse(plan['blockers'])
+        self.assertEqual(plan['payload']['pinned'], ['libudev-dev=1.0-1'])
+        self.assertEqual(plan['payload']['transaction']['upgraded_or_changed'], [])
+        evidence = plan['payload']['compatibility']
+        self.assertIn('Inst systemd', evidence['candidate_simulation'])
+        self.assertEqual(evidence['selections'][0]['candidate_version'], '2.0-1')
+        self.assertEqual(evidence['selections'][0]['selected_version'], '1.0-1')
+        self.assertEqual(self.apt.installed, before)
+        result = packages.apply(plan, guided.digest(plan), run=self.apt.run, execute=self.apt.execute)
+        self.assertEqual(result['status'], 'packages-verified')
+        self.assertEqual(self.apt.installed['libudev-dev'], '1.0-1')
+        self.assertTrue(all(self.apt.installed[name] == version for name, version in before.items()))
+
+    def test_matching_header_selection_is_explicit_in_package_review_ui(self):
+        self.apt = MatchingHeaderAPT(self.apt.versions)
+        plan = self.matching_plan()
+        output = io.StringIO()
+        with patch.object(frontend, 'ROOT', self.base), contextlib.redirect_stdout(output):
+            result = frontend.main(['--packages', '--plugin-build-only', '--plan',
+                                    str(Path(plan['case']) / 'package-plan.json'), '--plain'])
+        self.assertEqual(result, 0)
+        self.assertIn('libudev-dev=1.0-1 (candidate 2.0-1)', output.getvalue())
+        self.assertIn('preserves installed libudev1=1.0-1', output.getvalue())
+        self.assertFalse(any(command[0] == 'sudo' for command in self.apt.commands))
+
+    def test_arbitrary_compatibility_mappings_are_rejected(self):
+        spec, _ = packages.request_manifest(plugin_build_only=True)
+        spec['matching_development_versions'] = {'other-dev': 'libudev1'}
+        path = self.base / 'unsupported-pair.json'
+        guided.user_install.atomic_json(path, spec)
+        with self.assertRaisesRegex(ValueError, 'Unsupported development/runtime'):
+            guided.package_review(run=self.apt.run, manifest_path=path)
+
+    def test_matching_headers_are_not_selected_for_other_package_scopes(self):
+        self.apt = MatchingHeaderAPT(self.apt.versions)
+        spec, _ = packages.request_manifest(plugin_build_only=True)
+        spec.pop('matching_development_versions')
+        path = self.base / 'without-compatibility.json'
+        guided.user_install.atomic_json(path, spec)
+        plan = guided.package_review(manifest_path=path, run=self.apt.run)
+        self.assertTrue(plan['blockers'])
+        self.assertIsNone(plan['compatibility'])
+        self.assertNotIn('matching_development_versions', packages.request_manifest(runtime_only=True)[0])
+        self.assertFalse(any(command[:2] == ['apt-cache', 'show'] for command in self.apt.commands))
+
+    def test_unavailable_matching_header_preserves_the_upgrade_blocker(self):
+        self.apt = MatchingHeaderAPT(self.apt.versions)
+        self.apt.metadata_status = 'failed'
+        plan = self.matching_plan()
+        self.assertTrue(plan['blockers'])
+        self.assertEqual(plan['payload']['compatibility']['selections'], [])
+        self.assertFalse(any(command[0] == 'sudo' for command in self.apt.commands))
+
+    def test_malformed_or_wrong_matching_metadata_is_not_accepted(self):
+        original = MatchingHeaderAPT(self.apt.versions).metadata
+        for metadata in (original.replace('Package: libudev-dev', 'Package: other'),
+                         original.replace('Version: 1.0-1', 'Version: 2.0-1'),
+                         original.replace('Architecture: amd64', 'Architecture: arm64'),
+                         original.replace('libudev1 (= 1.0-1)', 'libudev1 (>= 1.0-1)'),
+                         original.replace('libudev1 (= 1.0-1)', 'libudev1 (= 1.0-1) | other'),
+                         original + '\n' + original):
+            with self.subTest(metadata=metadata):
+                self.apt = MatchingHeaderAPT(self.apt.versions)
+                self.apt.metadata = metadata
+                self.assertTrue(self.matching_plan()['blockers'])
+                self.assertFalse(any(command[0] == 'sudo' for command in self.apt.commands))
+
+    def test_held_matching_runtime_does_not_trigger_compatibility_selection(self):
+        self.apt = MatchingHeaderAPT(self.apt.versions)
+        original = self.apt.run
+        def run(command, timeout=30):
+            result = original(command, timeout)
+            if command == ['apt-mark', 'showhold']:
+                result['stdout'] = 'libudev1\n'
+            return result
+        plan = packages.prepare(self.base / 'held', run=run, plugin_build_only=True)
+        self.assertTrue(plan['blockers'])
+        self.assertEqual(plan['payload']['compatibility']['selections'], [])
+
+    def test_failed_or_still_upgrading_matching_simulation_cannot_apply(self):
+        for failed in (True, False):
+            with self.subTest(failed=failed):
+                self.apt = MatchingHeaderAPT(self.apt.versions)
+                self.apt.retry_status = 'failed' if failed else 'ok'
+                self.apt.residual_upgrade = not failed
+                plan = self.matching_plan()
+                self.assertTrue(plan['blockers'])
+                with self.assertRaises(ValueError):
+                    packages.apply(plan, guided.digest(plan), run=self.apt.run,
+                                   execute=lambda _: self.fail('Unexpected package application'))
+
+    def test_matching_metadata_or_runtime_drift_invalidates_approval(self):
+        for metadata_drift in (True, False):
+            with self.subTest(metadata_drift=metadata_drift):
+                self.apt = MatchingHeaderAPT(self.apt.versions)
+                plan = self.matching_plan()
+                self.assertFalse(plan['blockers'])
+                if metadata_drift:
+                    self.apt.metadata += 'Source: changed\n'
+                else:
+                    self.apt.installed['libudev1'] = '1.0-2'
+                with self.assertRaises(ValueError):
+                    packages.apply(plan, guided.digest(plan), run=self.apt.run,
+                                   execute=lambda _: self.fail('Unexpected package application'))
 
     def test_wrong_approval_cannot_execute(self):
         plan = self.prepare()
