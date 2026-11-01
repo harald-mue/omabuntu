@@ -170,6 +170,31 @@ than the actual active image, so this deployment preserved the live mappings
 without rewriting the record. The user subsequently confirmed that the splash
 text has disappeared; visual acceptance for this change is complete.
 
+## Hyprland-only hyprpaper condition (plan 068)
+
+Ubuntu's package-owned `/usr/lib/systemd/user/hyprpaper.service` only checks
+`ConditionEnvironment=WAYLAND_DISPLAY`, so it also starts in GNOME. hyprpaper is
+a Hyprland tool: with no compositor socket it falls back to standalone KMS/DRM
+output, cannot become the DRM master GNOME holds and crashes (GBM/SIGSEGV).
+
+`config/systemd/hyprpaper-condition.conf` is an **additive** systemd user
+drop-in, deployed to `~/.config/systemd/user/hyprpaper.service.d/omabuntu.conf`
+by `tools/deploy_hyprpaper_condition.py` (`plan` / `apply` / `remove`; apply backs
+up a differing file and needs `--replace`). systemd ANDs conditions of the same
+type across the unit and its drop-ins, so the merged unit keeps the existing
+`WAYLAND_DISPLAY` check and adds `ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE`.
+Hyprland imports that variable itself (`systemctl --user import-environment ...`),
+so hyprpaper starts only in a Hyprland session. The supported steps are
+`make hyprpaper-condition` and rollback `make hyprpaper-condition-remove`.
+
+The tool never touches the package-owned unit and never starts, stops or
+restarts `hyprpaper.service`; `daemon-reload` is the only command it runs. An
+already running GNOME hyprpaper is stopped separately with
+`systemctl --user stop hyprpaper.service`. Because this is a session condition,
+confirm the wallpaper still appears in a real Hyprland login before calling the
+change accepted; a `ConditionPathExistsGlob=%t/hypr/*/.socket.sock` fallback is
+the documented alternative.
+
 ## Prerequisites and installer scope
 
 The low-level `tools/user_install.py` deploys a reviewed user release; it

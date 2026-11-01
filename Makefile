@@ -25,7 +25,8 @@ DEV_VERSION := $(if $(VERSION),$(VERSION),dev-$(shell date -u +%Y%m%dT%H%M%S.%NZ
         plugins plugins-prepare plugins-migrate plugins-migrate-apply plugins-recover plugins-recover-apply plugins-repair plugins-repair-apply plugins-activate artwork artwork-apply font acceptance rollback \
         package preflight plan install update start stop status \
         autostart autostart-plan autostart-remove hypr-settings hypr-settings-plan \
-        hypr-settings-remove reload restart dev-update check-version check-build
+        hypr-settings-remove hyprpaper-condition hyprpaper-condition-plan hyprpaper-condition-remove \
+        reload restart dev-update check-version check-build
 
 help:
 	@echo 'Omabuntu targets:'
@@ -70,6 +71,8 @@ help:
 	@echo '  make hypr-settings-remove              roll the managed settings back'
 	@echo '  make hypr-settings-plan                read-only settings diff'
 	@echo '  make autostart-plan                    read-only unit/helper plan'
+	@echo '  make hyprpaper-condition               add the Hyprland-only hyprpaper condition'
+	@echo '  make hyprpaper-condition-remove        remove that drop-in'
 	@echo '  make reload                            live config reload + error check'
 	@echo '  make restart                           restart only the owned shell'
 	@echo '  make dev-update BUILD_DIR=<stage> [VERSION=<fresh>]  fresh release + managed files + live reload'
@@ -193,6 +196,18 @@ autostart:
 
 autostart-remove:
 	$(PYTHON) tools/deploy_autostart.py remove
+
+# Hyprland-only condition for Ubuntu's hyprpaper user unit (plan 068). An
+# additive systemd user drop-in; it never starts, stops or restarts the unit.
+hyprpaper-condition-plan:
+	$(PYTHON) tools/deploy_hyprpaper_condition.py plan
+
+hyprpaper-condition:
+	$(PYTHON) tools/deploy_hyprpaper_condition.py plan
+	$(PYTHON) tools/deploy_hyprpaper_condition.py apply --replace
+
+hyprpaper-condition-remove:
+	$(PYTHON) tools/deploy_hyprpaper_condition.py remove
 
 # Installer-managed Hyprland settings (splash, logo, donation nag). Apply keeps
 # a backup of the user's hyprland.lua and only adds one require line; it never
