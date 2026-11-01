@@ -105,11 +105,16 @@ the donation nag and the update-news window (`ecosystem.no_donation_nag`,
 without hardware GL, so it is suppressed.
 
 The reviewed file is `config/hypr/omabuntu-managed.lua`; it contains those
-settings, a guarded title-bar plugin registration (plan 020: `hl.plugin.load`
-during the config load, because a `hyprland.start` handler only queues a path
-no later pass reads; the load triggers one config reload), and a loader that
+settings, a guarded title-bar plugin registration for **legacy** bundles
+(plan 020: `hl.plugin.load` during the config load, because a
+`hyprland.start` handler only queues a path no later pass reads; the load
+triggers one config reload), and a loader that
 re-registers saved `scrolling` workspace rules from
-`current/workspace-layouts.txt` before the first window opens. No binds,
+`current/workspace-layouts.txt` before the first window opens. Bundles render
+this snippet per bundle mode at packaging time (plan 071): manager bundles
+(`native/hyprpm.json`) ship it **without** the legacy artifact load, because
+there loading is owned by the explicit activation/login grant. The checkout
+template keeps the guarded legacy load. No binds,
 autostart or monitors. The supported installer step is:
 
 ```sh

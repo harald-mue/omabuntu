@@ -14,6 +14,13 @@ Existing v0.1.0 archives remain unchanged and do not acquire these source fixes.
 Exact revisions and evidence URLs are in [upstream/hyprpm.json](../upstream/hyprpm.json).
 Future compositor versions are not implicitly accepted.
 
+Manager bundles also ship the installer-managed snippet without the legacy
+titlebar artifact load: `config/hypr/omabuntu-managed.lua` is rendered per
+bundle mode at packaging time (plan 071), because loading a bundled
+`~/.local/lib/omabuntu/hyprbars.so` belongs to legacy bundles. In manager
+bundles, plugin loading is owned by the explicit activation/login grant, never
+by a path registered during the config load.
+
 ## The one-command installer
 
 For a new manager-mode release, the public installer offers distinct steps:

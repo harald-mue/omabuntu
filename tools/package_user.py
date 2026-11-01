@@ -110,6 +110,44 @@ def stage_manager_policy(root, destination):
     return data
 
 
+# The legacy titlebar load belongs to legacy bundles (native/hyprbars.so).
+# Manager bundles record the hyprpm policy instead; loading there is owned by
+# the explicit activation/login grant (tools/plugin_login.py). The private
+# `home` binding must survive the replacement: the saved-workspace loader
+# below the block uses it.
+LEGACY_TITLEBAR_LOAD = (
+    '-- Title-bar plugin (plan 020): registering the path during the config load is\n'
+    '-- what makes Hyprland load it. A hyprland.start handler only queues a path\n'
+    '-- that no later pass reads. The load triggers one config reload; the next\n'
+    '-- pass finds the plugin options (docs/hyprbars.md). Guarded, so a release\n'
+    '-- without the artifact keeps parsing.\n'
+    'local home = os.getenv("HOME") or ""\n'
+    'local titlebars = home .. "/.local/lib/omabuntu/hyprbars.so"\n'
+    'local artifact = io.open(titlebars, "r")\n'
+    'if artifact then\n'
+    '  artifact:close()\n'
+    '  hl.plugin.load(titlebars)\n'
+    'end\n'
+)
+MANAGER_TITLEBAR_NOTE = (
+    '-- Title-bar plugin: manager bundles record the reviewed hyprpm policy\n'
+    '-- instead of a bundled artifact path. Loading stays with the explicit\n'
+    '-- activation/login grant (docs/plugin-management.md); nothing is loaded\n'
+    '-- here. The home binding stays; the workspace loader below uses it.\n'
+    'local home = os.getenv("HOME") or ""\n'
+)
+
+
+def managed_snippet(data, *, manager):
+    """Render the managed snippet for one bundle mode; never load anything."""
+    if not manager:
+        return data
+    text = data.decode()
+    if text.count(LEGACY_TITLEBAR_LOAD) != 1:
+        raise ValueError('Managed snippet legacy load witness differs')
+    return text.replace(LEGACY_TITLEBAR_LOAD, MANAGER_TITLEBAR_NOTE).encode()
+
+
 def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None):
     if not isinstance(version, str) or not user_install.VERSION.fullmatch(version):
         raise ValueError('Invalid release version')
@@ -157,12 +195,18 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
         local_images = stage_local_images(ROOT, temporary, assets=image_assets)
         # Record deployable managed configuration with each immutable release.
         # Deployment remains an explicit Make step, never implicit on start.
+        # The managed snippet is rendered per bundle mode (plan 071): manager
+        # bundles ship no legacy artifact load.
+        manager_bundle = plugin_build is None
         for name in ('hypr/omabuntu-managed.lua', 'hypr/hyprpaper.conf', 'hypr/session-template.lua.in', 'hypr/titlebars.lua.in',
                      'systemd/omabuntu-shell.service',
                      'systemd/omabuntu-shell-wait.py'):
             target = temporary / 'config' / name
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes((ROOT / 'config' / name).read_bytes())
+            data = (ROOT / 'config' / name).read_bytes()
+            if name == 'hypr/omabuntu-managed.lua':
+                data = managed_snippet(data, manager=manager_bundle)
+            target.write_bytes(data)
             target.chmod(0o444)
         (temporary / 'manager.py').write_bytes((ROOT / 'tools/user_install.py').read_bytes())
         (temporary / 'manager.py').chmod(0o444)

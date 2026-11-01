@@ -145,3 +145,30 @@ class PublicationCleanupTests(unittest.TestCase):
                         module.main(args)
                 self.assertEqual(error.exception.code, 2)
                 run.assert_not_called(); prepare.assert_not_called(); start.assert_not_called()
+
+
+class ManagedSnippetModeTests(unittest.TestCase):
+    """Plan 071: bundles ship the managed snippet per bundle mode."""
+
+    def setUp(self):
+        self.template = (ROOT / 'config/hypr/omabuntu-managed.lua').read_bytes()
+
+    def test_legacy_mode_ships_the_template_unchanged(self):
+        self.assertEqual(package_user.managed_snippet(self.template, manager=False), self.template)
+
+    def test_manager_mode_ships_no_legacy_artifact_load(self):
+        rendered = package_user.managed_snippet(self.template, manager=True).decode()
+        self.assertNotIn('hl.plugin.load', rendered)
+        self.assertNotIn('/.local/lib/omabuntu/hyprbars.so', rendered)
+        self.assertIn('hyprpm policy', rendered)
+
+    def test_manager_mode_keeps_the_home_binding_and_workspace_loader(self):
+        rendered = package_user.managed_snippet(self.template, manager=True).decode()
+        self.assertIn('local home = os.getenv("HOME")', rendered)
+        self.assertIn('workspace-layouts.txt', rendered)
+        self.assertIn('hl.workspace_rule({ workspace = id, layout = "scrolling" })', rendered)
+        self.assertIn('no_update_news = true', rendered)
+
+    def test_template_drift_is_refused_not_rendered(self):
+        with self.assertRaises(ValueError):
+            package_user.managed_snippet(self.template.replace(b'hl.plugin.load(titlebars)', b'changed'), manager=True)
