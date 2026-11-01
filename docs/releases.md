@@ -34,6 +34,33 @@ The project remains an Ubuntu-native integration, not an Omarchy provisioner.
 GitHub release metadata and verified signed artifacts determine availability;
 this source scope section does not itself claim that v0.1.1 has been published.
 
+### v0.1.6 release scope
+
+Since v0.1.1 the installer stayed the single user entry point and accumulated
+reviewed repairs:
+
+- v0.1.2 keeps setup resumable through that one entry point: a blocked optional
+  plugin-build scope can be deferred without aborting, and the same run continues
+  instead of pointing at a temporary cache.
+- v0.1.3 matches plugin build headers to the installed udev runtime, proving the
+  exact `libudev-dev` version for the installed `libudev1` and re-simulating an
+  additions-only transaction before any package step.
+- v0.1.4 repairs an enabled-but-unloaded hyprbars through `install.sh`, with
+  verified backups and one unforced `hyprpm reload`; JSON or a digest cannot
+  bypass the live prompt.
+- v0.1.5 offers and downloads the pinned Omarchy theme artwork into the private
+  user directory on artwork-free public releases; releases stay artwork-free.
+- v0.1.6 adds per-file progress to that artwork download and suppresses the
+  Hyprland update-news popup, which is drawn through Hyprtoolkit/EGL and
+  segfaults on systems without hardware GL (for example a Q35 VM without 3D
+  acceleration). The popup is a one-time event per Hyprland upgrade.
+
+A clean-VM test of v0.1.5 completed application installation, the private
+artwork download and next-login preparation; the Omabuntu bar rendered in the
+Hyprland session. The two observed crashes (`hyprpaper` in a GNOME session and
+`hyprland-update-screen` after the Hyprland upgrade) both came from
+Hyprtoolkit/EGL tools on a GPU-less VM, not from Omabuntu code.
+
 No blanket APT upgrades/removals, general native-target bypass, automatic private
 profile conversion or legacy login-loader adoption is added. First/repeat login,
 stock-VM dependency closure and a second distinct live application update/rollback
