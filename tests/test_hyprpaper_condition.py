@@ -9,6 +9,8 @@ import unittest
 TOOLS = Path(__file__).resolve().parent.parent / 'tools'
 TEMPLATE = TOOLS.parent / 'config' / 'systemd' / 'hyprpaper-condition.conf'
 DEPLOY = TOOLS / 'deploy_hyprpaper_condition.py'
+sys.path.insert(0, str(TOOLS))
+import deploy_hyprpaper_condition  # noqa: E402
 
 
 def run_tool(args, *, expect=0):
@@ -101,6 +103,59 @@ class DeployToolTests(unittest.TestCase):
     def test_remove_is_safe_when_nothing_is_deployed(self):
         run_tool([*self.base(), 'remove'])
         self.assertEqual(self.commands(), ['--user daemon-reload'])
+
+
+class ReviewDeployTests(unittest.TestCase):
+    """Plan 069 helper API used by the published installer."""
+
+    def setUp(self):
+        self.home = Path(tempfile.mkdtemp(prefix='omabuntu-hyprpaper-api-'))
+        self.addCleanup(shutil.rmtree, self.home, ignore_errors=True)
+        self.log = self.home / 'stub.log'
+        self.stub = self.home / 'systemctl-stub'
+        self.stub.write_text('#!/bin/sh\necho "$*" >> "' + str(self.log) + '"\nexit 0\n')
+        self.stub.chmod(0o755)
+
+    def target(self):
+        return self.home / '.config/systemd/user/hyprpaper.service.d/omabuntu.conf'
+
+    def commands(self):
+        return self.log.read_text().splitlines() if self.log.exists() else []
+
+    def test_review_reports_state_without_writing(self):
+        info = deploy_hyprpaper_condition.review(self.home)
+        self.assertEqual(info['target'], self.target())
+        self.assertFalse(info['exists'])
+        self.assertFalse(info['current'])
+        self.assertFalse(self.target().exists())
+
+    def test_deploy_writes_and_reloads_without_a_backup(self):
+        result = deploy_hyprpaper_condition.deploy(self.home, systemctl_binary=str(self.stub))
+        self.assertTrue(result['changed'])
+        self.assertIsNone(result['backup'])
+        self.assertEqual(self.target().read_text(), TEMPLATE.read_text())
+        self.assertEqual(self.commands(), ['--user daemon-reload'])
+
+    def test_deploy_is_idempotent_and_reloads_nothing_twice(self):
+        deploy_hyprpaper_condition.deploy(self.home, systemctl_binary=str(self.stub))
+        result = deploy_hyprpaper_condition.deploy(self.home, systemctl_binary=str(self.stub))
+        self.assertFalse(result['changed'])
+        self.assertEqual(self.commands(), ['--user daemon-reload'])
+
+    def test_deploy_backs_up_a_differing_file(self):
+        self.target().parent.mkdir(parents=True)
+        self.target().write_text('# mine\n')
+        result = deploy_hyprpaper_condition.deploy(self.home, systemctl_binary=str(self.stub))
+        self.assertTrue(result['changed'])
+        self.assertIsNotNone(result['backup'])
+        self.assertEqual(result['backup'].read_text(), '# mine\n')
+        self.assertEqual(self.target().read_text(), TEMPLATE.read_text())
+
+    def test_deploy_dry_run_writes_nothing(self):
+        result = deploy_hyprpaper_condition.deploy(self.home, systemctl_binary=str(self.stub), dry_run=True)
+        self.assertTrue(result['changed'])
+        self.assertFalse(self.target().exists())
+        self.assertEqual(self.commands(), [])
 
 
 if __name__ == '__main__':

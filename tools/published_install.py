@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 
 import bootstrap_packages
+import deploy_hyprpaper_condition
 import install as guided
 import plugin_manager
 import native_transition
@@ -174,6 +175,28 @@ def offer_artwork(installation):
     print('Theme backgrounds/previews downloaded privately. Menus can list them after this installer run.')
 
 
+def offer_hyprpaper_condition():
+    """Offer the additive Hyprland-only condition for Ubuntu's hyprpaper unit."""
+    try:
+        reviewed = deploy_hyprpaper_condition.review()
+    except (OSError, ValueError) as error:
+        print('Hyprpaper session condition check deferred: ' + str(error))
+        return
+    if reviewed['unit'] is None:
+        return  # The hyprpaper package and its unit are absent; nothing to constrain.
+    if reviewed['current']:
+        return  # Already deployed; never repeat the question.
+    if not ask('Start hyprpaper only in a Hyprland session? Adds a reversible systemd drop-in so it never starts in GNOME; no service is started or stopped'):
+        print('Hyprpaper session condition deferred. hyprpaper keeps starting in every Wayland session.')
+        return
+    try:
+        deploy_hyprpaper_condition.deploy()
+    except (OSError, ValueError) as error:
+        print('Hyprpaper session condition failed; no service was changed: ' + str(error))
+        return
+    print('Hyprpaper session condition deployed; it takes effect at the next login.')
+
+
 def manager_reusable(root, installation):
     if installation.selected() is None:
         return False
@@ -236,6 +259,7 @@ def main():
     print('Application installed. Your personal Hyprland configuration was preserved.')
     print('Generic session and login activation are separate opt-in steps; see docs/installer.md.')
     offer_artwork(installation)
+    offer_hyprpaper_condition()
     if management is not None:
         if manager_reusable(root, installation):
             print('Verified manager build reused; no compiler packages or rebuild are needed.')

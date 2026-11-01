@@ -208,6 +208,28 @@ stay private user data: they are never bundled into a release, published, or
 cleared for redistribution. A release that ships its own artwork is used
 without any private download.
 
+### Hyprland-only hyprpaper condition on published releases
+
+Ubuntu's `hyprpaper.service` only checks `WAYLAND_DISPLAY`, so it also starts
+in GNOME, where hyprpaper has no compositor socket and crashes. After
+installation the published installer offers **one** `[Y/n]` to add a reversible
+systemd user drop-in (`~/.config/systemd/user/hyprpaper.service.d/omabuntu.conf`)
+with `ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE`, so the unit starts only
+in a Hyprland session. The offer is skipped when the hyprpaper unit is absent or
+the drop-in is already current, so it is never a repeated question. It only runs
+`daemon-reload`, backing up a differing file; it never starts, stops or restarts
+the unit, and an already running GNOME instance keeps running until it is
+stopped separately.
+
+```sh
+make hyprpaper-condition          # write the drop-in and reload
+make hyprpaper-condition-remove   # rollback
+```
+
+Declining or failing changes nothing; rerun the same `install.sh` to retry.
+Because this is a session condition, confirm the wallpaper still appears in a
+real Hyprland login before calling it accepted.
+
 ### Session and next login
 
 ```sh

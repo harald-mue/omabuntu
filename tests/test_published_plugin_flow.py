@@ -148,6 +148,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.setup_guide, 'font_stage', return_value={'status': 'done'}), \
              patch.object(published.user_install, 'Installation') as installation, \
              patch.object(published, 'offer_artwork'), \
+             patch.object(published, 'offer_hyprpaper_condition'), \
              patch.object(published, 'ask', return_value=True) as ask, \
              patch.object(published.setup, 'main', return_value=0) as apply:
             installation.return_value.selected.return_value = 'releases/old'
@@ -166,6 +167,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.setup_guide, 'font_stage', return_value={'status': 'done'}), \
              patch.object(published.user_install, 'Installation') as installation, \
              patch.object(published, 'offer_plugin_packages', return_value=False), \
+             patch.object(published, 'offer_hyprpaper_condition'), \
              patch.object(published, 'offer_session') as session, \
              patch.object(published, 'offer_plugins') as plugins, \
              patch.object(published.setup, 'main', return_value=0) as apply:
@@ -196,6 +198,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.plugin_manager, 'plan', return_value={'receipt_before': {'activated': True}, 'blockers': ['enabled']}), \
              patch.object(published.native_transition, 'manager_ready', return_value={'loaded': []}), \
              patch.object(published, 'offer_artwork'), \
+             patch.object(published, 'offer_hyprpaper_condition'), \
              patch.object(published, 'ask') as ask, patch.object(published.setup, 'main', return_value=0) as apply:
             installation.return_value.selected.return_value = 'releases/current'
             installation.return_value.running.return_value = {'pid': 1}
@@ -216,6 +219,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.setup_guide, 'font_stage', return_value={'status': 'done'}), \
              patch.object(published, 'offer_plugin_packages', return_value=True), \
              patch.object(published.user_install, 'Installation') as installation, \
+             patch.object(published, 'offer_hyprpaper_condition'), \
              patch.object(published, 'offer_session') as session, patch.object(published, 'offer_plugins') as plugins, \
              patch.object(published.setup, 'main', return_value=0):
             installation.return_value.selected.return_value = 'releases/old'
@@ -223,6 +227,44 @@ class PublishedPluginFlowTests(unittest.TestCase):
             published.main()
         session.assert_not_called()
         plugins.assert_not_called()
+
+    def test_hyprpaper_condition_skips_when_the_unit_is_absent(self):
+        with patch.object(published.deploy_hyprpaper_condition, 'review', return_value={'unit': None, 'current': False}), \
+             patch.object(published, 'ask') as ask, patch.object(published.deploy_hyprpaper_condition, 'deploy') as deploy:
+            published.offer_hyprpaper_condition()
+        ask.assert_not_called()
+        deploy.assert_not_called()
+
+    def test_hyprpaper_condition_never_repeats_the_question_when_current(self):
+        with patch.object(published.deploy_hyprpaper_condition, 'review', return_value={'unit': Path('/usr/lib/systemd/user/hyprpaper.service'), 'current': True}), \
+             patch.object(published, 'ask') as ask, patch.object(published.deploy_hyprpaper_condition, 'deploy') as deploy:
+            published.offer_hyprpaper_condition()
+        ask.assert_not_called()
+        deploy.assert_not_called()
+
+    def test_hyprpaper_condition_asks_once_and_deploys(self):
+        with patch.object(published.deploy_hyprpaper_condition, 'review', return_value={'unit': Path('/usr/lib/systemd/user/hyprpaper.service'), 'current': False}), \
+             patch.object(published, 'ask', return_value=True) as ask, \
+             patch.object(published.deploy_hyprpaper_condition, 'deploy', return_value={'changed': True, 'backup': None}) as deploy:
+            published.offer_hyprpaper_condition()
+        ask.assert_called_once()
+        deploy.assert_called_once_with()
+        self.assertIn('takes effect at the next login', self.stream.getvalue())
+
+    def test_hyprpaper_condition_decline_preserves_every_wayland_session(self):
+        with patch.object(published.deploy_hyprpaper_condition, 'review', return_value={'unit': Path('/usr/lib/systemd/user/hyprpaper.service'), 'current': False}), \
+             patch.object(published, 'ask', return_value=False), \
+             patch.object(published.deploy_hyprpaper_condition, 'deploy') as deploy:
+            published.offer_hyprpaper_condition()
+        deploy.assert_not_called()
+        self.assertIn('every Wayland session', self.stream.getvalue())
+
+    def test_hyprpaper_condition_failure_does_not_touch_the_service(self):
+        with patch.object(published.deploy_hyprpaper_condition, 'review', return_value={'unit': Path('/usr/lib/systemd/user/hyprpaper.service'), 'current': False}), \
+             patch.object(published, 'ask', return_value=True), \
+             patch.object(published.deploy_hyprpaper_condition, 'deploy', side_effect=ValueError('unsafe')):
+            published.offer_hyprpaper_condition()
+        self.assertIn('no service was changed', self.stream.getvalue())
 
     def test_skip_keyboard_choice_preserves_profile_without_an_extra_yes_no(self):
         with patch.object(published.session_config, 'require_stopped'), \

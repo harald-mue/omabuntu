@@ -83,6 +83,46 @@ def systemctl(binary, user_args, *, dry=False):
         raise ValueError('systemctl --user ' + user_args[0] + ' failed with ' + str(result.returncode))
 
 
+def review(home=None):
+    """Return the drop-in state without writing anything."""
+    home = check_path(home or os.path.expanduser('~'))
+    target = target_path(home)
+    text = load_template()
+    exists = target.exists() or target.is_symlink()
+    current = False
+    if exists and not target.is_symlink() and target.is_file():
+        try:
+            current = target.read_text() == text
+        except OSError:
+            current = False
+    return {'home': home, 'target': target, 'text': text,
+            'unit': base_unit_present(), 'exists': exists, 'current': current}
+
+
+def deploy(home=None, *, systemctl_binary=SYSTEMCTL, dry_run=False):
+    """Non-interactive apply for the published installer.
+
+    Writes or refreshes the drop-in (backing up a differing file) and runs the
+    daemon-reload only. Never starts, stops or restarts the unit. Returns
+    {'changed': bool, 'backup': Path or None}.
+    """
+    info = review(home)
+    target = info['target']
+    if info['exists'] and (target.is_symlink() or not target.is_file()):
+        raise ValueError('Unsafe existing drop-in: ' + str(target))
+    if info['current']:
+        return {'changed': False, 'backup': None}
+    backup = None
+    if info['exists'] and not dry_run:
+        backup = target.with_name(target.name + '.bak-' + stamp())
+        shutil.copy2(target, backup)
+    if not dry_run:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(info['text'])
+    systemctl(systemctl_binary, ['daemon-reload'], dry=dry_run)
+    return {'changed': True, 'backup': backup}
+
+
 def plan(args):
     home = check_path(args.home)
     target = target_path(home)
