@@ -9,6 +9,8 @@ import deploy_hyprpaper_condition
 import install as guided
 import plugin_manager
 import native_transition
+import repair_gnome_buttons
+import retire_legacy_titlebars
 import session_activation
 import session_config
 import user_artwork
@@ -197,6 +199,54 @@ def offer_hyprpaper_condition():
     print('Hyprpaper session condition deployed; it takes effect at the next login.')
 
 
+def offer_gnome_buttons_repair():
+    """Offer restoring the Ubuntu default GNOME window-button layout (plan 074).
+
+    Silent when the key is already the default or gsettings is absent; the
+    repair concerns only this one GNOME key and is recorded before it runs.
+    """
+    try:
+        reviewed = repair_gnome_buttons.review()
+    except (OSError, ValueError) as error:
+        print('GNOME button-layout check deferred: ' + str(error))
+        return
+    if not reviewed['repair_needed']:
+        return  # Already the Ubuntu default; never repeat the question.
+    if not ask('Restore the Ubuntu default window buttons (minimize, maximize, close) in GNOME? Reversible; records the current value first; one GNOME key only'):
+        print('GNOME button layout left unchanged.')
+        return
+    try:
+        repair_gnome_buttons.apply()
+    except (OSError, ValueError) as error:
+        print('GNOME button-layout restore failed; nothing was recorded or changed: ' + str(error))
+        return
+    print('GNOME button layout restored to the Ubuntu default; existing windows may need a restart to redraw their buttons.')
+
+
+def offer_legacy_titlebars_retirement():
+    """Offer retiring the legacy private hyprbars wiring (plan 075).
+
+    Silent when the entry configuration has no legacy wiring; the managed
+    carrier then already owns the titlebar rules alone.
+    """
+    try:
+        reviewed = retire_legacy_titlebars.review()
+    except (OSError, ValueError) as error:
+        print('Legacy titlebar retirement check deferred: ' + str(error))
+        return
+    if not reviewed['entry_exists'] or not (reviewed['require_line'] or reviewed['handler']):
+        return
+    if not ask('Retire the legacy private hyprbars rules wiring? Removes the duplicated rules source with backups; the managed carrier keeps the titlebar rules; no reload'):
+        print('Legacy titlebar wiring kept. Floating workspaces keep duplicated titlebar buttons after the next activation.')
+        return
+    try:
+        retire_legacy_titlebars.apply()
+    except (OSError, ValueError) as error:
+        print('Legacy titlebar retirement failed; nothing was changed: ' + str(error))
+        return
+    print('Legacy titlebar wiring retired with backups; the managed carrier owns the titlebar rules now.')
+
+
 def manager_reusable(root, installation):
     if installation.selected() is None:
         return False
@@ -260,6 +310,8 @@ def main():
     print('Generic session and login activation are separate opt-in steps; see docs/installer.md.')
     offer_artwork(installation)
     offer_hyprpaper_condition()
+    offer_gnome_buttons_repair()
+    offer_legacy_titlebars_retirement()
     if management is not None:
         if manager_reusable(root, installation):
             print('Verified manager build reused; no compiler packages or rebuild are needed.')

@@ -26,6 +26,8 @@ DEV_VERSION := $(if $(VERSION),$(VERSION),dev-$(shell date -u +%Y%m%dT%H%M%S.%NZ
         package preflight plan install update start stop status \
         autostart autostart-plan autostart-remove hypr-settings hypr-settings-plan \
         hypr-settings-remove hyprpaper-condition hyprpaper-condition-plan hyprpaper-condition-remove \
+        gnome-buttons gnome-buttons-plan gnome-buttons-rollback \
+        legacy-titlebars legacy-titlebars-plan legacy-titlebars-rollback \
         reload restart dev-update check-version check-build
 
 help:
@@ -73,6 +75,10 @@ help:
 	@echo '  make autostart-plan                    read-only unit/helper plan'
 	@echo '  make hyprpaper-condition               add the Hyprland-only hyprpaper condition'
 	@echo '  make hyprpaper-condition-remove        remove that drop-in'
+	@echo '  make gnome-buttons                      restore the Ubuntu default GNOME window buttons'
+	@echo '  make gnome-buttons-rollback             restore the recorded previous button layout'
+	@echo '  make legacy-titlebars                   retire the legacy private hyprbars wiring'
+	@echo '  make legacy-titlebars-rollback          restore the retired wiring'
 	@echo '  make reload                            live config reload + error check'
 	@echo '  make restart                           restart only the owned shell'
 	@echo '  make dev-update BUILD_DIR=<stage> [VERSION=<fresh>]  fresh release + managed files + live reload'
@@ -208,6 +214,30 @@ hyprpaper-condition:
 
 hyprpaper-condition-remove:
 	$(PYTHON) tools/deploy_hyprpaper_condition.py remove
+
+# GNOME session repair (plan 074): restore the Ubuntu default window-button
+# layout. One gsettings key, recorded before the change; rollback restores it.
+gnome-buttons-plan:
+	$(PYTHON) tools/repair_gnome_buttons.py plan
+
+gnome-buttons:
+	$(PYTHON) tools/repair_gnome_buttons.py plan
+	$(PYTHON) tools/repair_gnome_buttons.py apply
+
+gnome-buttons-rollback:
+	$(PYTHON) tools/repair_gnome_buttons.py rollback
+
+# Legacy private titlebar retirement (plan 075): the managed carrier owns
+# the rules; apply removes the duplicated private wiring with backups.
+legacy-titlebars-plan:
+	$(PYTHON) tools/retire_legacy_titlebars.py plan
+
+legacy-titlebars:
+	$(PYTHON) tools/retire_legacy_titlebars.py plan
+	$(PYTHON) tools/retire_legacy_titlebars.py apply
+
+legacy-titlebars-rollback:
+	$(PYTHON) tools/retire_legacy_titlebars.py rollback
 
 # Installer-managed Hyprland settings (splash, logo, donation nag). Apply keeps
 # a backup of the user's hyprland.lua and only adds one require line; it never

@@ -34,6 +34,14 @@ class TemplateTests(unittest.TestCase):
         self.contains('WantedBy=graphical-session.target')
         self.contains('Slice=session.slice')
 
+    def test_starts_only_in_a_hyprland_session(self):
+        # Plan 074: WAYLAND_DISPLAY holds in GNOME too, so the wait helper
+        # would fail there and Ubuntu's fumon turns the failed unit into a
+        # popup. Hyprland imports HYPRLAND_INSTANCE_SIGNATURE into the user
+        # manager before the session target activates; GNOME skips silently.
+        self.contains('ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE')
+        self.assertEqual(self.text.count('ConditionEnvironment='), 2)
+
     def test_pure_autostart_shape(self):
         self.contains('Type=oneshot')
         self.contains('ExecStart=%h/.local/bin/omabuntu start')

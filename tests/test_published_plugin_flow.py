@@ -149,6 +149,8 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.user_install, 'Installation') as installation, \
              patch.object(published, 'offer_artwork'), \
              patch.object(published, 'offer_hyprpaper_condition'), \
+             patch.object(published, 'offer_gnome_buttons_repair'), \
+             patch.object(published, 'offer_legacy_titlebars_retirement'), \
              patch.object(published, 'ask', return_value=True) as ask, \
              patch.object(published.setup, 'main', return_value=0) as apply:
             installation.return_value.selected.return_value = 'releases/old'
@@ -168,6 +170,8 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.user_install, 'Installation') as installation, \
              patch.object(published, 'offer_plugin_packages', return_value=False), \
              patch.object(published, 'offer_hyprpaper_condition'), \
+             patch.object(published, 'offer_gnome_buttons_repair'), \
+             patch.object(published, 'offer_legacy_titlebars_retirement'), \
              patch.object(published, 'offer_session') as session, \
              patch.object(published, 'offer_plugins') as plugins, \
              patch.object(published.setup, 'main', return_value=0) as apply:
@@ -199,6 +203,8 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published.native_transition, 'manager_ready', return_value={'loaded': []}), \
              patch.object(published, 'offer_artwork'), \
              patch.object(published, 'offer_hyprpaper_condition'), \
+             patch.object(published, 'offer_gnome_buttons_repair'), \
+             patch.object(published, 'offer_legacy_titlebars_retirement'), \
              patch.object(published, 'ask') as ask, patch.object(published.setup, 'main', return_value=0) as apply:
             installation.return_value.selected.return_value = 'releases/current'
             installation.return_value.running.return_value = {'pid': 1}
@@ -220,6 +226,8 @@ class PublishedPluginFlowTests(unittest.TestCase):
              patch.object(published, 'offer_plugin_packages', return_value=True), \
              patch.object(published.user_install, 'Installation') as installation, \
              patch.object(published, 'offer_hyprpaper_condition'), \
+             patch.object(published, 'offer_gnome_buttons_repair'), \
+             patch.object(published, 'offer_legacy_titlebars_retirement'), \
              patch.object(published, 'offer_session') as session, patch.object(published, 'offer_plugins') as plugins, \
              patch.object(published.setup, 'main', return_value=0):
             installation.return_value.selected.return_value = 'releases/old'

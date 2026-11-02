@@ -9,12 +9,18 @@
 # Use `omabuntu stop` for an identity-checked manual shell stop.
 # ExecStartPre only waits until the live instance lock is listed. It is not
 # a shell lifetime and it does not restart a shell that exits later.
+# Hyprland sessions only (plan 074): WAYLAND_DISPLAY holds in GNOME too, so
+# the wait helper would fail there and Ubuntu's failure monitor turns the
+# failed unit into a popup. Hyprland imports HYPRLAND_INSTANCE_SIGNATURE into
+# the user manager before the session target activates; systemd ANDs the
+# conditions, so GNOME skips this unit silently (the plan-068 pattern).
 [Unit]
 Description=Omabuntu shell login autostart hand-off
 PartOf=graphical-session.target
 Requires=graphical-session.target
 After=graphical-session.target
 ConditionEnvironment=WAYLAND_DISPLAY
+ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
 
 [Service]
 Type=oneshot
