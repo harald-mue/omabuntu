@@ -7,115 +7,100 @@
           Your Ubuntu. Reimagined.
 ```
 
-An Ubuntu-native Hyprland desktop integration with the Omarchy bar, menus and
-selected panels, adapted for Ubuntu. Keep Ubuntu, GNOME and your personal
-configuration — install and update Omabuntu without building it yourself.
-
-## Prefer Omarchy if you can
+An Ubuntu-native Hyprland desktop integration: the Omarchy bar, menus and
+selected panels, adapted for Ubuntu. It keeps Ubuntu, GNOME and your personal
+configuration — install and update it without building anything yourself.
 
 > **Omabuntu is not a replacement for [Omarchy](https://omarchy.org/).**
-> Omarchy offers a broader feature set and is the better choice for most users
-> looking for the Omarchy experience. If you are free to choose your distribution,
-> use Omarchy instead.
->
-> Omabuntu exists primarily for people who are required to use Ubuntu LTS,
-> particularly in corporate environments. It aims to recreate selected Omarchy
-> behavior and workflows within those constraints — not to match every feature
-> or replace the original project.
+> Omarchy offers the broader feature set and is the better choice when you can
+> choose your distribution. Omabuntu exists for people who must use Ubuntu LTS,
+> particularly in corporate environments, and recreates selected Omarchy
+> behavior within those constraints. It does not match every feature and is not
+> affiliated with or endorsed by the Omarchy project.
 
 ## Install
 
-**Target: Ubuntu 26.04 · x86_64**
-
-Open a terminal and run this as your normal user, **not with sudo**:
+**Ubuntu 26.04 · x86_64.** Run this as your normal user — never with sudo:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-**Status:** v0.1.0 is published, but **fresh-machine installation is not yet
-accepted**. Its VM test exposed dependency and Hyprland-version blockers. Source
-fixes do not change the existing release archive.
-See [GitHub Releases](https://github.com/harald-mue/omabuntu/releases).
+The latest release is **[v0.1.8](https://github.com/harald-mue/omabuntu/releases)**;
+the next release will be v0.1.9.
+The installer downloads it, verifies the publisher signature and archive
+checksums before extraction, and asks before installing missing prerequisites
+or switching the application. Updates ask separately before restarting a
+running bar.
 
-No Git checkout, Makefile or local compilation is needed. The installer:
+You need `curl`, Python 3 and `ssh-keygen` (OpenSSH client) for the bootstrap.
+The installer checks native compatibility of the required Hyprland and Qt
+packages and refuses incompatible versions instead of upgrading your system
+silently.
 
-1. Downloads the latest published release for Ubuntu 26.04 x86_64.
-2. Checks the publisher signature and archive checksums before extraction.
-3. Asks before installing missing prerequisites and switching the application.
-4. Asks separately before restarting a running Omabuntu bar during an update.
+### Your desktop stays yours
 
-You need `curl`, Python 3 and `ssh-keygen` (OpenSSH client) for the initial
-bootstrap. Compatible Hyprland and Qt packages are also required; the installer
-checks native compatibility and refuses incompatible versions rather than
-silently upgrading your system.
+- Your personal `hyprland.lua` is never replaced or merged automatically.
+- Package changes require approval; there are no blanket upgrades, automatic
+  logouts or reboots.
+- GNOME remains fully available. Omabuntu's services and settings never affect
+  a GNOME session: its units start only under Hyprland, and no global GNOME
+  setting is changed.
 
-### Your existing desktop stays yours
+Installing the application does not finish a new Hyprland session setup.
+Generic session configuration, plugin loading at next login and login
+autostart are separate opt-in steps. The installer prints the retained
+directory and the next step after download; details are in the
+[session setup guide](docs/installer.md#session-and-next-login). An existing
+personal profile is deliberately left alone — that is not an install failure.
 
-Your personal `hyprland.lua` is not replaced or merged automatically. Package
-changes require approval; there are no blanket upgrades, automatic logouts or
-reboots. GNOME remains available.
-
-Installing the application does **not** finish a new Hyprland session setup.
-Generic session configuration, plugin loading at next login and login autostart
-are separate opt-in steps. Follow the [session setup guide](docs/installer.md#session-and-next-login)
-using the retained installer directory printed after download. An existing
-personal profile is deliberately left alone; that is not an application install
-failure.
-
-### Prefer to inspect the script first?
+### Inspect the script first
 
 ```bash
 curl -fsSLo omabuntu-install.sh https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh
-# Read omabuntu-install.sh before running it.
+# Read omabuntu-install.sh, then:
 bash omabuntu-install.sh
 ```
 
-The initial bootstrap trusts GitHub HTTPS. Downloaded release archives additionally
-require the publisher signature. For the trust model, public-key fingerprint and
-immutable bootstrap pinning, see [release verification](docs/releases.md#trust-model).
+The bootstrap trusts GitHub HTTPS; release archives additionally require the
+publisher signature. For the trust model and key fingerprint, see
+[release verification](docs/releases.md#trust-model).
 
-## Update
+## Update and rollback
 
-**Run the same command again:**
+Run the same command again. It downloads the latest published release and asks
+before switching. No Git checkout or `git pull` is needed; your preferences and
+private configuration stay, and the previous release remains installed for
+rollback.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
-```
+Rollback and recovery of interrupted updates are documented in the
+[installation guide](docs/installer.md#release-install-and-update). Rolling back
+the application does not undo APT package changes.
 
-It downloads the latest **published GitHub Release** and asks before switching.
-You do not need Git or `git pull`. Your preferences and private configuration are
-kept, and the previous application release remains available for rollback.
+## What you get
 
-For rollback and interrupted-update recovery, see the
-[installation and recovery guide](docs/installer.md#release-install-and-update).
-Application rollback does not undo APT package changes.
+- The Quickshell bar with application launcher, command menu, calendar and
+  desktop panels.
+- Per-workspace tiling, scrolling and floating, with layout persistence.
+- Floating-workspace titlebars (close, maximize, minimize) through hyprbars,
+  loaded automatically at login once granted.
+- Versioned installation, signature-verified updates and rollback.
 
-## What is included?
+Titlebars come from separately approved hyprpm preparation rather than a
+bundled plugin library; see [plugin management](docs/plugin-management.md).
+Theme background images are excluded from public releases because their
+redistribution rights are not cleared. Third-party code and fonts keep their
+own license notices.
 
-- Quickshell bar, application launcher, command menu, calendar and desktop panels.
-- Per-workspace tiling, scrolling and floating state persistence.
-- Versioned application installation, verified updates and rollback.
-- Separately approved session and login integration.
+**Target: Hyprland 0.57.0 and Qt 6.10.2 on Ubuntu 26.04.** This is an
+integration of selected original components — not the unmodified Omarchy shell
+and not an Arch installer. Tests passing does not by itself establish
+functional or security acceptance on your hardware.
 
-New source builds delegate hyprbars to separately approved hyprpm preparation
-and activation instead of shipping a compositor-specific plugin library. Existing
-v0.1.0 artifacts are unchanged. See [plugin management and current limits](docs/plugin-management.md).
+## For developers
 
-Public release builds exclude theme background images because their redistribution
-rights are not cleared. Third-party code and fonts retain their license notices.
-
-New builds target **Hyprland 0.57.0 and Qt 6.10.2 on Ubuntu 26.04**.
-The 0.57 APIs are source-reviewed; clean-VM and native acceptance are still outstanding.
-This is an integration of selected original components, not the unmodified full
-Omarchy shell or an Arch installer. Stock-machine installation and native-login
-acceptance are still in progress; successful tests do not establish functional
-or security acceptance on your hardware.
-
-## For developers and release maintainers
-
-Most users should use the installation command above. A source checkout is for
-local development and publication:
+Most users only need the installation command above. A checkout is for local
+development and release publication:
 
 ```bash
 git clone https://github.com/harald-mue/omabuntu.git
@@ -123,37 +108,35 @@ cd omabuntu
 make help
 make build                    # prepare a local development bundle
 make guide                    # review local installation stages
+make test                     # unit suite
 ```
 
-Maintainers can publish a versioned release after publisher-key and GitHub access
-setup:
+Maintainers publish a signed release after setting up the publisher key and
+GitHub access:
 
 ```bash
-make release VERSION=0.1.1
+make release VERSION=0.1.9
 ```
 
-This asks before committing changes, builds the committed source without theme
-artwork, creates checksums and a signature, and asks again before pushing the
-commit/tag and publishing on GitHub. It does not install or restart the desktop.
-New files must be reviewed and staged explicitly. See
-[publishing releases](docs/releases.md) for prerequisites and failure recovery.
+This asks before committing, builds the committed source without theme
+artwork, creates checksums and a signature, and asks again before pushing and
+publishing. It never installs or restarts a desktop. See
+[publishing releases](docs/releases.md) for prerequisites and recovery.
 
-Run `make test` for the unit suite. For detailed development work, see
-[runtime builds](docs/runtime-build.md), [dependencies](docs/dependencies.md),
-[testing](docs/testing.md) and [clean-source verification](docs/clean-source.md).
-Keep private configuration, keys, diagnostics, backups and build outputs out of
-Git; `work/` is private working material, not release content.
+Further reading: [runtime builds](docs/runtime-build.md),
+[dependencies](docs/dependencies.md), [testing](docs/testing.md) and
+[clean-source verification](docs/clean-source.md). Keep private configuration,
+keys, diagnostics, backups and build outputs out of Git — `work/` is private
+working material, not release content.
 
-## Documentation and licensing
+## Documentation
 
 - [Installer and session setup](docs/installer.md)
 - [Releases, signing and verification](docs/releases.md)
-- [Capabilities](docs/capability-matrix.md), [compatibility](docs/compatibility.md)
-  and [lock readiness](docs/lock-readiness.md)
+- [Plugin management](docs/plugin-management.md) and [titlebars](docs/hyprbars.md)
+- [Capabilities](docs/capability-matrix.md) and [compatibility](docs/compatibility.md)
 - [Architecture](docs/architecture.md) and [workspace modes](docs/workspace-modes.md)
 - [Upstream provenance](upstream/README.md) and [third-party notices](THIRD_PARTY_NOTICES.md)
-- [Publication checklist](docs/publication.md)
 
 Original Omabuntu code and documentation use the [MIT License](LICENSE).
-Third-party components retain their own notices and licenses. No affiliation
-with or endorsement by Omarchy or its authors is claimed.
+Third-party components retain their own notices and licenses.
