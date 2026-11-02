@@ -26,8 +26,8 @@ configuration — install and update it without building anything yourself.
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-The latest release is **[v0.1.8](https://github.com/harald-mue/omabuntu/releases)**;
-the next release will be v0.1.9. fresh-machine installation is not yet
+The latest release is **[v0.1.9](https://github.com/harald-mue/omabuntu/releases)**;
+the next release will be v0.1.10. fresh-machine installation is not yet
 accepted. The installer downloads it, verifies the publisher signature and
 archive checksums before extraction, and asks before installing missing
 prerequisites or switching the application. Updates ask separately before
@@ -121,7 +121,7 @@ Maintainers publish a signed release after setting up the publisher key and
 GitHub access:
 
 ```bash
-make release VERSION=0.1.9
+make release VERSION=0.1.10
 ```
 
 This asks before committing, builds the committed source without theme
