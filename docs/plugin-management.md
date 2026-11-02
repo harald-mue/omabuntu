@@ -222,6 +222,24 @@ plugins cause refusal rather than mutation. If the plugin was already loaded,
 normal configuration loading already applied the rules; the helper does not
 append duplicate buttons.
 
+The `hyprland.start` event fires on the first rendered frame, at the same moment
+the shell manager (`omabuntu start`, autostart unit) holds the exclusive control
+lock for its wallpaper restore and shell spawn. The helper refuses a busy lock
+by design and `exec_cmd` discards its output, so the rendered handler spawns a
+shell wrapper that retries the unchanged helper once per second for up to twelve
+seconds until the lock window passes (plan 073 follow-up). Only the spawned
+command waits; the helper and its checks are byte-identical.
+
+Since plan 073 this grant also covers a private Hyprland profile without a
+generic session module: the installer-owned managed snippet
+(`omabuntu-managed.lua`) is then the activation carrier (a guarded `dofile` of
+`omabuntu-activation.lua`), and the activation stage contributes only the
+activation and titlebar files. The profile's own wallpaper, unit and wait files
+stay with their separate deployments, and the snippet unit-enablement is not
+changed by the activation. A stale managed snippet or an entry without the
+managed include blocks the grant rather than shipping a carrier that never
+runs.
+
 There are no builds, downloads, enable/disable commands, sudo, whole-config
 reloads, crash supervision or desktop-component lifetime timers at login. The
 one-shot IPC operations are bounded, not the lifetime of the loaded plugin.

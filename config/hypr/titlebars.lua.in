@@ -7,6 +7,18 @@ if not hl.plugin.hyprbars then
   return
 end
 
+-- One application per Lua state (plan 073): after the login load, the
+-- helper's eval and the plugin-triggered config pass can arrive in either
+-- order, and one state can include this file through both the generic
+-- session module and the managed snippet. Buttons are cleared before every
+-- config reload and re-added per pass, so a second application inside the
+-- same state would duplicate the button row. The plugin check stays first:
+-- a state without the plugin applies nothing and sets no flag.
+if omabuntu_titlebars_applied then
+  return
+end
+omabuntu_titlebars_applied = true
+
 -- The reviewed plugins have no per-button window placeholder; focus happens first.
 local window = [[window = "activewindow"]]
 local minimize_cmd = @MINIMIZE_COMMAND@

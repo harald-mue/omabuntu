@@ -20,23 +20,26 @@ hl.config({
   ecosystem = { no_donation_nag = true, no_update_news = true },
 })
 
--- Title-bar plugin (plan 020): registering the path during the config load is
--- what makes Hyprland load it. A hyprland.start handler only queues a path
--- that no later pass reads. The load triggers one config reload; the next
--- pass finds the plugin options (docs/hyprbars.md). Guarded, so a release
--- without the artifact keeps parsing.
-local home = os.getenv("HOME") or ""
-local titlebars = home .. "/.local/lib/omabuntu/hyprbars.so"
-local artifact = io.open(titlebars, "r")
-if artifact then
-  artifact:close()
-  hl.plugin.load(titlebars)
+-- Title-bar plugin (plan 073): a config-time hl.plugin.load registration is
+-- discarded before the compositor creates its plugin system, so it never
+-- loaded hyprbars at login on any reviewed Hyprland version. The persistent
+-- login load is owned by the separately granted activation file
+-- omabuntu-activation.lua (written with --session-activate
+-- --enable-plugin-login): its hyprland.start handler execs the release
+-- helper that runs the receipt-checked hyprpm reload. Guarded, so a release
+-- without that file keeps parsing and loads nothing.
+local confighome = (os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config"))
+local activation = confighome .. "/hypr/omabuntu-activation.lua"
+local granted = io.open(activation, "r")
+if granted then
+  granted:close()
+  dofile(activation)
 end
 
 -- Saved workspace layouts (plan 020), written by the switcher eval. Tiled
 -- rules are re-registered here, before the first window opens. Floating has
 -- no compositor rule: the switcher re-claims its windows from the same file.
-local layouts = io.open(((os.getenv("XDG_STATE_HOME") or (home .. "/.local/state"))
+local layouts = io.open(((os.getenv("XDG_STATE_HOME") or ((os.getenv("HOME") or "") .. "/.local/state"))
   .. "/omabuntu/current/workspace-layouts.txt"), "r")
 if layouts then
   for line in layouts:lines() do

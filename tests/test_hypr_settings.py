@@ -1,4 +1,6 @@
 """Plan 018 installer-managed Hyprland settings checks."""
+import ctypes
+import ctypes.util
 from pathlib import Path
 import subprocess
 import sys
@@ -38,12 +40,19 @@ class ManagedTemplateTests(unittest.TestCase):
         self.assertIn('no_donation_nag = true', self.text)
         self.assertIn('no_update_news = true', self.text)
 
-    def test_loads_the_titlebar_plugin_at_config_time(self):
-        # Plan 020: only this guarded load; no other plugin route.
-        self.assertIn('hl.plugin.load(titlebars)', self.text)
-        self.assertIn('"/.local/lib/omabuntu/hyprbars.so"', self.text)
-        self.assertIn('local artifact = io.open(titlebars, "r")', self.text)
-        self.assertEqual(self.text.count('hl.plugin.load'), 1)
+    def test_dofiles_only_the_granted_activation_file(self):
+        # Plan 073: a config-time hl.plugin.load registration is discarded
+        # before the compositor creates its plugin system, so the snippet has
+        # no plugin route of its own. The persistent login load belongs to
+        # the separately granted activation file; only this guarded dofile.
+        self.assertIn('dofile(activation)', self.text)
+        self.assertIn('"/hypr/omabuntu-activation.lua"', self.text)
+        self.assertIn('local granted = io.open(activation, "r")', self.text)
+        self.assertEqual(self.text.count('dofile'), 1)
+        code = '\n'.join(line for line in self.text.splitlines()
+                         if not line.lstrip().startswith('--'))
+        self.assertNotIn('hl.plugin.load', code)
+        self.assertNotIn('hyprbars.so', code)
 
     def test_restores_saved_workspace_layouts(self):
         self.assertIn('workspace-layouts.txt', self.text)
@@ -168,6 +177,65 @@ class DeployToolTests(unittest.TestCase):
     def test_missing_configuration_is_an_error(self):
         self.config.unlink()
         run_tool(['apply'], expect=2, home=self.home)
+
+
+class ManagedSnippetLuaTests(unittest.TestCase):
+    """Execute the managed snippet with a mock compositor API (plan 073)."""
+
+    @classmethod
+    def setUpClass(cls):
+        name = ctypes.util.find_library('lua5.4')
+        if not name:
+            raise unittest.SkipTest('Snippet execution needs the Lua 5.4 library')
+        cls.lua = ctypes.CDLL(name)
+        cls.lua.luaL_newstate.restype = ctypes.c_void_p
+        cls.lua.luaL_openlibs.argtypes = [ctypes.c_void_p]
+        cls.lua.luaL_loadstring.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+        cls.lua.lua_pcallk.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_ssize_t, ctypes.c_void_p]
+        cls.lua.lua_tolstring.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
+        cls.lua.lua_tolstring.restype = ctypes.c_char_p
+        cls.lua.lua_close.argtypes = [ctypes.c_void_p]
+
+    def run_lua(self, script):
+        state = self.lua.luaL_newstate()
+        try:
+            self.lua.luaL_openlibs(state)
+            result = self.lua.luaL_loadstring(state, script.encode())
+            if result == 0:
+                result = self.lua.lua_pcallk(state, 0, 0, 0, 0, None)
+            if result:
+                message = self.lua.lua_tolstring(state, -1, None)
+                self.fail(message.decode() if message else 'Lua execution failed')
+        finally:
+            self.lua.lua_close(state)
+
+    def test_missing_activation_and_layouts_load_nothing(self):
+        self.run_lua(
+            'configured = {}\n'
+            'hl = {config = function(t) configured[#configured + 1] = t end,\n'
+            '       workspace_rule = function(t) error("no saved layout") end}\n'
+            'io.open = function(path, mode) assert(mode == "r"); return nil end\n'
+            'dofile = function(path) error("nothing may load") end\n'
+            + TEMPLATE.read_text()
+            + '\nassert(#configured == 1)\n'
+            'assert(configured[1].misc.disable_splash_rendering == true)\n'
+            'assert(configured[1].ecosystem.no_donation_nag == true)\n'
+            'assert(configured[1].ecosystem.no_update_news == true)\n')
+
+    def test_present_activation_is_dofiled_exactly_once(self):
+        self.run_lua(
+            'dofiles = {}\n'
+            'local function handle() return {close = function() end} end\n'
+            'hl = {config = function() end, workspace_rule = function() end}\n'
+            'io.open = function(path, mode)\n'
+            '  assert(mode == "r")\n'
+            '  if path:find("omabuntu-activation.lua", 1, true) then return handle() end\n'
+            '  return nil\n'
+            'end\n'
+            'dofile = function(path) dofiles[#dofiles + 1] = path end\n'
+            + TEMPLATE.read_text()
+            + '\nassert(#dofiles == 1)\n'
+            'assert(dofiles[1]:find("/hypr/omabuntu-activation.lua", 1, true))\n')
 
 
 if __name__ == '__main__':

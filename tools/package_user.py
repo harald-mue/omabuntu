@@ -110,42 +110,39 @@ def stage_manager_policy(root, destination):
     return data
 
 
-# The legacy titlebar load belongs to legacy bundles (native/hyprbars.so).
-# Manager bundles record the hyprpm policy instead; loading there is owned by
-# the explicit activation/login grant (tools/plugin_login.py). The private
-# `home` binding must survive the replacement: the saved-workspace loader
-# below the block uses it.
-LEGACY_TITLEBAR_LOAD = (
-    '-- Title-bar plugin (plan 020): registering the path during the config load is\n'
-    '-- what makes Hyprland load it. A hyprland.start handler only queues a path\n'
-    '-- that no later pass reads. The load triggers one config reload; the next\n'
-    '-- pass finds the plugin options (docs/hyprbars.md). Guarded, so a release\n'
-    '-- without the artifact keeps parsing.\n'
-    'local home = os.getenv("HOME") or ""\n'
-    'local titlebars = home .. "/.local/lib/omabuntu/hyprbars.so"\n'
-    'local artifact = io.open(titlebars, "r")\n'
-    'if artifact then\n'
-    '  artifact:close()\n'
-    '  hl.plugin.load(titlebars)\n'
+# Plan 073: the managed snippet ships identical bytes in both bundle modes.
+# It never loads a plugin itself: a config-time hl.plugin.load registration is
+# discarded before the compositor creates its plugin system. The persistent
+# login load is owned by the separately granted activation file
+# (omabuntu-activation.lua, written with --session-activate
+# --enable-plugin-login), which this carrier dofiles. Legacy bundles with a
+# native artifact and manager bundles with the hyprpm policy differ only in
+# the activation file the installer renders, not in this snippet.
+ACTIVATION_CARRIER = (
+    '-- Title-bar plugin (plan 073): a config-time hl.plugin.load registration is\n'
+    '-- discarded before the compositor creates its plugin system, so it never\n'
+    '-- loaded hyprbars at login on any reviewed Hyprland version. The persistent\n'
+    '-- login load is owned by the separately granted activation file\n'
+    '-- omabuntu-activation.lua (written with --session-activate\n'
+    '-- --enable-plugin-login): its hyprland.start handler execs the release\n'
+    '-- helper that runs the receipt-checked hyprpm reload. Guarded, so a release\n'
+    '-- without that file keeps parsing and loads nothing.\n'
+    'local confighome = (os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config"))\n'
+    'local activation = confighome .. "/hypr/omabuntu-activation.lua"\n'
+    'local granted = io.open(activation, "r")\n'
+    'if granted then\n'
+    '  granted:close()\n'
+    '  dofile(activation)\n'
     'end\n'
-)
-MANAGER_TITLEBAR_NOTE = (
-    '-- Title-bar plugin: manager bundles record the reviewed hyprpm policy\n'
-    '-- instead of a bundled artifact path. Loading stays with the explicit\n'
-    '-- activation/login grant (docs/plugin-management.md); nothing is loaded\n'
-    '-- here. The home binding stays; the workspace loader below uses it.\n'
-    'local home = os.getenv("HOME") or ""\n'
 )
 
 
 def managed_snippet(data, *, manager):
-    """Render the managed snippet for one bundle mode; never load anything."""
-    if not manager:
-        return data
+    """Ship the mode-neutral managed snippet; never load anything."""
     text = data.decode()
-    if text.count(LEGACY_TITLEBAR_LOAD) != 1:
-        raise ValueError('Managed snippet legacy load witness differs')
-    return text.replace(LEGACY_TITLEBAR_LOAD, MANAGER_TITLEBAR_NOTE).encode()
+    if text.count(ACTIVATION_CARRIER) != 1:
+        raise ValueError('Managed snippet activation carrier witness differs')
+    return data
 
 
 def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None):

@@ -65,9 +65,20 @@ def render(root, app, selected, plugin):
             'dofile(' + json.dumps(str(titlebar_path), ensure_ascii=False) + ')\n'
         )
         if plugin.get('login_enabled'):
-            command = shlex.join(['/usr/bin/env', 'PYTHONDONTWRITEBYTECODE=1',
+            helper = shlex.join(['/usr/bin/env', 'PYTHONDONTWRITEBYTECODE=1',
                                   '/usr/bin/python3', str(release / 'helpers/plugin_login.py')])
+            # Plan 073 login race: the handler fires on the first rendered
+            # frame, right when the shell manager (`omabuntu start`, started
+            # by the autostart unit) holds the exclusive control lock for its
+            # wallpaper restore and shell spawn. The helper refuses a busy
+            # lock by design and exec_cmd discards its output, so a collision
+            # silently skips the login load. The shell wrapper retries the
+            # unchanged helper until the lock window passes; nothing else.
+            command = shlex.join(['/bin/sh', '-c',
+                                   'for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do '
+                                   + helper + ' && exit 0; sleep 1; done'])
             activation_text += ('-- Explicit persistent grant; no builds or sudo at login.\n'
+                                '-- The wrapper only waits out the shell manager control lock.\n'
                                 'hl.on("hyprland.start", function()\n'
                                 '  hl.exec_cmd(' + json.dumps(command, ensure_ascii=False) + ')\nend)\n')
     wallpaper = (root / 'config/hypr/hyprpaper.conf').read_text()
@@ -130,9 +141,8 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
         raise ValueError('Invalid previous plugin login grant')
     if session_config.pending(app) or pending(app):
         blockers.append('Interrupted session or activation transaction requires review')
-    if not session_paths['receipt'].is_file():
-        blockers.append('Prepare the generic session before activation')
-    else:
+    generic = session_paths['receipt'].is_file()
+    if generic:
         receipt = user_install.read_json(session_paths['receipt'])
         module = session_paths['module']
         guard = 'dofile(' + json.dumps(str(paths['activation']), ensure_ascii=False) + ')'
@@ -140,6 +150,26 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
                 or session_config.state(module).get('sha256') != receipt.get('module_sha256')
                 or guard not in module.read_text()):
             blockers.append('Session module has no current activation guard; reapply --session-config')
+    else:
+        # Private profile (plan 073): no generic session module exists, so the
+        # installer-owned managed snippet is the activation carrier. Its
+        # deployed bytes must match the current template (which contains the
+        # guarded activation dofile), and the entry must still require it,
+        # or the granted activation would never run at login.
+        managed = session_paths['entry'].with_name('omabuntu-managed.lua')
+        template = root / 'config/hypr/omabuntu-managed.lua'
+        if (not managed.is_file() or not template.is_file()
+                or managed.read_bytes() != template.read_bytes()):
+            blockers.append('Managed snippet differs from the current template; redeploy the managed settings first')
+        elif (not session_paths['entry'].is_file()
+              or session_config.MANAGED_INCLUDE not in session_paths['entry'].read_text()):
+            blockers.append('Entry configuration does not require the managed snippet; no activation carrier')
+        elif 'require("hyprbars")' in session_paths['entry'].read_text():
+            # Plan 075: a private rules file wired this way duplicates the
+            # carrier's titlebar buttons in one config pass. It must be
+            # retired first (the install.sh offer or make legacy-titlebars),
+            # so the grant cannot create the double-button state.
+            blockers.append('Legacy private titlebar wiring duplicates the carrier rules; retire it first')
     app.require_settled()
     selected = app.selected()
     descriptor = None
@@ -167,6 +197,12 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
             'activation_path': paths['activation'], 'titlebar_path': paths['titlebars'],
             'manager': descriptor.get('manager'), 'login_enabled': desired_plugin})
         library = rendered.pop('library')
+        if not generic:
+            # A private profile owns its wallpaper, unit and wait files
+            # through their separate reviewed deployments; this stage only
+            # contributes the granted activation and its titlebars.
+            for name in ('wallpaper', 'unit', 'wait'):
+                rendered.pop(name)
         payload = rendered
         if desired_plugin and descriptor.get('manager') != 'hyprpm':
             blockers.append('Plugin login grant requires a manager-only bundle; migrate legacy activation explicitly')
@@ -180,24 +216,25 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
             else:
                 if actual != descriptor.get('library_sha256'):
                     blockers.append('Plugin bytes differ from the ABI descriptor')
-        try:
-            still = wallpaper_record.default_still(release)
-        except (OSError, ValueError) as error:
-            blockers.append(str(error))
-            still = None
-        recorded = app.state / 'current/background.json'
-        recorded_state = session_config.state(recorded)
-        if still is not None and not recorded_state['existed']:
-            lock = recorded.with_name('lock-background')
-            lock_present = lock.exists() or lock.is_symlink()
-            if lock_present:
-                blockers.append('Existing lock background without a wallpaper record requires separate review')
-            wallpaper = {'path': str(recorded), 'before': recorded_state,
-                         'bytes': wallpaper_record.record(still), 'still': str(still), 'lock_before_existed': lock_present}
+        if generic:
+            try:
+                still = wallpaper_record.default_still(release)
+            except (OSError, ValueError) as error:
+                blockers.append(str(error))
+                still = None
+            recorded = app.state / 'current/background.json'
+            recorded_state = session_config.state(recorded)
+            if still is not None and not recorded_state['existed']:
+                lock = recorded.with_name('lock-background')
+                lock_present = lock.exists() or lock.is_symlink()
+                if lock_present:
+                    blockers.append('Existing lock background without a wallpaper record requires separate review')
+                wallpaper = {'path': str(recorded), 'before': recorded_state,
+                             'bytes': wallpaper_record.record(still), 'still': str(still), 'lock_before_existed': lock_present}
     if previous and (not isinstance(previous, dict) or previous.get('schema_version') != 1
                      or not isinstance(previous.get('files'), dict)):
         raise ValueError('Activation receipt differs; manual review required')
-    owned = ('activation', 'titlebars', 'wallpaper', 'unit', 'wait')
+    owned = ('activation', 'titlebars') if not generic else ('activation', 'titlebars', 'wallpaper', 'unit', 'wait')
     for name in owned:
         if before[name]['existed'] and (not previous or before[name]['sha256'] != previous.get('files', {}).get(name)):
             blockers.append('Existing ' + name + ' file is not installer-owned')
@@ -211,7 +248,14 @@ def plan(root=ROOT, home=None, enable_login=None, plugin_check=None, login_probe
             blockers.append('Login-unit probe failed: ' + str(error))
     if enable_login is not None and type(enable_login) is not bool:
         raise ValueError('Login enablement choice must be boolean')
+    if not generic and enable_login is not None:
+        blockers.append('Private profile shell-unit enablement is owned by the autostart deployment; not changed here')
     desired = previous.get('login_enabled') if previous and enable_login is None else enabled if enable_login is None else enable_login
+    if not generic:
+        # The shell unit of a private profile belongs to its own reviewed
+        # autostart deployment; the activation stage records the observed
+        # enablement instead of changing or verifying it here.
+        desired = enabled
     changes = []
     if payload:
         changes = [name for name, data in payload.items()

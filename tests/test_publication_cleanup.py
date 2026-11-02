@@ -156,19 +156,26 @@ class ManagedSnippetModeTests(unittest.TestCase):
     def test_legacy_mode_ships_the_template_unchanged(self):
         self.assertEqual(package_user.managed_snippet(self.template, manager=False), self.template)
 
-    def test_manager_mode_ships_no_legacy_artifact_load(self):
-        rendered = package_user.managed_snippet(self.template, manager=True).decode()
-        self.assertNotIn('hl.plugin.load', rendered)
-        self.assertNotIn('/.local/lib/omabuntu/hyprbars.so', rendered)
-        self.assertIn('hyprpm policy', rendered)
+    def test_manager_mode_ships_the_same_mode_neutral_snippet(self):
+        # Plan 073: both bundle modes ship identical bytes; the managed
+        # snippet never loads a plugin and only dofies the granted carrier.
+        self.assertEqual(package_user.managed_snippet(self.template, manager=True), self.template)
 
-    def test_manager_mode_keeps_the_home_binding_and_workspace_loader(self):
+    def test_both_modes_ship_no_artifact_load_and_one_carrier(self):
+        rendered = self.template.decode()
+        self.assertNotIn('hl.plugin.load', '\n'.join(
+            line for line in rendered.splitlines() if not line.lstrip().startswith('--')))
+        self.assertNotIn('hyprbars.so', rendered)
+        self.assertEqual(rendered.count('dofile(activation)'), 1)
+        self.assertIn('omabuntu-activation.lua', rendered)
+
+    def test_workspace_loader_is_self_contained(self):
         rendered = package_user.managed_snippet(self.template, manager=True).decode()
-        self.assertIn('local home = os.getenv("HOME")', rendered)
         self.assertIn('workspace-layouts.txt', rendered)
         self.assertIn('hl.workspace_rule({ workspace = id, layout = "scrolling" })', rendered)
         self.assertIn('no_update_news = true', rendered)
+        self.assertNotIn('local home = ', rendered)
 
     def test_template_drift_is_refused_not_rendered(self):
         with self.assertRaises(ValueError):
-            package_user.managed_snippet(self.template.replace(b'hl.plugin.load(titlebars)', b'changed'), manager=True)
+            package_user.managed_snippet(self.template.replace(b'dofile(activation)', b'changed'), manager=True)

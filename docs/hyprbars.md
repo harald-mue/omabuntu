@@ -191,11 +191,48 @@ maximise, and dock restore on disposable windows remains required. The dock's
 Minimize/Maximize menu remains an intentional deviation until titlebar acceptance.
 
 Autostart and persistent configuration remain separate backed-up approval gates.
-No automatic plugin load is configured. **Loading this pinned plugin itself calls
+The login load below is the persistent grant; autostart of the bar unit stays
+with its own deployment. **Loading this pinned plugin itself calls
 `HyprlandAPI::reloadConfig()`**, even when invoked through `hyprctl plugin load`.
 Plugin replacement therefore requires configuration-reload approval and recovery
 of runtime-only bindings, tags and rules; it is not a reload-free operation.
 See [dependencies](dependencies.md) for build prerequisites.
+
+## Login load through the managed activation carrier (plan 073)
+
+Source review of the pinned Hyprland 0.56.2 and 0.57.0 found that a config-time
+`hl.plugin.load` registration is silently discarded at login in both versions:
+`initManagers(STAGE_PRIORITY)` runs the first full config pass before
+`g_pPluginSystem` exists, and `handlePluginLoads()` returns early without it.
+The managed snippet therefore no longer registers any plugin path, and the
+`hyprland.start` handler registration from the plan-020 era is dead code.
+Only the dispatch route loads at login: an external process running
+`hyprpm reload` on the enabled, receipted plugin.
+
+The persistent login load is the explicit grant documented in
+[plugin-management](plugin-management.md): `--session-activate
+--enable-plugin-login` writes `omabuntu-activation.lua` and
+`omabuntu-titlebars.lua` plus the `session-activation.json` receipt, and the
+activation file's `hyprland.start` handler execs the release helper that runs
+the receipt-checked `hyprpm reload`. The event fires on the first rendered
+frame, while the shell manager holds the exclusive control lock; the handler
+therefore spawns a shell wrapper that retries the unchanged helper once per
+second until the lock window passes (plan 073 follow-up). Since plan 073 a
+private Hyprland profile
+without a generic session module can receive this grant too: the managed
+snippet `config/hypr/omabuntu-managed.lua` is the activation carrier then, and
+the activation stage writes only the activation and titlebar files instead of
+wallpaper, unit and wait files, which stay with their own deployments. Both
+bundle modes ship the identical, mode-neutral snippet (`package_user.py`).
+
+`config/hypr/titlebars.lua.in` applies the rules once per Lua state
+(`omabuntu_titlebars_applied`): after the login load the helper's
+`hyprctl eval` and the plugin-triggered config pass can arrive in either order,
+and one state can include the titlebars through both the generic session module
+and the managed snippet. hyprbars clears its buttons on every config reload and
+re-adds them per pass, so without the flag the button row would be duplicated.
+The flag is set only after the plugin check; a state without the plugin applies
+nothing.
 
 ## Verification and rollback limitations
 
@@ -219,14 +256,35 @@ compositor crash. Do not purge the manager cache as routine rollback.
 ## Client-side decoration buttons (Chrome/GTK, session setting)
 
 Chrome/Chromium and GTK CSD apps draw their own min/max/close buttons from
-the GNOME `org.gnome.desktop.wm.preferences button-layout` key; the Ubuntu
-default `appmenu:minimize,maximize,close` made Chrome paint all three in
-tiling. The pinned Omarchy commit ships no handling for this (no windowrule,
-no button-layout write in `omarchy-theme-set-gnome`), so on 2026-10-25 the
-session value was set to `appmenu` at the user's request. The empty right
-side removes those buttons in every CSD app of this Hyprland session, not
-only Chrome; windows close via keybinds, and floating workspaces will get
-server-side titlebar buttons from hyprbars once it is loaded (see above).
-The previous value and the restore command are recorded in
-`work/window-buttons/20261025T221259Z/record.json`. No Hyprland config file
-was touched.
+the GNOME `org.gnome.desktop.wm.preferences button-layout` key. On
+2026-10-25 the session value was set to `appmenu` at the user's request (the
+empty right side removed the buttons in Hyprland tiling). **That key is
+session-global: it also stripped the buttons from every GNOME session**
+(2026-11-02 finding), which breaks the project rule that Omabuntu never
+breaks GNOME. Plan 074 reverted it: `tools/repair_gnome_buttons.py`
+(`make gnome-buttons`) restores the recorded pre-change value
+`appmenu:minimize,maximize,close` **only where the exact damage signature
+`appmenu` is present** (recorded first, rollback included), and
+`install.sh` offers the same repair through
+`offer_gnome_buttons_repair()`. Any other value — the stock schema default
+(`appmenu:close` on Ubuntu 26.04) or a user layout — is left untouched.
+
+Trade-off in Hyprland: CSD apps paint their min/max/close buttons again in
+tiling, matching stock GNOME. `make gnome-buttons-rollback` restores the
+recorded value. The pre-change state is recorded in
+`work/window-buttons/20261025T221259Z/record.json`; no Hyprland config file
+was ever touched for this.
+
+## Retiring the legacy private wiring (plan 075)
+
+When the granted carrier owns the titlebar rules, a private
+`require("hyprbars")` rules file and the dead `hyprland.start` handler in
+the entry configuration register the same three buttons twice in one
+config pass (six buttons on floating workspaces). The session-activation
+stage refuses a private profile carrying that wiring, and
+`tools/retire_legacy_titlebars.py` (`make legacy-titlebars`) removes the
+two exact matched blocks from the entry (backed up) and retires the
+private rules file by renaming it; `install.sh` offers the same retirement
+(`offer_legacy_titlebars_retirement`), silent when nothing matches.
+Unknown handler shapes are refused, not guessed. A running Hyprland reads
+the retirement at its next config reload.
