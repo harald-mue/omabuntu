@@ -20,18 +20,18 @@ configuration — install and update it without building anything yourself.
 
 ## Install
 
-**Ubuntu 26.04 · x86_64.** Run this as your normal user — never with sudo:
+**Ubuntu 26.04 · x86_64.** Run this as your normal user, not with sudo:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
 The latest release is **[v0.1.8](https://github.com/harald-mue/omabuntu/releases)**;
-the next release will be v0.1.9.
-The installer downloads it, verifies the publisher signature and archive
-checksums before extraction, and asks before installing missing prerequisites
-or switching the application. Updates ask separately before restarting a
-running bar.
+the next release will be v0.1.9. fresh-machine installation is not yet
+accepted. The installer downloads it, verifies the publisher signature and
+archive checksums before extraction, and asks before installing missing
+prerequisites or switching the application. Updates ask separately before
+restarting a running bar.
 
 You need `curl`, Python 3 and `ssh-keygen` (OpenSSH client) for the bootstrap.
 The installer checks native compatibility of the required Hyprland and Qt
@@ -57,7 +57,8 @@ personal profile is deliberately left alone — that is not an install failure.
 ### Inspect the script first
 
 ```bash
-curl -fsSLo omabuntu-install.sh https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh
+curl -fsSLo omabuntu-install.sh \
+  https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh
 # Read omabuntu-install.sh, then:
 bash omabuntu-install.sh
 ```
@@ -66,12 +67,17 @@ The bootstrap trusts GitHub HTTPS; release archives additionally require the
 publisher signature. For the trust model and key fingerprint, see
 [release verification](docs/releases.md#trust-model).
 
-## Update and rollback
+## Update
 
-Run the same command again. It downloads the latest published release and asks
-before switching. No Git checkout or `git pull` is needed; your preferences and
-private configuration stay, and the previous release remains installed for
-rollback.
+Run the same command again:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
+```
+
+It downloads the latest published release and asks before switching. No Git
+checkout or `git pull` is needed; your preferences and private configuration
+stay, and the previous release remains installed for rollback.
 
 Rollback and recovery of interrupted updates are documented in the
 [installation guide](docs/installer.md#release-install-and-update). Rolling back
