@@ -8,6 +8,8 @@ import QtQml
 QtObject {
   property var focusedWorkspace: ({id:3})
   property var workspaces: ({values:[]})
+  signal rawEvent(var event)
+  readonly property QtObject toplevels: QtObject { property var values: [] }
   property var activeToplevel: ({title:"Fixture title"})
   readonly property bool usingLua: true
   function dispatch(command) { throw new Error("No startup dispatch allowed"); }

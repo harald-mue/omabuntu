@@ -31,6 +31,7 @@ Item {
   property string identityText: ""
   property string dnsProvider: "DHCP"
   property string pendingDnsProvider: ""
+  readonly property string dnsEffective: pendingDnsProvider !== "" ? pendingDnsProvider : dnsProvider
   property bool customDnsOpen: false
   property string bandCurrent: ""
   property string bandSelected: "auto"

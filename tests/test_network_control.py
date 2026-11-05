@@ -19,7 +19,7 @@ class NetworkControlTests(unittest.TestCase):
         self.assertEqual(files["NetworkControlView.qml"].decode(), output)
         self.assertEqual(meta["upstream"]["NetworkControlView.qml"]["stage_transform"], "network-control-frontend-v1")
         self.assertEqual(meta["upstream"]["Ui/PanelActionButton.qml"]["stage_transform"], "none")
-        hero_start, hero_end = "      // ---------- Hero:", "      Column {\n        visible: root.hasCaptivePortal\n"
+        hero_start, hero_end = "      // ---------- Hero:", "      Button {\n        id: portalAction\n"
         hero = network_frontend.between(source.decode(), hero_start, hero_end)
         self.assertEqual(output.count(hero), 1)
         self.assertEqual(output.count("visible: root.hasCaptivePortal"), 1)

@@ -285,7 +285,8 @@ NetworkPanelController {
             textFormat: Text.PlainText
             width: parent.width
             text: {
-              if (root.hasCaptivePortal) return Commons.I18n.t("network.signInRequiredHeader")
+              // The sign-in button right below already says what a portal needs.
+              if (root.hasCaptivePortal) return ""
               if (root.restricted) return Commons.I18n.t("network.limitedAccessHeader")
               if (root.info.type === "wifi") {
                 if (root.canDisconnect) return root.connectionPhrase.toUpperCase()
@@ -308,41 +309,25 @@ NetworkPanelController {
 
       }
 
-      Column {
+      Button {
+        id: portalAction
         visible: root.hasCaptivePortal
         width: parent.width
-        spacing: Style.space(6)
-
-        Button {
-          id: portalAction
-          width: parent.width
-          text: Commons.I18n.t("network.openCaptivePortal")
-          iconText: "󰏌"
-          foreground: root.bar.urgent
-          accent: root.bar.urgent
-          fontFamily: root.bar.fontFamily
-          verticalPadding: Style.space(10)
-          bordered: true
-          active: true
-          hasCursor: root.cursorActive && root.focusSection === "portal"
-          onHovered: function(on) {
-            if (!on) return
-            root.cursorActive = true
-            root.focusSection = "portal"
-          }
-          onClicked: root.openCaptivePortal()
+        text: Commons.I18n.t("network.openCaptivePortal")
+        iconText: "󰏌"
+        foreground: root.bar.urgent
+        accent: root.bar.urgent
+        fontFamily: root.bar.fontFamily
+        verticalPadding: Style.space(10)
+        bordered: true
+        active: true
+        hasCursor: root.cursorActive && root.focusSection === "portal"
+        onHovered: function(on) {
+          if (!on) return
+          root.cursorActive = true
+          root.focusSection = "portal"
         }
-
-        Text {
-          width: parent.width
-          text: Commons.I18n.t("network.captivePortalHelp")
-          textFormat: Text.PlainText
-          wrapMode: Text.WordWrap
-          color: root.bar.foreground
-          opacity: 0.7
-          font.family: root.bar.fontFamily
-          font.pixelSize: Style.font.bodySmall
-        }
+        onClicked: root.openCaptivePortal()
       }
 
       // Wi-Fi band selection. Only on Wi-Fi, and only when the network answers
@@ -823,7 +808,7 @@ NetworkPanelController {
     // Map the panel's domain semantics onto Button's structural props:
     // `current DNS` is the pill's `active` fill; the keyboard cursor lights
     // up `hasCursor`.
-    active: root.dnsProvider === provider
+    active: root.dnsEffective === provider
     hasCursor: root.cursorActive && root.focusSection === "dns" && root.dnsIndex === index
 
     onHovered: function(isHovered) {

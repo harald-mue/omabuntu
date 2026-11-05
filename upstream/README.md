@@ -1,13 +1,18 @@
 # Upstream provenance policy
 
 Selected unchanged sources under [vendor/omarchy/](../vendor/omarchy/README.md)
-are the pure clock model, the spacer/base pair, and the clock label plus its
-button/glyph presentation, with full MIT notice and per-file provenance in
-[widget-candidates.json](widget-candidates.json), [spacer-candidate.json](spacer-candidate.json),
-and [clock-preview.json](clock-preview.json). The sealed clock label is a derived
-read-only extraction. The live calendar is a separate derivation of the pinned
-clock panel, not the unmodified IPC parent. No original bar, full shell, helpers,
-fonts, assets or binaries are included. The [source lock](source-lock.json)
+now target Omarchy **v4.5.0 stable**, commit
+`ac2690cd7be4f47e4a255f5e2e78d904d436b068`. These include original shared UI,
+clock/calendar, tray, network, weather, desktop-panel and dock parents/models,
+plus narrow source-derived bar/frame/tooltip surfaces. Full MIT notice and
+per-file provenance are in [widget-candidates.json](widget-candidates.json),
+[spacer-candidate.json](spacer-candidate.json) and [clock-preview.json](clock-preview.json).
+The sealed clock label remains read-only; live component derivations retain
+reviewed Ubuntu backend boundaries. The workspace-toggle script is reference
+source only, never staged or executed. The full upstream shell/service registry,
+helpers and native Arch binaries are not activated or staged. Independently
+reviewed artwork/assets have separate provenance and are not silently repinned.
+See the [stable update report](../docs/omarchy-450-update.md). The [source lock](source-lock.json)
 records verified build-source download metadata. Other downloaded source, build
 outputs, staged binaries, and logs remain private under ignored work/. They are not automatically licensed under the project's MIT
 License; upstream licenses and source obligations still apply.
@@ -18,8 +23,9 @@ It is research metadata, not a build input or authorization to apply the patch.
 See the [shell audit](../docs/shell-audit.md) for its Qt-version-specific meaning,
 original-shell provenance gaps, and unsafe startup/helper boundaries.
 
-[Original Omarchy source metadata](omarchy-source.json) pins the source commit
-by matching all captured shell files to its Git tree. The complete upstream MIT
+[Original Omarchy source metadata](omarchy-source.json) pins the stable component
+source commit; its explicitly labeled rc1 reference-package comparison is
+historical evidence, not a claim that the separate reference package was updated. The complete upstream MIT
 notice is retained in [licenses/Omarchy-MIT.txt](../licenses/Omarchy-MIT.txt).
 This is not blanket clearance for assets, datasets, derived components or
 supplemental helpers. See the [source/gate evidence](../docs/shell-gate.md) for

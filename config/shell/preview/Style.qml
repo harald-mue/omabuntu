@@ -10,6 +10,8 @@ QtObject {
   readonly property int gapsOut: 10
   readonly property real fontScale: 1
   readonly property color hoverFill: Qt.rgba(0.792, 0.800, 0.800, 0.08)
+  // Omarchy 4.5.0 Commons/Style.qml ease-out curve (MIT).
+  readonly property var easeOut: [0.23, 1.0, 0.32, 1.0, 1.0, 1.0]
   readonly property bool reduceMotion: false
   readonly property var styleOverrides: Object.freeze({})
   readonly property int normalBorderWidth: 1

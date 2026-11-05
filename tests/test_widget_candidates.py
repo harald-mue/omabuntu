@@ -245,10 +245,10 @@ class ClockModelContracts(unittest.TestCase):
 
     def test_metrics_exit_and_diagnostics_strict(self):
         case = clock.CASES[0]
-        output = 'Configuration Loaded\nDEBUG qml: OMABUNTU_CLOCK_OK::utc {"assertions":221,"timezone":"UTC"}\n'
+        output = 'Configuration Loaded\nDEBUG qml: OMABUNTU_CLOCK_OK::utc {"assertions":229,"timezone":"UTC"}\n'
         self.assertTrue(clock.classify(case, 0, output))
         for code, value in ((None, output), (-11, output), (255, output),
-                            (0, output.replace("221", "220")), (0, output.replace('"UTC"', '"wrong"')),
+                            (0, output.replace("229", "228")), (0, output.replace('"UTC"', '"wrong"')),
                             (0, output + output), (0, output.replace("Configuration Loaded", ""))):
             self.assertFalse(clock.classify(case, code, value))
         for level in ("WARN", "ERROR", "FATAL", "CRITICAL"):

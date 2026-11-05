@@ -3,34 +3,36 @@
   "status": "dependency-reviewed-ui-blocked",
   "source": {
     "repository": "https://github.com/omacom/omarchy",
-    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
+    "commit": "ac2690cd7be4f47e4a255f5e2e78d904d436b068"
   },
   "candidates": [
     {
       "id": "omarchy.bar",
       "source_path": "shell/plugins/bar/Bar.qml",
-      "sha256": "33f359bfba0cd17df13bd331cb8500b5c9d7f8b6a5356ce2b36d7e3c2eca999c",
-      "git_blob_sha1": "2831ab535a631d329f8aa63beb091060e4dba136",
+      "sha256": "865998cec3114a395e130e1ff16f92486c3fad8da59400035b95c11522c2b235",
+      "git_blob_sha1": "01eeeb8b817544a696121c8a6efe7dea58f1ca66",
       "lexical_closure_files": 20,
       "decision": "blocked-unmodified",
       "findings": [
         "Startup applies bar config and dispatches omarchy-bar sync-glass even for the initial opaque look.",
         "Starts the bar-off shell probe; creates per-screen layer surfaces; exposes registry/custom-QML/command routes.",
         "Needs reviewed compositor ownership, sealed widget loading, removal/gating of startup commands and all command/IPC paths."
-      ]
+      ],
+      "lexical_closure_evidence_commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
     },
     {
       "id": "omarchy.clock",
       "source_path": "shell/plugins/panels/clock/BarWidget.qml",
-      "sha256": "28ac6687b356472c296ecac02724a95755f4e971c8b419abe1d58725a84248a5",
-      "git_blob_sha1": "b5adcc537b523e0bfeec85979cee66f58f344c59",
+      "sha256": "e73f7a17f74ade40711dffa8262c1773b7bf74fd65a3047011317f588af9f3f6",
+      "git_blob_sha1": "b69f2f157c50c1c82a8ef24673089f3aa2386f05",
       "lexical_closure_files": 33,
       "decision": "blocked-unmodified",
       "findings": [
         "An always-active Loader prepares the hidden calendar; visible:false is not a loading gate.",
         "Base widget, Style/Color/I18n and panel UI/IPC form a larger dependency surface.",
         "Format cycling can persist settings; middle click dispatches the timezone helper. No UI admission yet."
-      ]
+      ],
+      "lexical_closure_evidence_commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
     },
     {
       "id": "omarchy.spacer",
@@ -43,18 +45,19 @@
         "The leaf only computes dimensions, but the stock base defaults to bar:null and falls back to Style.bar.sizeHorizontal.",
         "Style has startup hyprctl/font probes and file watchers; a fully injected bar API may avoid that binding branch but is not tested.",
         "Need an atomically injected safe API and/or reviewed passive-token separation, with a minimal sealed module map."
-      ]
+      ],
+      "lexical_closure_evidence_commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
     }
   ],
   "imports": [
     {
       "repository": "https://github.com/omacom/omarchy",
-      "commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+      "commit": "ac2690cd7be4f47e4a255f5e2e78d904d436b068",
       "path": "shell/plugins/panels/clock/Model.js",
-      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/panels/clock/Model.js",
-      "sha256": "101514693517f694203841a4f39fe4c54d9469a2cbf4dd6b0264e6d440adbe75",
-      "git_blob_sha1": "873db9535edc73e220517c848d69733cdd4d1feb",
-      "bytes": 12174,
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/panels/clock/Model.js",
+      "sha256": "8a2645eb75b22d4ee4b278e19b5092a91638f4b3af9a704999f7cd86d7f1091e",
+      "git_blob_sha1": "ed98a47ceb7484a5eb86fa94056154a1b16a7365",
+      "bytes": 12519,
       "license": "MIT",
       "modifications": [],
       "vendor_path": "vendor/omarchy/shell/plugins/panels/clock/Model.js",
@@ -64,13 +67,16 @@
       ],
       "approved_scope": "pure-date-and-format-functions-only",
       "dependency_files": [],
-      "review": "Complete file manually reviewed: date/number/array/string math and guarded CommonJS export only; no QML objects, Qt/Quickshell, local imports, commands, file/network/service APIs. No separate copyright/license notice in the file. Root MIT notice applies; no modifications."
+      "review": "Complete file manually reviewed: date/number/array/string math and guarded CommonJS export only; no QML objects, Qt/Quickshell, local imports, commands, file/network/service APIs. No separate copyright/license notice in the file. Root MIT notice applies; no modifications. Stable rebase adds only pure epoch-tick arithmetic; still no IO or services."
     }
   ],
-  "related_import_manifests": ["upstream/spacer-candidate.json"],
+  "related_import_manifests": [
+    "upstream/spacer-candidate.json"
+  ],
   "limits": [
     "Lexical closure counts are conservative source references, not eager objects, exact QML type resolution, or complete dynamic dependencies.",
     "This manifest's imports list covers only the unchanged clock model; additional original spacer/base imports and the authored passive compatibility closure are reviewed separately in spacer-candidate.json. No production catalog admission.",
-    "Production catalog remains empty. Original shell, service ownership, real UI/Color imports and graphical/security acceptance are not approved."
+    "Production catalog remains empty. Original shell, service ownership, real UI/Color imports and graphical/security acceptance are not approved.",
+    "Candidate lexical closure counts remain historical rc1 audit evidence, not a recomputed stable closure. Stable admitted closure is checked separately by the clock-preview profile; unmodified full components remain blocked."
   ]
 }

@@ -57,6 +57,9 @@ ShellRoot {
   QtObject {
     id: backend
     property var state: Presentation.snapshot(false,[],null)
+    readonly property var inputState: Object.freeze({current:null,inputs:Object.freeze([])})
+    property real peak: 0
+    property bool monitoring: false
     function sync() { state = Presentation.snapshot(true,test.nodes,test.current); }
     function setVolume(key,value) { var ok=Actions.setVolume(test.nodes,key,value); if(ok) test.writes++; sync(); return ok; }
     function toggleMute(key) { var ok=Actions.toggleMute(test.nodes,key); if(ok) test.writes++; sync(); return ok; }

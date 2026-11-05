@@ -62,7 +62,7 @@ class TooltipPortTests(unittest.TestCase):
             port.derive_host(b"not the original bar")
 
     def test_fixed_offscreen_cases_and_negative_control(self):
-        self.assertEqual(len(fixtures.CASES), 7)
+        self.assertEqual(len(fixtures.CASES), 8)
         with self.assertRaises(ValueError):
             fixtures.fixture("host-pointer")
         text = fixtures.fixture("stale-hide")

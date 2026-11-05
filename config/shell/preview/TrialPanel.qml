@@ -78,6 +78,18 @@ Variants {
       id: barBus
       property var activePopout: null
       property var clickTargets: []
+      // Stable Bar.qml card handoff, scoped to the fixed trusted sections.
+      property var popoutCard: null
+      function notePopoutCard(card, section) {
+        popoutCard = card ? { screen: String(card.screen || ""), section: section,
+          x: Number(card.x) || 0, y: Number(card.y) || 0,
+          width: Number(card.width) || 0, height: Number(card.height) || 0 } : null
+      }
+      function popoutCardFor(section) {
+        var card = popoutCard
+        if (!card || card.section !== section) return null
+        return { screen: card.screen, x: card.x, y: card.y, width: card.width, height: card.height }
+      }
     }
     QtObject {
       id: clockBar
@@ -86,7 +98,7 @@ Variants {
       readonly property string position: "top"
       readonly property string fontFamily: Commons.Color.fontFamily
       // Theme palette through the watched Commons.Color singleton; the
-      // 420 ms OutCubic transitions mirror upstream Bar.qml.
+      // 250 ms OutCubic transitions mirror stable upstream Bar.qml.
       property color themeBackground: Commons.Color.bar.background
       property color foreground: Commons.Color.bar.text
       property color barForeground: foreground
@@ -122,6 +134,8 @@ Variants {
       function releasePopout(key) {
         if (barBus.activePopout === key) barBus.activePopout = null
       }
+      function notePopoutCard(card) { barBus.notePopoutCard(card, "center") }
+      function popoutCardFor(owner) { return barBus.popoutCardFor("center") }
       function itemContainsPoint(target, source, x, y) {
         if (!target || !target.contains(target.mapFromItem(source, x, y))) return false
         for (var item = target; item; item = item.parent) {
@@ -143,10 +157,10 @@ Variants {
         Quickshell.execDetached(["bash", "-lc", command])
       }
 
-      Behavior on foreground { ColorAnimation { duration: Style.duration(420); easing.type: Easing.OutCubic } }
-      Behavior on barForeground { ColorAnimation { duration: Style.duration(420); easing.type: Easing.OutCubic } }
-      Behavior on urgent { ColorAnimation { duration: Style.duration(420); easing.type: Easing.OutCubic } }
-      Behavior on themeBackground { ColorAnimation { duration: Style.duration(420); easing.type: Easing.OutCubic } }
+      Behavior on foreground { ColorAnimation { duration: Style.duration(250); easing.type: Easing.OutCubic } }
+      Behavior on barForeground { ColorAnimation { duration: Style.duration(250); easing.type: Easing.OutCubic } }
+      Behavior on urgent { ColorAnimation { duration: Style.duration(250); easing.type: Easing.OutCubic } }
+      Behavior on themeBackground { ColorAnimation { duration: Style.duration(250); easing.type: Easing.OutCubic } }
     }
     BarTooltipHost {
       id: clockTips

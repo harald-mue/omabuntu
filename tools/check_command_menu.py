@@ -24,7 +24,7 @@ import check_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKER = 'OMABUNTU_MENU_FIXTURE_OK'
-HELPERS = ('menu_model.py', 'menu_common.py', 'theme_backend.py',
+HELPERS = ('menu_model.py', 'menu_common.py', 'defaults_backend.py', 'theme_backend.py',
            'font_backend.py', 'background_backend.py', 'power_actions.py')
 DATA = (('omabuntu-menu.jsonc', 'config/shell/omabuntu-menu.jsonc'),
         ('themes.json', 'config/menu/themes.json'))
@@ -87,10 +87,10 @@ ShellRoot {
       assert(menu.checkedResults["learn.checked-row"] === true, "checked guard")
     },
     function() {
-      assert(menu.probeCount() === 4, "root row count")
+      assert(menu.probeCount() === 6, "root row count")
       assert(rowLabel(0) === "Apps", "apps label")
-      assert(findRow("Learn") === 1 && findRow("Style") === 2 && findRow("System") === 3, "root labels")
-      assert(rowAt(3).kind === "menu", "system is a submenu")
+      assert(findRow("Learn") === 1 && findRow("Appearance") === 2 && findRow("Trigger") === 3 && findRow("Setup") === 4 && findRow("System") === 5, "root labels")
+      assert(rowAt(5).kind === "menu", "system is a submenu")
     },
     function() {
       menu.select(1)
@@ -99,12 +99,12 @@ ShellRoot {
       assert(menu.activeMenu === "learn", "learn route")
       menu.handleKey({ key: Qt.Key_Backspace, text: "" })
       assert(menu.activeMenu === "root", "back out")
-      menu.select(3)
-      menu.activateIndex(3)
+      menu.select(5)
+      menu.activateIndex(5)
       assert(menu.activeMenu === "system", "system route")
     },
     function() {
-      var expected = 3 + (menu.whenResults["system.suspend"] ? 1 : 0) + (menu.whenResults["system.hibernate"] ? 1 : 0)
+      var expected = 4 + (menu.whenResults["system.suspend"] ? 1 : 0) + (menu.whenResults["system.hibernate"] ? 1 : 0)
       assert(menu.probeCount() === expected, "system row count follows guards")
       assert(findRow("Logout") >= 0 && findRow("Reboot") >= 0 && findRow("Shutdown") >= 0, "system labels")
       assert(rowAt(findRow("Reboot")).kind === "action", "reboot is an action")
@@ -148,7 +148,7 @@ ShellRoot {
       ready(menu.probeCount() === 4, "search rows: " + rowLabels())
       var theme = findRow("Theme")
       assert(theme >= 0, "theme drilldown row")
-      assert(String(rowAt(theme).detail) === "Style", "drilldown detail")
+      assert(String(rowAt(theme).detail) === "Appearance", "drilldown detail")
       assert(String(rowAt(theme).section) === "drilldown", "drilldown section")
     },
     function() {

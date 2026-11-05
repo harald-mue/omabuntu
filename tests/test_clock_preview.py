@@ -33,6 +33,7 @@ class ClockPreviewTests(unittest.TestCase):
                  "config/shell/preview/KeyboardLayout.qml",
                  "config/shell/preview/CalendarPanel.qml",
                  "config/shell/preview/ClockControlView.qml",
+                 "config/shell/preview/BarFrame.qml",
                  *("config/shell/preview/" + name for name in checker.ELSEWHEN_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.WEATHER_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.DESKTOP_TRANSFORMS),
@@ -60,7 +61,8 @@ class ClockPreviewTests(unittest.TestCase):
             self.assertIn(forbidden, original)
             self.assertNotIn(forbidden, files["ClockLabel.qml"])
         self.assertIn(b"function formatted", files["ClockLabel.qml"])
-        self.assertIn(b"SystemClock", files["ClockLabel.qml"])
+        self.assertIn(b"WallClock", files["ClockLabel.qml"])
+        self.assertIn("WallClock.qml", files)
         for target, source in checker.UPSTREAM.items():
             if meta["upstream"][target]["stage_transform"] == "none":
                 self.assertEqual(files[target], (ROOT / "vendor/omarchy" / source).read_bytes())
@@ -81,6 +83,12 @@ class ClockPreviewTests(unittest.TestCase):
     def test_generated_audio_mirror_change_rejected(self):
         (self.root / "config/shell/preview/AudioOutputView.qml").write_text("independent layout")
         with self.assertRaisesRegex(checker.builder.BuildError, "Generated audio frontend mirror differs"):
+            checker.verified_sources(self.root)
+
+    def test_generated_frame_mirror_change_rejected(self):
+        path = self.root / "config/shell/preview/BarFrame.qml"
+        path.write_text(path.read_text() + "\n// drift\n")
+        with self.assertRaisesRegex(checker.builder.BuildError, "Generated clock/frame mirror differs"):
             checker.verified_sources(self.root)
 
     def test_generated_network_mirror_change_rejected(self):
@@ -227,7 +235,7 @@ class ClockPreviewTests(unittest.TestCase):
         self.assertIn("clockBar.glassy ? clockBar.glassBackground : clockBar.themeBackground", text)
         self.assertIn("Math.min(themeBackground.a, 0.35)", text)
         self.assertEqual(text.count("Behavior on themeBackground"), 1)
-        self.assertIn("Style.duration(420)", text)
+        self.assertIn("Style.duration(250)", text)
         live = (ROOT / "config/shell/preview/LiveStatus.qml").read_text()
         switcher = (ROOT / "config/shell/preview/WorkspaceSwitcher.qml").read_text()
         self.assertIn('Hyprland.dispatch("hl.dsp.focus({ workspace = "', live)

@@ -26,7 +26,9 @@ class MenuMarkTests(unittest.TestCase):
         record = json.loads(read("upstream/omarchy-mark.json"))
         self.assertEqual(record["schema_version"], 1)
         source = record["source"]
-        self.assertEqual(source["commit"], checker.COMMIT)
+        # Artwork keeps its independently reviewed pin; a shell rebase must
+        # not falsely relabel the font extraction as newly reviewed artwork.
+        self.assertEqual(source["commit"], "03ff1eff3812933f7088484533784d2f63eaf19a")
         self.assertEqual(source["path"], "default/fonts/omarchy/omarchy.ttf")
         self.assertEqual(source["license"], "MIT")
         self.assertRegex(source["sha256"], r"^[0-9a-f]{64}$")

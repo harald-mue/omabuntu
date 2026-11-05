@@ -2,14 +2,14 @@
   "schema_version": 1,
   "source": {
     "repository": "https://github.com/omacom/omarchy",
-    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a"
+    "commit": "ac2690cd7be4f47e4a255f5e2e78d904d436b068"
   },
   "scope": "isolated-spacer-geometry-only",
   "production_catalog": "empty",
   "originals": {
     "Ui/BarWidget.qml": {
       "path": "shell/Ui/BarWidget.qml",
-      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/Ui/BarWidget.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/Ui/BarWidget.qml",
       "vendor_path": "vendor/omarchy/shell/Ui/BarWidget.qml",
       "bytes": 2297,
       "sha256": "6dc5f08b92280e323b9bb8645ec530bca9c68512f3af49f6e3d5a13a6d9f99a3",
@@ -19,7 +19,7 @@
     },
     "Spacer.qml": {
       "path": "shell/plugins/bar/widgets/Spacer.qml",
-      "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/shell/plugins/bar/widgets/Spacer.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/bar/widgets/Spacer.qml",
       "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/Spacer.qml",
       "bytes": 293,
       "sha256": "85abd1cd06755e57194b86d30df9c31e7521e5c91f5a663d9cd6420b9e91c545",

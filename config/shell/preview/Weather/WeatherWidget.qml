@@ -1,4 +1,4 @@
-// Derived from Omarchy weather/BarWidget.qml (MIT), pinned 03ff1eff.
+// Derived from Omarchy 4.5.0 weather/BarWidget.qml (MIT), pinned ac2690cd.
 import QtQuick
 import qs.Commons
 import qs.Ui

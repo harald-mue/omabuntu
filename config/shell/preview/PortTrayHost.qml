@@ -77,6 +77,13 @@ Item {
       if (root.popoutState) root.popoutState.activePopout = null
       else _activePopout = null
     }
+    // Only same-section handoff; a center popup must not fly to the tray.
+    function notePopoutCard(card) {
+      if (root.popoutState) root.popoutState.notePopoutCard(card, "right")
+    }
+    function popoutCardFor(owner) {
+      return root.popoutState ? root.popoutState.popoutCardFor("right") : null
+    }
     function showTooltip(item, text) { tooltipHost.showTooltip(item, text); }
     function hideTooltip(item) { tooltipHost.hideTooltip(item); }
   }

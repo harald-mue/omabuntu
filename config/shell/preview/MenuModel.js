@@ -1,5 +1,5 @@
 // Ported subset of Omarchy's shell/plugins/menu/MenuModel.js at pinned
-// commit 03ff1eff3812933f7088484533784d2f63eaf19a (MIT; the notice is
+// stable commit ac2690cd7be4f47e4a255f5e2e78d904d436b068 (MIT; the notice is
 // preserved in licenses/Omarchy-MIT.txt). The functions below keep the
 // upstream bodies; only the needed subset ships here. Deliberately absent,
 // with their reasons recorded in plans/002-command-menu.md and

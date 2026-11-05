@@ -42,7 +42,7 @@ def derive_network(data):
     button = between(text, "  BarIconButton {\n    id: button\n",
                      "  // Keyboard-driven popup anchored to the bar widget icon.")
     hero = between(text, "      // ---------- Hero:",
-                   "      Column {\n        visible: root.hasCaptivePortal\n")
+                   "      Button {\n        id: portalAction\n")
     station = between(text, "      // Wi-Fi networks (only if a Wi-Fi station is available).\n",
                       "      ListView {\n        id: networkList\n")
     listing = block(text, "      ListView {\n        id: networkList\n")
@@ -78,7 +78,7 @@ def derive_network(data):
         "      }\n"
         "      root.connectWithPassphrase(net.ssid, root.passwordText)\n")
     from network_sections import local_sections, navigation
-    portal = between(text, "      Column {\n        visible: root.hasCaptivePortal\n",
+    portal = between(text, "      Button {\n        id: portalAction\n",
                      "      // Connection details:")
     band = between(text, "      // Wi-Fi band selection.", "      // DNS provider selection.\n")
     dns = between(text, "      // DNS provider selection.\n",

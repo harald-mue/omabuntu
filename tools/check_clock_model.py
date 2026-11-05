@@ -23,7 +23,7 @@ CASES = (("utc", "UTC", 0, False), ("berlin", "Europe/Berlin", -60, False),
          ("havana", "America/Havana", 300, False), ("santiago", "America/Santiago", 180, False),
          ("negative-control", "UTC", 0, True))
 MARKER = "OMABUNTU_CLOCK_OK"
-ASSERTIONS = 221
+ASSERTIONS = 229
 
 
 def verified_model(root):
@@ -102,6 +102,14 @@ ShellRoot {
   }
   function runChecks() {
     equal(new Date(2024, 0, 15, 12).getTimezoneOffset(), %d, "timezone actually selected");
+    equal(Model.msUntilNextTick(0, 60000), 60000, "whole minute waits one step");
+    equal(Model.msUntilNextTick(59999, 60000), 1, "next minute boundary");
+    equal(Model.msUntilNextTick(999, 1000), 1, "next second boundary");
+    var fold = Date.UTC(2026, 9, 25, 1, 0, 0);
+    for (var offset of [-1, 0, 1, 3599999, 3600000]) {
+      var delay = Model.msUntilNextTick(fold + offset, 60000);
+      equal(delay > 0 && delay <= 60000, true, "DST epoch tick bounded");
+    }
     equal(Model.dateKey(2024, 1, 9), "2024-02-09", "date identity");
     equal(Model.keyForDate(new Date(2024, 1, 9, 12)), "2024-02-09", "local date identity");
     equal(Model.isoWeek(2021, 0, 1), 53, "ISO previous year");

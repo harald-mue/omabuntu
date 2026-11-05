@@ -30,7 +30,7 @@ class SourceUpdateTests(unittest.TestCase):
         self.assertFalse(reviewed['publisher_signature'])
         commits = {item['name']: item['commit'] for item in reviewed['sources']}
         self.assertEqual(commits['quickshell'], '2b4501a282689792b62e94f3fb30d8f512324fe6')
-        self.assertEqual(commits['omarchy'], '03ff1eff3812933f7088484533784d2f63eaf19a')
+        self.assertEqual(commits['omarchy'], 'ac2690cd7be4f47e4a255f5e2e78d904d436b068')
         self.assertFalse(next(item['fetch'] for item in reviewed['sources'] if item['name'] == 'omarchy'))
         self.assertTrue(all(item['archive_url'] is None or item['commit'] in item['archive_url'] for item in reviewed['sources']))
 

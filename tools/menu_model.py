@@ -2,7 +2,7 @@
 """Menu model and guarded dispatch for the Omabuntu command menu.
 
 This is the Python port of the pure model functions in Omarchy's
-shell/plugins/menu/MenuModel.js at commit 03ff1eff3812933f7088484533784d2f63eaf19a
+shell/plugins/menu/MenuModel.js at stable commit ac2690cd7be4f47e4a255f5e2e78d904d436b068
 (MIT, preserved in licenses/Omarchy-MIT.txt). The parser, merge, and route
 functions keep the upstream behavior; the guard batching keeps the one
 bash process with grouped subshells and `id:tag:0|1` result lines; the
@@ -35,7 +35,7 @@ import power_actions
 import theme_backend
 
 ROOT = Path(__file__).resolve().parents[1]
-COMMIT = '03ff1eff3812933f7088484533784d2f63eaf19a'
+COMMIT = 'ac2690cd7be4f47e4a255f5e2e78d904d436b068'
 MAX_DEFINITIONS = 262144
 GUARD_GROUPS = 8
 
@@ -85,16 +85,21 @@ def normalize_item(item_id, raw):
 
 
 def parse_menu_jsonc(raw):
-    """Port of MenuModel.js parseMenuJsonc: broken file -> no entries."""
+    """Compatibility parser: invalid input contributes no entries."""
+    return read_menu_jsonc(raw) or []
+
+
+def read_menu_jsonc(raw):
+    """Stable readMenuJsonc: distinguish malformed reads from an empty menu."""
     stripped = strip_jsonc(raw)
     if not stripped.strip():
         return []
     try:
         parsed = json.loads(stripped)
     except ValueError:
-        return []
+        return None
     if not isinstance(parsed, dict):
-        return []
+        return None
     source = parsed.get('items') if isinstance(parsed.get('items'), dict) else parsed
     return [normalize_item(item_id, entry) for item_id, entry in source.items()
             if isinstance(entry, dict)]
@@ -140,15 +145,19 @@ def user_overlay_path():
 
 
 def load_definitions(explicit=None):
-    """Merged definitions; a broken file contributes nothing (upstream rule)."""
+    """Reject partial reads so the UI retains its last complete definitions."""
     path = definitions_path(explicit)
     if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_DEFINITIONS:
         return {}, []
-    default_items = parse_menu_jsonc(path.read_text(encoding='utf-8'))
+    default_items = read_menu_jsonc(path.read_text(encoding='utf-8'))
+    if not default_items:
+        return {}, []
     user_items = []
     overlay = user_overlay_path()
     if overlay.is_file() and not overlay.is_symlink() and overlay.stat().st_size <= MAX_DEFINITIONS:
-        user_items = parse_menu_jsonc(overlay.read_text(encoding='utf-8'))
+        user_items = read_menu_jsonc(overlay.read_text(encoding='utf-8'))
+        if user_items is None:
+            return {}, []
     return merge_menu_sources(default_items, user_items)
 
 
@@ -334,7 +343,9 @@ def provider_row_ids(menu_id, rows):
 
 
 def provider_for_menu(items, menu_id):
-    entry = items.get(menu_id)
+    # Legacy picker callers use style.*; resolve the declared aliases just like
+    # the command surface, while retaining the caller's provider-row id prefix.
+    entry = items.get(resolve_route(items, list(items), menu_id))
     return entry.get('provider') if entry else ''
 
 
@@ -475,6 +486,9 @@ def menu_palette(root=None):
 def main(argv):
     if argv == ['defs']:
         items, order = load_definitions()
+        if not items:
+            print(json.dumps({'ok': False, 'error': 'definitions-unavailable'}))
+            return 0
         print(json.dumps({'ok': True, 'items': items, 'itemOrder': order,
                           'palette': menu_palette()}))
         return 0

@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "status": "source-and-license-pinned-not-runtime-approved",
+  "status": "stable-components-reviewed-not-runtime-approved",
   "repository": "https://github.com/omacom/omarchy",
-  "observed_tag": "v4.5.0-rc1",
-  "commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+  "observed_tag": "v4.5.0",
+  "commit": "ac2690cd7be4f47e4a255f5e2e78d904d436b068",
   "reference_package": "omarchy 4.5.0rc1-1",
   "license": {
     "spdx": "MIT",
-    "url": "https://raw.githubusercontent.com/omacom/omarchy/03ff1eff3812933f7088484533784d2f63eaf19a/LICENSE",
+    "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/LICENSE",
     "sha256": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
     "git_blob_sha1": "f12cfa766c55541c9d8e008e310c95a721e70a97",
     "notice_path": "licenses/Omarchy-MIT.txt",
@@ -23,7 +23,9 @@
       "bin/omarchy-nvim-refresh",
       "bin/omarchy-nvim-setup"
     ],
-    "unmatched_status": "Absent in the pinned source tree; packaging/supplemental origin unresolved. Not approved for import or execution."
+    "unmatched_status": "Absent in the pinned source tree; packaging/supplemental origin unresolved. Not approved for import or execution.",
+    "commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+    "note": "Historical private reference-package comparison at v4.5.0-rc1; it does not describe the current stable candidate or claim the reference package was updated."
   },
   "component_license_findings": [
     {
@@ -50,7 +52,7 @@
     "path": "version",
     "value": "4.0.0.alpha",
     "sha256": "9d1aaeb0c16104d678742c04d6a8700fed365e7eb65a8eaef5fb3845ddf634e3",
-    "note": "Both the pinned source and captured version file contain this literal value. Do not infer package/release identity from this file alone."
+    "note": "The stable and historical baseline Git trees have the same version-file blob. This literal is not the stable release identity; use the exact tag/commit above."
   },
   "package_recipe": {
     "recorded_pkgbuild_sha256": "74b8677c82084e19ea828c74e4e2856ee85507f78c4a406f9e92928b500681cb",
@@ -63,5 +65,14 @@
     "Root MIT coverage is not blanket clearance for bundled fonts, icons, images, dependencies, or third-party components. Review them individually before redistribution.",
     "Git tree/blob comparison via HTTPS is content evidence, not signed attestation or a byte-reproducible original package build.",
     "The full source archive exceeded the conservative download bound and was not saved or extracted; targeted pinned tree/blob inspection was used instead."
-  ]
+  ],
+  "stable_component_review": {
+    "plan": "plans/078-omarchy-450-stable-component-rebase.md",
+    "previous_commit": "03ff1eff3812933f7088484533784d2f63eaf19a",
+    "commit": "ac2690cd7be4f47e4a255f5e2e78d904d436b068",
+    "tag": "v4.5.0",
+    "mapped_source_parents": 72,
+    "provenance": "upstream/clock-preview.json",
+    "boundary": "Admitted components only; independent artwork/runtime pins and historical reference metadata are not relabeled. No live deployment or full-shell acceptance."
+  }
 }

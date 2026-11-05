@@ -1,13 +1,19 @@
 # Selected Omarchy source
 
-Selected unchanged files from commit 03ff1eff3812933f7088484533784d2f63eaf19a:
+Selected unchanged files from Omarchy v4.5.0 stable, commit
+`ac2690cd7be4f47e4a255f5e2e78d904d436b068`:
+
+See the [stable component update](../../docs/omarchy-450-update.md) for the
+source/deployment boundary, dependency review and retained exclusions.
 
 - shell/plugins/panels/weather/{Panel.qml,BarWidget.qml,Model.js,manifest.json}:
   original MIT weather source. `tools/weather_frontend.py` retains the view and
   model and original city editor. A bounded Python adapter handles wttr.in
   current reports/IP location and Open-Meteo forecast/city search. Notification
   actions and IPC are not staged.
-- shell/plugins/panels/clock/Model.js: pure date/format math.
+- shell/plugins/panels/clock/Model.js: pure date/format and tick-boundary math.
+- shell/plugins/panels/clock/WallClock.qml: original wall-clock/timer dependency
+  used by the staged calendar and clock host.
 - shell/plugins/panels/clock/BarWidget.qml: original clock parent, provenance only.
 - shell/Ui/BarWidget.qml: original bar-widget base.
 - shell/Ui/WidgetButton.qml and shell/Ui/OpticalGlyph.qml: original presentation.
@@ -34,6 +40,7 @@ Selected unchanged files from commit 03ff1eff3812933f7088484533784d2f63eaf19a:
 - shell/plugins/bar/Bar.qml: unchanged source parent for narrow tooltip
   extractions (host lifecycle and original PopupWindow) and horizontal section
   geometry with fixed trusted slots; full bar/registry/drag startup is not staged.
+  Auto-hide/peek-window tracking is removed from the fixed top-only frame.
 - shell/plugins/panels/audio/Panel.qml: unchanged source parent for the generated
   output frontend, not the full panel/backend startup.
 - shell/Ui/KeyboardPanel.qml: unchanged parent; staging removes Exclusive focus,

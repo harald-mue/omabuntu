@@ -1,6 +1,6 @@
 {
   // Omabuntu menu definition. This follows Omarchy's omarchy-menu.jsonc
-  // entry schema at commit 03ff1eff3812933f7088484533784d2f63eaf19a (MIT,
+  // entry schema at stable commit ac2690cd7be4f47e4a255f5e2e78d904d436b068 (MIT,
   // preserved in licenses/Omarchy-MIT.txt): IDs are object keys, dotted IDs
   // imply hierarchy, and kind is inferred (action -> action, target -> link,
   // otherwise submenu). Icons keep the original upstream glyphs. `when`,
@@ -13,13 +13,13 @@
   // and docs/command-menu.md. Setup keeps only reviewed default-application
   // rows backed by xdg-settings and xdg-terminal-exec.
 
-  // Root menu (upstream order: apps, learn, trigger, style, setup, install,
+  // Root menu (upstream order: apps, learn, appearance, trigger, setup, install,
   // remove, update, about, system; only sections with reviewed Ubuntu
   // backends are kept).
   "apps": {"icon": "\udb80\udc3b", "label": "Apps", "aliases": ["app", "applications"], "action": "omabuntu-open:apps"},
   "learn": {"icon": "\udb82\uddd1", "label": "Learn"},
+  "appearance": {"icon": "\udb80\udfd8", "label": "Appearance", "aliases": ["style", "theme-menu"]},
   "trigger": {"icon": "\udb85\udcde", "label": "Trigger"},
-  "style": {"icon": "\uebcf", "label": "Style", "aliases": ["theme-menu"]},
   "setup": {"icon": "\ue615", "label": "Setup", "aliases": ["settings"]},
   "system": {"icon": "\uf011", "label": "System", "aliases": ["power-menu", "power"]},
 
@@ -32,13 +32,13 @@
   "trigger.capture": {"icon": "\uf030", "label": "Capture"},
   "trigger.capture.screenshot": {"icon": "\uf030", "label": "Screenshot", "action": "omabuntu-session:screenshot"},
 
-  // Style: the Hyprland configuration things. Theme and Background open the
+  // Appearance: only the reviewed theme/font/background routes. Theme and Background open the
   // image picker (upstream opens omarchy.image-picker the same way); their
   // provider fields stay because applying re-derives the row by id inside
   // tools/menu_model.py. Font stays a provider submenu in the card.
-  "style.theme": {"icon": "\udb83\ude0c", "label": "Theme", "aliases": ["theme", "themes"], "provider": "themes", "action": "omabuntu-open:themes"},
-  "style.background": {"icon": "\uf03e", "label": "Background", "aliases": ["background", "wallpaper"], "provider": "backgrounds", "action": "omabuntu-open:backgrounds"},
-  "style.font": {"icon": "\ue659", "label": "Font", "provider": "fonts"},
+  "appearance.theme": {"icon": "\udb83\ude0c", "label": "Theme", "aliases": ["theme", "themes", "style.theme"], "provider": "themes", "action": "omabuntu-open:themes"},
+  "appearance.background": {"icon": "\uf03e", "label": "Background", "aliases": ["background", "wallpaper", "style.background"], "provider": "backgrounds", "action": "omabuntu-open:backgrounds"},
+  "appearance.font": {"icon": "\ue659", "label": "Font", "aliases": ["style.font"], "provider": "fonts"},
 
   // Setup > Defaults: only installed browsers and terminals, applied through
   // xdg-settings and the xdg-terminal-exec preference list. Rows come from

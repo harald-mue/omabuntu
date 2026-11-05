@@ -1,7 +1,7 @@
 """Fixed tooltip lifecycle probes; no real pointer or host session."""
 import re
 
-CASES = ("empty", "delayed", "stale-hide", "leave", "deleted-target", "geometry", "negative")
+CASES = ("empty", "delayed", "stale-hide", "leave", "deleted-target", "geometry", "warm-handoff", "negative")
 MARKER = "OMABUNTU_TOOLTIP_OK"
 
 
@@ -13,6 +13,12 @@ def bubble_fixture(window):
         raise ValueError("Tooltip bubble witness differs")
     block = text[text.index(start):-2]
     block = block.replace("    id: tooltipBubble\n", "    id: tooltipBubble\n    required property QtObject host\n", 1)
+    # The geometry-only fixture has no native popup/output-scale handshake.
+    # Keep the original gate in production; make just this extracted bubble visible.
+    gate = "    opacity: tooltipWindow.revealed ? 1 : 0\n"
+    if block.count(gate) != 1:
+        raise ValueError("Tooltip reveal-gate witness differs")
+    block = block.replace(gate, "    opacity: 1\n", 1)
     return ('import QtQuick\nimport qs.Ui\nimport qs.Commons\nimport qs.Commons as Commons\n' + block).encode()
 
 
@@ -64,15 +70,23 @@ ShellRoot {
     try {require(!host.tooltipShown,"400ms delay respected");}
     catch(error){test.fail(error);}
   } }
+  Timer { id:handoff; interval:50; onTriggered: {
+    try {
+      require(host.tooltipShown && host.tooltipTarget===second && host.tooltipText==="second", "warm handoff skips initial delay");
+      host.hideTooltip(second);host.destroy();frame.visible=false;
+      console.log("OMABUNTU_TOOLTIP_OK::"+mode);Qt.callLater(function(){Qt.quit();});
+    } catch(error) {test.fail(error);}
+  } }
   Timer { id:late; interval:550; onTriggered: {
     try {
       if(mode==="geometry") require(bubble.implicitHeight>=24 && bubble.implicitWidth>26,
         "nonempty independent bubble dimensions "+bubble.implicitWidth+"x"+bubble.implicitHeight);
-      if(mode==="delayed"||mode==="stale-hide"||mode==="negative") {
+      if(mode==="delayed"||mode==="stale-hide"||mode==="warm-handoff"||mode==="negative") {
         require(host.tooltipShown,"delayed admission");
         require(host.tooltipTarget===(mode==="stale-hide"?second:first),"latest owner wins");
         require(host.tooltipText===(mode==="stale-hide"?"second":"first"),"latest text wins");
         host.hideTooltip(host.tooltipTarget);require(!host.tooltipShown && host.tooltipTarget===null,"exit closes tooltip");
+        if(mode==="warm-handoff") {host.showTooltip(second,"second");handoff.start();return;}
       } else require(!host.tooltipShown,"empty/left/deleted targets never shown");
       if(mode==="negative")throw new Error("deliberate tooltip assertion");
       if(bubble)bubble.destroy();host.destroy();frame.visible=false;

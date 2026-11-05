@@ -1,4 +1,4 @@
-"""Backend-only adaptation of original Omarchy weather, MIT, pin 03ff1eff.
+"""Backend-only adaptation of original Omarchy 4.5.0 stable weather, MIT.
 
 Keep original location editing, city suggestions, state reload, IP discovery,
 hero, forecast, refresh and retry behavior. No shell IPC or notification service.
@@ -41,13 +41,17 @@ def derive_panel(data):
                '    geocodeProc.command = root.probeCommand("search", [geocodeActiveQuery])\n')
     text = once(text, '    command: ["curl", "-fsS", "--max-time", "10", "https://wttr.in/" + root.locationQuery + "?format=j1"]',
                 '    command: root.probeCommand("report", [root.locationQuery])')
-    text = once(text, '    command: ["curl", "-fsS", "--max-time", "4", "https://wttr.in/?format=%l"]',
+    # Stable expects a JSON location from a new upstream endpoint. Keep the
+    # approved wttr.in helper and adapt its plain city response at the boundary.
+    text = once(text, '    command: ["curl", "-fsS", "--max-time", "4", "https://geo.omarchy.org/"]',
                 '    command: root.probeCommand("locate", [])')
+    text = once(text, '        var detected = Model.parseLocationFile(text)',
+                '        var detected = Model.parseLocationFile(JSON.stringify({name: String(text || "").trim(), latitude: null, longitude: null}))')
     text = elsewhen_frontend._strip_shell_ipc(text)
     for forbidden in ('["curl"', 'https://', 'ShellIpc', '["omarchy-'):
         if forbidden in text:
             raise ValueError('Weather unreviewed backend remains: ' + forbidden)
-    return ('// Derived from Omarchy weather/Panel.qml (MIT), pinned 03ff1eff.\n' + text).encode()
+    return ('// Derived from Omarchy 4.5.0 weather/Panel.qml (MIT), pinned ac2690cd.\n' + text).encode()
 
 
 def derive_widget(data):
@@ -60,4 +64,4 @@ def derive_widget(data):
         raise ValueError('Weather notification witness differs')
     text = '\n'.join(line for line in text.splitlines() if old not in line) + '\n'
     text = once(text, '      else if (b === Qt.MiddleButton)', '      if (b === Qt.MiddleButton)')
-    return ('// Derived from Omarchy weather/BarWidget.qml (MIT), pinned 03ff1eff.\n' + text).encode()
+    return ('// Derived from Omarchy 4.5.0 weather/BarWidget.qml (MIT), pinned ac2690cd.\n' + text).encode()

@@ -18,6 +18,11 @@ class BarFrameTests(unittest.TestCase):
     def test_derived_frame_is_closed_pinned_source(self):
         files, meta = preview.verified_sources(ROOT)
         self.assertEqual(files["BarFrame.qml"].decode(), self.frame)
+        self.assertEqual((ROOT / "config/shell/preview/BarFrame.qml").read_text(), self.frame)
+        frame_code = "\n".join(line for line in self.frame.splitlines()
+                               if not line.lstrip().startswith("//"))
+        self.assertNotIn("BarModel.", frame_code)
+        self.assertNotIn("window.peekEdge =", self.frame)
         self.assertEqual(meta["upstream"]["BarFrame.qml"]["stage_transform"], "fixed-horizontal-sections-v1")
         self.assertNotIn("BarFrame.qml", meta["authored"])
 

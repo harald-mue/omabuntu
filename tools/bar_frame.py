@@ -19,6 +19,10 @@ def derive_frame(data):
     # Retain original center group positioning and its two hanging sections.
     center = between(text, "  component CenterModules: Item {\n", "  // The outline of a dragged widget's room")
     center = replace(center, "    CenterGestureArea { anchors.fill: parent }\n", "")
+    # Fixed top bars do not admit the upstream auto-hide/peek surface policy.
+    # Its BarModel dependency and output-window mutation stay outside this frame.
+    peek = between(center, "    // Both placements sit at the bar surface", "    ModuleList {\n      id: beginList")
+    center = replace(center, peek, "")
     center = replace(center, "    CenterSections {\n      anchors.fill: parent", "    readonly property real centerStart: sectionsLayout.centerStart\n    readonly property real centerEnd: sectionsLayout.centerEnd\n\n    CenterSections {\n      id: sectionsLayout\n      anchors.fill: parent")
     center = replace(center, "    id: sections\n", "    id: sections\n    readonly property real centerStart: beginList.x\n    readonly property real centerEnd: endList.x + endList.width\n")
     center = replace(center, "    readonly property bool dragHere: active && !!root.barDragSource && root.sameWindow(root.barDragWindow, window)\n", "")

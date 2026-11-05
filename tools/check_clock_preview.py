@@ -28,7 +28,7 @@ import weather_frontend
 
 builder = check_runtime.builder
 ROOT = Path(__file__).resolve().parents[1]
-COMMIT = "03ff1eff3812933f7088484533784d2f63eaf19a"
+COMMIT = "ac2690cd7be4f47e4a255f5e2e78d904d436b068"
 UPSTREAM = {
     "Ui/BarWidget.qml": "shell/Ui/BarWidget.qml",
     "Ui/WidgetButton.qml": "shell/Ui/WidgetButton.qml",
@@ -36,6 +36,7 @@ UPSTREAM = {
     "Spacer.qml": "shell/plugins/bar/widgets/Spacer.qml",
     "ClockLabel.qml": "shell/plugins/panels/clock/BarWidget.qml",
     "Model.js": "shell/plugins/panels/clock/Model.js",
+    "WallClock.qml": "shell/plugins/panels/clock/WallClock.qml",
     "CalendarPanel.qml": "shell/plugins/panels/clock/Panel.qml",
     "ClockControlView.qml": "shell/plugins/panels/clock/BarWidget.qml",
     "Port/Tray.qml": "shell/plugins/bar/widgets/Tray.qml",
@@ -267,8 +268,8 @@ def verified_sources(root):
             raise builder.BuildError("Generated weather mirror differs")
         if target in ELSEWHEN_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 131072):
             raise builder.BuildError("Generated elsewhen mirror differs")
-        if target in ("CalendarPanel.qml", "ClockControlView.qml") and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
-            raise builder.BuildError("Generated clock calendar mirror differs")
+        if target in ("CalendarPanel.qml", "ClockControlView.qml", "BarFrame.qml") and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
+            raise builder.BuildError("Generated clock/frame mirror differs")
         if hashlib.sha256(files[target]).hexdigest() != record.get("staged_sha256"):
             raise builder.BuildError("Staged clock extraction differs from review")
     for target, path in AUTHORED.items():
@@ -338,7 +339,7 @@ ShellRoot {
     require(component.status === Component.Ready, component.errorString());
     var clock = component.createObject(null, {bar:frame.passiveBar, settings:Object.freeze({format:"dddd HH:mm"}), enabled:false});
     component.destroy(); require(clock !== null, "format fixture");
-    require(clock.formatted(new Date(2026,0,1,9,7)) === "Donnerstag 09:07", "original locale formatter");
+    require(clock.formatted(new Date(2026,0,1,9,7)) === "Thursday 09:07", "original locale formatter");
     clock.settings = Object.freeze({format:"yyyy-MM-dd 'W'ww"});
     require(clock.formatted(new Date(2025,11,29,9,7)) === "2025-12-29 W01", "original ISO-week formatter");
     for (var field of ["cycleFormat", "togglePanel", "opened", "injectPanel"])

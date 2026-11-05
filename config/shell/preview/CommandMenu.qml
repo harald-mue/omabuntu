@@ -44,7 +44,7 @@ PanelWindow {
 
   // Geometry and paint from the pinned Menu.qml card. Colors follow the
   // active palette once defs returns; until then they match the bar.
-  readonly property int cardWidth: Math.min(activeMenu === "style.font" ? 520 : 300, width - 20)
+  readonly property int cardWidth: Math.min(activeMenu === "appearance.font" ? 520 : 300, width - 20)
   readonly property int cornerRadius: 8
   readonly property int contentMargin: 18
   readonly property int headerHeight: 34
