@@ -7,6 +7,8 @@
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 hl.config({
+  -- SDR-stable fullscreen default; automatic HDR is opt-in (plan 076).
+  render = { cm_auto_hdr = 0 },
   misc = { disable_splash_rendering = true, disable_hyprland_logo = true,
            col = { splash = 0x00000000 } },
   -- Suppress the two Hyprland notification popups (plan 067/072): the

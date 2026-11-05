@@ -39,6 +39,11 @@ class ManagedTemplateTests(unittest.TestCase):
         self.assertIn('col = { splash = 0x00000000 }', self.text)
         self.assertIn('no_donation_nag = true', self.text)
         self.assertIn('no_update_news = true', self.text)
+        self.assertIn('render = { cm_auto_hdr = 0 }', self.text)
+
+    def test_evaluation_profile_disables_automatic_hdr(self):
+        text = (ROOT / 'config/hypr/minimal.lua').read_text()
+        self.assertIn('render = { cm_auto_hdr = 0 }', text)
 
     def test_dofiles_only_the_granted_activation_file(self):
         # Plan 073: a config-time hl.plugin.load registration is discarded
@@ -220,7 +225,8 @@ class ManagedSnippetLuaTests(unittest.TestCase):
             + '\nassert(#configured == 1)\n'
             'assert(configured[1].misc.disable_splash_rendering == true)\n'
             'assert(configured[1].ecosystem.no_donation_nag == true)\n'
-            'assert(configured[1].ecosystem.no_update_news == true)\n')
+            'assert(configured[1].ecosystem.no_update_news == true)\n'
+            'assert(configured[1].render.cm_auto_hdr == 0)\n')
 
     def test_present_activation_is_dofiled_exactly_once(self):
         self.run_lua(

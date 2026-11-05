@@ -258,6 +258,7 @@ hl.config = function(t)
   assert(t.input.kb_layout == 'de,us')
   assert(t.ecosystem.no_donation_nag == true)
   assert(t.ecosystem.no_update_news == true)
+  assert(t.render.cm_auto_hdr == 0)
 end
 hl.bind = function(key, fn, options) assert(type(fn)=='table'); bindings[key]={fn=fn, options=options} end
 hl.workspace_rule = function(t) error('No layout file in fixture') end

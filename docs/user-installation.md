@@ -132,6 +132,32 @@ Rollback is `make hypr-settings-remove`: it removes the exact managed block and
 the snippet, and leaves the rest of `hyprland.lua` unchanged. A running session
 is unaffected until it restarts.
 
+### SDR-stable fullscreen colors (plan 076)
+
+The managed snippet, generic session template and standalone evaluation profile
+set `render = { cm_auto_hdr = 0 }`. Automatic HDR switching is disabled by
+Omabuntu, rather than inheriting Hyprland's default value of 1. Ordinary color
+management remains enabled; monitor layout, bit depth and explicit HDR monitor
+modes are not changed.
+
+On a tested Hyprland 0.57.0 setup, browser fullscreen changed white to gray and
+shifted other colors in screenshots even while the monitor reported sRGB.
+Disabling `cm_auto_hdr` corrected the visible issue. This is a verified
+workaround for that setup, not proof of an upstream defect or universal HDR
+incompatibility. The option and disabled value were checked in the official
+v0.56.2 and v0.57.0 `src/config/values/ConfigValues.cpp`; the v0.57.0
+`src/render/Renderer.cpp` fullscreen handler also updates client color feedback
+when automatic HDR is enabled.
+
+Automatic fullscreen HDR is deliberately excluded from the default profile.
+Users who intentionally need it can opt in with
+`hl.config({ render = { cm_auto_hdr = 1 } })` after loading the managed/session
+module. Keep that override in user-owned configuration, not the installer-owned
+snippet. Remove the override (or set 0) to return to the Omabuntu default.
+Neither deployment nor rollback requires an immediate reload: the next normal
+configuration load reads the saved value. A live test is not next-login or
+HDR acceptance.
+
 ### Separate wallpaper splash setting (plan 022)
 
 The authored template `config/hypr/hyprpaper.conf` contains:

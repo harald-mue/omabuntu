@@ -9,6 +9,9 @@
 -- Its independent switch is splash = false in hyprpaper.conf (plan 022).
 
 hl.config({
+  -- Keep SDR colors stable on fullscreen transitions (plan 076).
+  -- Automatic HDR is opt-in; explicit monitor HDR modes are not disabled.
+  render = { cm_auto_hdr = 0 },
   misc = {
     disable_splash_rendering = true,
     disable_hyprland_logo = true,
