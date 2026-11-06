@@ -203,6 +203,39 @@ class Terminal(io.StringIO):
         return True
 
 
+class BrowserTitlebarNoticeTests(unittest.TestCase):
+    def test_notice_is_manual_and_does_not_claim_edge_or_gnome_acceptance(self):
+        notice = setup_ui.BROWSER_TITLEBAR_NOTICE
+        for expected in ('chrome://settings/appearance', '"Use system title bar and borders"',
+                         'Record the previous setting', 'restore it to undo',
+                         'Edge: no equivalent setting verified', 'unresolved',
+                         'does not change browser profiles or GNOME/GTK settings',
+                         'PWA/PiP and GNOME behavior need separate checks'):
+            self.assertIn(expected, notice)
+
+    def test_human_release_reviews_show_notice_except_for_rollback(self):
+        for operation in ('install', 'update', 'rollback'):
+            output = io.StringIO()
+            reviewed = {'operation': operation, 'version': 'fixture',
+                        'legacy_state': False, 'restart_bar': False}
+            with self.subTest(operation=operation), \
+                 patch.object(setup.release_update, 'approve_digest', return_value='fixture'):
+                setup.display_release(reviewed, setup_ui.Console(stream=output, plain=True))
+                self.assertEqual(setup_ui.BROWSER_TITLEBAR_NOTICE in output.getvalue(),
+                                 operation != 'rollback')
+
+    def test_json_release_review_remains_one_document_without_notice(self):
+        output = io.StringIO()
+        with patch.object(setup.user_install, 'Installation'), \
+             patch.object(setup.release_update, 'review', return_value={'operation': 'install'}), \
+             patch.object(setup.release_update, 'apply') as apply, \
+             contextlib.redirect_stdout(output):
+            self.assertEqual(setup.main(['--bundle', '/fixture', '--json']), 0)
+        self.assertEqual(json.loads(output.getvalue())['status'], 'reviewed-not-applied')
+        self.assertNotIn(setup_ui.BROWSER_TITLEBAR_NOTICE, output.getvalue())
+        apply.assert_not_called()
+
+
 class SetupFrontendTests(unittest.TestCase):
     def test_wordmark_is_compact_block_text_with_ascii_fallback(self):
         rows = setup_ui.wordmark().splitlines()

@@ -149,6 +149,8 @@ def display_release(plan, console):
                      '0.56.2 application to 0.57.0 application on an already verified 0.57.0 session.\n'
                      'No packages, compositor, plugin state, private profile or login files are changed.\n'
                      'Bar restart preserves wallpaper. Old-target rollback remains refused; startup failure restores application prestate only.')
+    if plan['operation'] != 'rollback':
+        console.line(setup_ui.BROWSER_TITLEBAR_NOTICE)
     console.line('  Approval digest: ' + release_update.approve_digest(plan))
     console.line('  No changes yet. --apply asks for confirmation; --approve DIGEST supports explicit automation.\n')
 

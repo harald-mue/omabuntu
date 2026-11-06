@@ -5,6 +5,22 @@
 > The bundled-library preparation and live-maintenance notes below describe
 > older releases and are not the new default installation procedure.
 
+## Browser window controls: manual setup
+
+Browser-drawn controls are independent of hyprbars: they can remain in tiling
+and duplicate the floating-workspace titlebar. For ordinary Chrome windows,
+enable **Use system title bar and borders** in `chrome://settings/appearance`
+(or the empty tab-strip context menu, when available), recording the previous
+value for rollback. The user confirmed this resolves their Chrome appearance
+problem. Omabuntu prints installation guidance but changes no browser setting.
+An equivalent Edge setting is not verified; that limitation remains open.
+
+This is a profile preference, not session-local configuration. GNOME, PWA/PiP,
+dialogs and button actions require separate acceptance. See the
+[installation instructions](installer.md#browser-window-controls) for the exact
+steps, capability limits and rollback; theme buttons are not substitutes.
+The older experiments below are historical, not recommended setup procedures.
+
 ## Purpose and safety
 
 Omarchy's close/maximise/minimise titlebar comes from hyprbars; its dock restores
@@ -253,7 +269,7 @@ This does not guarantee recovery from a crashed compositor. A TTY can help repai
 future startup configuration, but cannot restore unsaved applications lost in a
 compositor crash. Do not purge the manager cache as routine rollback.
 
-## Client-side decoration buttons (Chrome/GTK, session setting)
+## Client-side decoration buttons (Chrome/GTK, shared user setting)
 
 Chrome/Chromium and GTK CSD apps draw their own min/max/close buttons from
 the GNOME `org.gnome.desktop.wm.preferences button-layout` key. On
@@ -270,10 +286,29 @@ breaks GNOME. Plan 074 reverted it: `tools/repair_gnome_buttons.py`
 (`appmenu:close` on Ubuntu 26.04) or a user layout — is left untouched.
 
 Trade-off in Hyprland: CSD apps paint their min/max/close buttons again in
-tiling, matching stock GNOME. `make gnome-buttons-rollback` restores the
-recorded value. The pre-change state is recorded in
+tiling, preserving the normal GNOME controls. `make gnome-buttons-rollback`
+restores the recorded value and may remove GNOME buttons again: it is not a
+Hyprland-only appearance switch. See [session-isolated button analysis](window-buttons-session-isolation.md)
+for why CSD plus hyprbars gives two rows, and which alternatives preserve GNOME.
+The pre-change state is recorded in
 `work/window-buttons/20261025T221259Z/record.json`; no Hyprland config file
 was ever touched for this.
+
+## Window-control experiments rolled back (plan 085)
+
+The user requested rollback of plans 081–084. The Chrome/Edge exclusion was
+removed from source and the owned live titlebar rule. Original titlebar and
+activation-receipt bytes/modes were restored from verified backups; only the
+existing named class matcher was updated live. No plugin reload or button
+registration was repeated. The accepted stable application release is unchanged.
+
+Hyprbars again applies to all floating-workspace members, including browsers.
+App buttons remain visible, so duplicate CSD/hyprbars rows can return. Native
+browser minimize is not made equivalent to Omabuntu's minimize helper by this
+rollback. GNOME's normal button layout remains unchanged. The failed GTK module
+was never installed or persisted; its source, builder and experiment-specific
+tests were archived privately, not left as active project code. No browser/shell
+restart or global settings change was performed during rollback.
 
 ## Retiring the legacy private wiring (plan 075)
 

@@ -308,6 +308,7 @@ def main():
                 return
     print('Application installed. Your personal Hyprland configuration was preserved.')
     print('Generic session and login activation are separate opt-in steps; see docs/installer.md.')
+    print(setup_ui.BROWSER_TITLEBAR_NOTICE)
     offer_artwork(installation)
     offer_hyprpaper_condition()
     offer_gnome_buttons_repair()

@@ -186,6 +186,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
         session.assert_called_once_with(ROOT)
         plugins.assert_called_once_with(ROOT, prerequisites_ready=False)
         self.assertIn('rerun the same install.sh entry point', self.stream.getvalue())
+        self.assertIn(published.setup_ui.BROWSER_TITLEBAR_NOTICE, self.stream.getvalue())
 
     def test_current_application_discovers_repair_without_redeploy_or_compilers(self):
         current = {'version': 'current'}
@@ -214,6 +215,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
         ask.assert_not_called()
         apply.assert_called_once_with(['--plugins-repair', '--apply'])
         self.assertIn('skipping deployment/restart', self.stream.getvalue())
+        self.assertIn(published.setup_ui.BROWSER_TITLEBAR_NOTICE, self.stream.getvalue())
 
     def test_cancelled_deployment_does_not_proceed_to_desktop_steps(self):
         incoming, old = {'version': 'new'}, {'version': 'old'}
@@ -235,6 +237,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
             published.main()
         session.assert_not_called()
         plugins.assert_not_called()
+        self.assertNotIn(published.setup_ui.BROWSER_TITLEBAR_NOTICE, self.stream.getvalue())
 
     def test_hyprpaper_condition_skips_when_the_unit_is_absent(self):
         with patch.object(published.deploy_hyprpaper_condition, 'review', return_value={'unit': None, 'current': False}), \

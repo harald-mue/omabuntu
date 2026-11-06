@@ -254,6 +254,53 @@ File apply does not load the plugin, start hyprpaper, or
 lock the screen. Login enablement is a separate flag and does not start the
 service.
 
+### Browser window controls
+
+Browsers can draw their own minimize/maximize/close buttons inside the window
+(client-side decorations). Omabuntu hides its **own** hyprbars titlebar in tiling
+and shows it for floating-workspace members; it cannot remove buttons drawn by
+the browser. Without manual browser setup, buttons can therefore remain in
+tiling and appear twice in a floating workspace. The published installer prints
+this notice after installation, including when the application is already
+current; local release reviews also show it. It is information, not an automatic
+browser configuration step.
+
+#### Chrome: use the system titlebar
+
+For ordinary Chrome windows under Hyprland:
+
+1. Record the current setting so you can restore it.
+2. Open `chrome://settings/appearance` and enable **Use system title bar and
+   borders**. Depending on the browser UI, the same option is available by
+   right-clicking an empty part of the tab strip, not an individual tab.
+3. Check that browser-drawn window buttons disappear in tiling and that only
+   Omabuntu's titlebar remains on a floating workspace, once titlebars are enabled.
+4. To undo, restore the previous value through the same browser UI.
+
+The user confirmed this setting resolves their Chrome appearance problem. That
+is not universal browser/version acceptance or a verification of all button
+actions. If the option is absent or enabling it does not help, stop; **Use
+Classic**, **Use GTK** and **Use QT** choose theme integration and are not
+substitutes. Do not change global GNOME/GTK button layouts as a workaround.
+
+This is a **browser-profile preference**, not a Hyprland-only preference.
+The reviewed Chrome source forces its own frame when the compositor lacks
+server-side decoration support, which predicts normal controls on GNOME Wayland
+without that protocol. A fresh GNOME login is still a separate check; do not
+assume GNOME/Xorg behaves the same. Web-app/PWA, picture-in-picture and dialog
+windows need separate checks and may retain custom decorations.
+
+#### Edge and other browsers
+
+An equivalent supported Edge setting has **not** been verified. Edge's duplicate
+controls remain an open limitation; the Chrome instructions must not be assumed
+to apply. No Edge workaround is installed. Firefox and other browsers were not
+validated in this investigation.
+
+Omabuntu does not inspect or edit browser profiles, restart browsers, or change
+shared GNOME/GTK settings for this guidance. See [titlebars](hyprbars.md) and the
+[Chrome/Edge research](chrome-edge-decoration-research.md) for evidence and limits.
+
 ### Acceptance and rehearsal
 
 ```sh

@@ -4,6 +4,17 @@ import shutil
 import sys
 import textwrap
 
+BROWSER_TITLEBAR_NOTICE = (
+    'Browser window controls (manual setup):\n'
+    '  Browser-drawn buttons can remain in tiling and duplicate floating-workspace titlebars.\n'
+    '  Chrome: open chrome://settings/appearance and enable "Use system title bar and borders"\n'
+    '  (also available from the empty tab-strip context menu when supported).\n'
+    '  Record the previous setting first; restore it to undo. If absent, do not substitute theme buttons.\n'
+    '  Edge: no equivalent setting verified; duplicate controls remain unresolved.\n'
+    '  Omabuntu does not change browser profiles or GNOME/GTK settings.\n'
+    '  PWA/PiP and GNOME behavior need separate checks; see docs/installer.md#browser-window-controls.'
+)
+
 GLYPHS = {
     'O': (' ### ', '#   #', '#   #', '#   #', ' ### '),
     'M': ('#   #', '## ##', '# # #', '#   #', '#   #'),
