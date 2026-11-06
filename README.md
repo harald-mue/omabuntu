@@ -27,7 +27,7 @@ curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh
 ```
 
 The latest release is **[v0.1.9](https://github.com/harald-mue/omabuntu/releases)**;
-the next release will be v0.1.10. fresh-machine installation is not yet
+the next release will be v0.2.0. fresh-machine installation is not yet
 accepted. The installer downloads it, verifies the publisher signature and
 archive checksums before extraction, and asks before installing missing
 prerequisites or switching the application. Updates ask separately before

@@ -67,6 +67,31 @@ stock-VM dependency closure and a second distinct live application update/rollba
 still need acceptance. Current automated coverage and actual-payload rehearsals
 do not remove those limitations. Artwork remains excluded from public builds.
 
+### v0.2.0 release scope
+
+Version 0.2.0 is prepared for publication; this source section does not claim
+that its tag or GitHub Release already exists. Availability is determined by
+GitHub metadata and verified signed artifacts.
+
+Changes since v0.1.9:
+
+- Rebase admitted desktop components onto Omarchy v4.5.0 stable at
+  `ac2690cd7be4f47e4a255f5e2e78d904d436b068`, preserving reviewed Ubuntu
+  controllers and exclusions. See [component scope and acceptance](omarchy-450-update.md).
+- Disable automatic fullscreen HDR switching in the managed Hyprland settings
+  to preserve fullscreen colors. Existing private profiles are not overwritten.
+- Explain browser-owned versus floating-workspace titlebar controls during
+  installation. Ordinary Chrome windows can use the manual **Use system title
+  bar and borders** setting; Edge remains unresolved. No browser profile or
+  shared GNOME/GTK setting is changed automatically. See
+  [browser setup and limitations](installer.md#browser-window-controls).
+
+Target remains Ubuntu 26.04 x86_64 with source-reviewed Hyprland 0.57.0 and
+Qt 6.10.2. The release number does not establish full Omarchy parity, stock-
+machine/first-login acceptance, all browser actions, PWA/PiP or a fresh GNOME
+login. Public artifacts remain artwork-free; plugin preparation/activation and
+local desktop deployment are separate approval gates.
+
 ## One-time publisher setup
 
 Use an existing, dedicated Ed25519 SSH signing key stored outside the repository.
