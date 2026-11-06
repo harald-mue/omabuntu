@@ -1,7 +1,10 @@
 """Source-to-release contracts: no real compiler, capture, network or desktop."""
+import contextlib
 import copy
 import hashlib
+import io
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -200,6 +203,63 @@ class BuildPipelineTests(unittest.TestCase):
         self.mocks[11].assert_not_called()
         self.assertEqual(packager.call_args.kwargs['build_inputs'], 'a' * 64)
 
+    def test_fresh_root_is_private_before_font_and_runtime_under_permissive_umasks(self):
+        for mask in (0o002, 0o022):
+            with self.subTest(umask=oct(mask)), tempfile.TemporaryDirectory(dir=self.root) as temporary:
+                root = Path(temporary)
+                reviewed = dict(self.plan, root=str(root))
+                def font(checkout):
+                    self.assertEqual(checkout, root)
+                    self.assertEqual((root / 'work').stat().st_mode & 0o777, 0o700)
+                    return root / 'cached-font.ttf'
+                def runtime(**kwargs):
+                    self.assertEqual(kwargs['root'], root)
+                    pipeline.build_runtime.private_directory(root / 'work')
+                    return self.runtime
+                previous = os.umask(mask)
+                try:
+                    with patch.object(pipeline, 'ROOT', root), \
+                         patch.object(pipeline, 'create_plan', return_value=reviewed), \
+                         patch.object(pipeline.desktop_font, 'obtain', side_effect=font), \
+                         patch.object(pipeline.build_runtime, 'build', side_effect=runtime), \
+                         patch.object(pipeline.package_user, 'prepare', return_value=root / 'bundle'):
+                        result = pipeline.apply(reviewed, pipeline.guided.digest(reviewed))
+                finally:
+                    os.umask(previous)
+                self.assertEqual(result['status'], 'bundle-prepared-and-checked')
+                self.assertEqual((root / 'work/bootstrap').stat().st_mode & 0o777, 0o700)
+
+    def test_existing_nonprivate_work_root_is_refused_without_chmod_or_build(self):
+        work = self.root / 'work'
+        work.mkdir(mode=0o700)
+        for mode in (0o755, 0o775):
+            with self.subTest(mode=oct(mode)):
+                work.chmod(mode)
+                with self.assertRaisesRegex(ValueError, 'owned private directory'):
+                    self.apply()
+                self.assertEqual(work.stat().st_mode & 0o777, mode)
+                self.assertFalse((work / 'bootstrap').exists())
+        self.mocks[2].assert_not_called()
+        self.mocks[9].assert_not_called()
+
+    def test_symlinked_work_root_is_refused_before_build(self):
+        target = self.root / 'unrelated'
+        target.mkdir(mode=0o700)
+        (self.root / 'work').symlink_to(target, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'Symlinked deployment path'):
+            self.apply()
+        self.assertEqual(list(target.iterdir()), [])
+        self.mocks[2].assert_not_called()
+        self.mocks[9].assert_not_called()
+
+    def test_artwork_free_build_message_does_not_claim_artwork_download(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output), patch.object(pipeline, 'collect_artwork') as collect:
+            self.apply()
+        self.assertIn('theme artwork excluded', output.getvalue())
+        self.assertNotIn('pinned artwork and', output.getvalue())
+        collect.assert_not_called()
+
     def test_runtime_failure_never_builds_capture_or_packages(self):
         self.mocks[3].return_value = {'status': 'failed'}
         with self.assertRaisesRegex(ValueError, 'Runtime checks'):
@@ -227,6 +287,7 @@ class BuildPipelineTests(unittest.TestCase):
         self.assertFalse((self.root / 'work').exists())
 
     def test_existing_matching_bundle_is_verified_not_rebuilt(self):
+        (self.root / 'work').mkdir(mode=0o700)
         (self.output / 'runtime/bin').mkdir(parents=True)
         (self.output / 'runtime/bin/omasnap').write_bytes(b'fixture')
         (self.output / 'native').mkdir()
@@ -237,6 +298,7 @@ class BuildPipelineTests(unittest.TestCase):
         self.mocks[4].assert_not_called()
 
     def test_existing_version_collision_does_not_rebuild_or_overwrite(self):
+        (self.root / 'work').mkdir(mode=0o700)
         self.output.mkdir(parents=True)
         (self.output / 'PROVENANCE.json').write_text('{"bootstrap_input_sha256":"different"}')
         with self.assertRaisesRegex(ValueError, 'different build inputs'):

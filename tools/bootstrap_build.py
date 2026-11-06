@@ -122,7 +122,10 @@ def apply(plan, approval):
     root = user_install.safe_parents(Path(plan['root']))
     if root != ROOT.absolute():
         raise ValueError('Build plan belongs to another checkout; run its own reviewed entry point')
-    parent = user_install.private_directory(root / 'work/bootstrap')
+    # mkdir(parents=True) protects only the leaf mode, not implicit ancestors.
+    # Establish the private work root before creating bootstrap/cache children.
+    work = user_install.private_directory(root / 'work')
+    parent = user_install.private_directory(work / 'bootstrap')
     fd = os.open(parent / 'operation.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -153,7 +156,8 @@ def apply(plan, approval):
                 return {'status': journal['status'], 'bundle': str(output), 'journal': str(path)}
             journal['status'] = 'artwork'
             save()
-            print('  Downloading or reusing pinned artwork and the desktop font.', flush=True)
+            print('  Downloading or reusing pinned artwork and the desktop font.' if plan['artwork']
+                  else '  Downloading or reusing the pinned desktop font (theme artwork excluded).', flush=True)
             assets = collect_artwork(root) if plan['artwork'] else user_install.private_directory(case / 'no-artwork')
             font_file = desktop_font.obtain(root)
             journal['status'] = 'runtime'
