@@ -11,7 +11,7 @@ The user explicitly requested building and public release publication.
 
 ## Gaps and proposed shape
 
-README still names 0.1.10 as the next release. Record 0.2.0 preparation and scope:
+At planning time, README named 0.1.10 as the next release. Record 0.2.0 preparation and scope:
 stable admitted Omarchy components, preserved fullscreen HDR behavior and manual
 Chrome titlebar guidance. Keep fresh-machine, GNOME/browser and native acceptance
 limits explicit. Ask before the preparation commit. Use the committed export,
@@ -35,13 +35,13 @@ commit approval; do not bypass publisher integrity or confirmation gates.
 ## Tasks
 
 - [x] Review publisher documentation, tools, clean tree, branch, origin and version availability.
-- [ ] Prepare version/scope documentation and obtain preparation commit approval.
-- [ ] Run full tests, clean-source checks and publication/provenance review.
-- [ ] Commit reviewed preparation after approval and build fresh isolated artifacts.
-- [ ] Sign and verify checksums, source/bundle integrity and artwork exclusion.
-- [ ] Publish v0.2.0 and verify remote tag, release state and expected assets.
+- [x] Prepare version/scope documentation and obtain preparation commit approval.
+- [x] Run full tests, clean-source checks and publication/provenance review.
+- [x] Commit reviewed preparation after approval and build fresh isolated artifacts.
+- [x] Sign and verify checksums, source/bundle integrity and artwork exclusion.
+- [x] Publish v0.2.0 and verify remote tag, release state and expected assets.
 
-## Initial preflight
+## Initial preflight (historical)
 
 Main is clean at `078b654`; origin/main currently precedes the two local desktop
 and installer commits. GitHub's latest release is v0.1.9. No local v0.2.0 tag,
@@ -55,5 +55,24 @@ Preparation updates README's next-version label to v0.2.0 while keeping v0.1.9
 as the latest published release, and adds the bounded 0.2.0 scope to
 `docs/releases.md`. All 1082 unit tests, isolated clean-source checks and
 `git diff --check` pass. Logs/backups remain under ignored
-`work/release-020-preparation/`. The preparation commit needs user approval
-before the publisher can export a clean committed tree.
+`work/release-020-preparation/`. The user subsequently approved the preparation
+commit `49828f5`; the publisher's passphrase entry remained with the user.
+
+## Completed publication
+
+The first isolated build exposed a private-directory ordering bug. Plan 091
+records its tested fix and preservation of the failed workspace. The user then
+ran the interactive publisher, which committed the fix as `9537b21`, built a
+fresh export and published [v0.2.0](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.0)
+on 2026-11-07 at 00:02:56 UTC. Local and remote tags resolve to
+`9537b211a02fa5f74c40558f3f31f218e0427ec2`.
+
+Post-release verification confirms public/non-prerelease state and all four
+expected assets. Retained artifact hashes match GitHub asset digests; signature,
+source-export identity, bundle integrity and artwork-exclusion checks pass.
+The corrected source passes all 1086 unit tests and isolated clean-source checks.
+Private verification evidence is under ignored `work/release-020-docs-092/`.
+
+This completes publication, not fresh-machine, GNOME/PWA, all-button-action or
+native/security acceptance. No desktop deployment was part of the release.
+Documentation follow-up leaves the published tag and artifacts unchanged.

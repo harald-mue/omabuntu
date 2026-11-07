@@ -2,7 +2,16 @@
 
 ## Status
 
-The signed v0.1.0 release is published, but its stock-VM installation failed.
+The current published release is **[v0.2.0](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.0)**,
+published on 2026-11-07 at 00:02:56 UTC from commit
+`9537b211a02fa5f74c40558f3f31f218e0427ec2`. It is public, not a draft or
+prerelease. All four expected assets are present: the Ubuntu 26.04 x86_64
+archive, `release.json`, `SHA256SUMS` and `SHA256SUMS.sig`. Retained artifact
+hashes match GitHub's asset digests; publisher-signature, source-export,
+bundle-integrity and artwork-exclusion checks pass. Publication does not
+establish fresh-machine or native/security acceptance.
+
+Historically, the signed v0.1.0 release was published, but its stock-VM installation failed.
 It is not fresh-machine accepted. New source builds use a separate hyprpm policy
 instead of shipping a native titlebar library; existing artifacts are immutable
 and do not acquire this change. New builds target source-reviewed Hyprland
@@ -69,12 +78,16 @@ do not remove those limitations. Artwork remains excluded from public builds.
 
 ### v0.2.0 release scope
 
-Version 0.2.0 is prepared for publication; this source section does not claim
-that its tag or GitHub Release already exists. Availability is determined by
-GitHub metadata and verified signed artifacts.
+Version **[0.2.0](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.0)** is
+published. The tag identifies commit `9537b211a02fa5f74c40558f3f31f218e0427ec2`.
+Post-release source-documentation updates do not replace its immutable artifacts.
 
 Changes since v0.1.9:
 
+- Create and validate the private build `work/` root before nested bootstrap
+  directories. This fixes fresh isolated release builds under permissive umasks
+  without weakening checks or changing existing unsafe directory permissions.
+  Artwork-free builds also report honestly that theme artwork is excluded.
 - Rebase admitted desktop components onto Omarchy v4.5.0 stable at
   `ac2690cd7be4f47e4a255f5e2e78d904d436b068`, preserving reviewed Ubuntu
   controllers and exclusions. See [component scope and acceptance](omarchy-450-update.md).

@@ -32,7 +32,7 @@ and preserve the old workspace at a fresh private backup path, not delete it.
 - [x] Implement private-root initialization and honest artwork-free logging.
 - [x] Add regression coverage for fresh permissive-umask and unsafe existing roots.
 - [x] Run full tests, isolated clean-source checks and diff checks.
-- [ ] Obtain fix commit approval and document safe fresh-build recovery.
+- [x] Obtain fix commit approval and document safe fresh-build recovery.
 
 ## Verification and recovery status
 
@@ -43,14 +43,24 @@ The fixed source passes all 1086 unit tests, isolated clean-source checks and
 modes, and symlinked roots are refused before font/runtime operations. Source
 backups and logs remain privately under ignored `work/private-build-root-091/`.
 
-No v0.2.0 local/remote tag or GitHub Release was found. On the user's cleanup
+At recovery time, no v0.2.0 local/remote tag or GitHub Release was found. On the user's cleanup
 request, verified that no publisher/build process was active and archived the
 incomplete workspace into a unique private directory under ignored
 `work/release-build-archives/`. A private transaction records the original path,
 mode/owner and archive destination. Nothing was deleted or chmodded; the
-`work/publish/v0.2.0` path is now free.
+`work/publish/v0.2.0` path was freed for a fresh build.
 
-The fix still requires commit approval before a fresh
-`make release VERSION=0.2.0`. Do not use signing-only resume or edit/chmod the old
-exported source to bypass checks; the new source commit must be included in the
-release archive.
+## Completed recovery and release
+
+The reviewed fix, tests and this plan were staged; the user subsequently ran
+the interactive publisher and committed them through its confirmation gate as
+`9537b21` (`chore(release): prepare v0.2.0`). A fresh isolated build completed
+and [v0.2.0](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.0) was
+published on 2026-11-07 at 00:02:56 UTC. Its source commit includes the fix;
+no old export was edited or chmodded to bypass validation.
+
+Post-release signature, source/bundle integrity, artwork-exclusion and remote
+asset-digest checks pass. The version now exists publicly: do not clear or
+rebuild its publication workspace as if recovery were still pending, and do not
+replace the published tag/artifacts. This establishes build recovery and release
+publication, not fresh-machine or native/security acceptance.
