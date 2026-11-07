@@ -35,11 +35,11 @@ plugin, lock recovery, GNOME or real update-pair/security acceptance.
 - [x] Obtain explicit commit/push/release approval and check version availability.
 - [x] Prepare v0.2.2 scope documentation and review the publication candidate.
 - [x] Run full tests, clean-source and whitespace checks.
-- [ ] Commit approved sources and push main without force.
-- [ ] Build fresh isolated artwork-free assets and sign through the publisher.
-- [ ] Publish after confirmation and verify public tag, assets and signature.
+- [x] Commit approved sources and push main without force.
+- [x] Build fresh isolated artwork-free assets and sign through the publisher.
+- [x] Publish after confirmation and verify public tag, assets and signature.
 
-## Initial preflight
+## Initial preflight (historical)
 
 Main is at the v0.2.1 documentation commit with the compatibility implementation
 uncommitted. Remote main matches local HEAD. No local/remote v0.2.2 tag, GitHub
@@ -47,7 +47,7 @@ release or publication workspace was found. Publisher tools and the signing-key
 path environment setting are present; no private key was read. v0.2.1 remains
 public/latest until v0.2.2 publication is actually complete.
 
-## Prepared source verification
+## Prepared source verification (historical)
 
 README and release/operator documentation now identify v0.2.2 preparation without
 claiming public availability. The scope explicitly preserves strict plugin ABI/
@@ -63,3 +63,19 @@ acceptance. No new third-party code or assets were imported. Backups and current
 review/test reports remain under ignored `work/release-022-preparation/`.
 Commit/push are explicitly approved; the interactive publisher still retains the
 user's signing and final publication confirmation gates.
+
+## Completed publication
+
+Approved sources were committed as `bb5a20c` (`chore(release): prepare v0.2.2`)
+and pushed normally to main. The user subsequently completed the interactive
+publisher. Public [v0.2.2](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.2)
+was published on 2026-11-07 at 18:17:35 UTC, neither draft nor prerelease.
+Local and remote tags resolve to `bb5a20c63bcc4e9e2a295497aba60aa4aadb7043`.
+
+Post-publication checks under plan 107 verify all four expected assets and their
+retained hashes/sizes against GitHub digests, the publisher signature, original
+Git export/packaged-source identity, bundle integrity and artwork exclusion.
+Private evidence is retained under ignored `work/release-022-docs-107/`.
+Publication does not establish native fresh-VM installation, plugin acceptance,
+verified unlock/recovery, GNOME/login or a real update-pair/self-restart. No
+published artifact or installed desktop is changed by documentation follow-up.

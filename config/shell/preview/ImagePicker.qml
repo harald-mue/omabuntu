@@ -164,7 +164,9 @@ PanelWindow {
       // A background apply closes once a wallpaper daemon accepted it. Only
       // an unapplied choice keeps the picker open with the recording note.
       if (root.mode === "backgrounds" && payload.applied !== true)
-        root.note = "Background recorded. No wallpaper daemon answered (is hyprpaper running?)."
+        root.note = "Background recorded. " + (payload.message || "It could not be applied. Run omabuntu wallpaper-status for diagnostics.")
+      else if (root.mode === "themes" && payload.wallpaper && payload.wallpaper.applied !== true)
+        root.note = "Theme saved. Background not applied. " + (payload.wallpaper.message || "Run omabuntu wallpaper-status for diagnostics.")
       else root.close()
     }
     root.pump()

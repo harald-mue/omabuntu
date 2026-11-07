@@ -8,7 +8,7 @@ Window; layershell, Hyprland and both GlobalShortcut registrations are
 removed; probe accessors are appended; every other line stays the real
 reviewed logic), and drives it with synthetic key events against the real
 Python helper inside a bwrap sandbox: definitions, guard batch, providers,
-search, navigation, the system route and the power gate refusal. No host
+search, navigation, the system route and the out-of-session logout refusal. No host
 session, shortcut registration, hyprctl success, or network is involved.
 """
 import argparse
@@ -134,13 +134,15 @@ __BAR_STATE_FILE__
       assert(rowAt(findRow("Reboot")).kind === "action", "reboot is an action")
     },
     function() {
-      var reboot = findRow("Reboot")
-      menu.selectedIndex = reboot
+      // Reboot/shutdown are ordinary actions now: never execute them in a
+      // fixture. Logout must refuse this sandbox before any live dispatch.
+      var logout = findRow("Logout")
+      menu.selectedIndex = logout
       menu.cursorActive = true
-      menu.activateIndex(reboot)
+      menu.activateIndex(logout)
     },
     function() {
-      ready(menu.note === "Power actions are not enabled yet.", "gate refusal")
+      ready(menu.note.indexOf("Logout requires the current live Hyprland session") === 0, "session refusal")
       assert(menu.shown === true, "refusal keeps the menu open")
       menu.handleKey({ key: Qt.Key_Escape, text: "" })
       assert(menu.shown === false, "escape closes")

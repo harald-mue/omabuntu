@@ -36,7 +36,7 @@ class DerivationTests(unittest.TestCase):
             checker.derive_surface(self.text.replace("import Quickshell.Hyprland\n", ""))
 
     def test_probe_drives_the_full_surface(self):
-        for label in ("root row count", "gate refusal", "when hides the row",
+        for label in ("root row count", "session refusal", "when hides the row",
                       "cursor skips the disabled row", "theme row opens the picker",
                       "search rows", "system route"):
             self.assertIn(label, checker.PROBE)

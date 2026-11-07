@@ -33,7 +33,9 @@ foreground, accent, and urgent for the note line.
 - Backgrounds: the current theme's imported upstream stills first (under
   `config/menu/backgrounds/<theme>/`), then Ubuntu's
   `/usr/share/backgrounds` plus files in `~/Pictures`, all read through the
-  reviewed helper. The preview shows the image file itself
+  reviewed helper. Before any theme is selected, all available theme stills
+  are listed instead of hiding downloaded artwork. The Ubuntu/Pictures roots
+  remain non-recursive. The preview shows the image file itself
   (WebP needs the Qt image plugin from
   `qt6-image-formats-plugins`; see [dependencies](dependencies.md));
   there is no on-disk thumbnail generation and no video support
@@ -47,16 +49,53 @@ is the reviewed `theme_backend.set_theme`: state plus backup, the live
 bar recolor plus the two Hyprland border keywords, the same two color
 literals persisted in the user's `hyprland.lua` (backup first, shape
 checked, never reloaded by the backend), and that theme's background
-recorded and applied through the reviewed background path; the picker then
-closes like upstream. A background apply records state plus backup and, when a hyprpaper daemon
-answers, sets the still per monitor through the current request
-`hyprctl hyprpaper wallpaper <mon>,<path>` (hyprpaper 0.8.4); a daemon that
-rejects that request falls back to the pre-0.8.4
-preload/wallpaper/unload sequence. An applied choice closes the picker like
-upstream; only an unapplied choice keeps it open with the recording note
-("Background recorded. No wallpaper daemon answered…"), shown only when the
-helper reports `applied` false. A refusal shows the note line and keeps the
-picker open.
+recorded and applied through the reviewed background path. A background apply
+records state plus backup and sets the still per active monitor through
+`hyprctl hyprpaper wallpaper <mon>,<path>` (reviewed against Hyprland 0.57.1 /
+hyprpaper 0.8.5). Only an explicit legacy "not preloaded" reply enables the old
+preload sequence; connection/handshake/file/rendering failures never trigger
+legacy fallback. Cleanup unloads that file, not every client's preloads.
+Comma/control-separated paths are refused rather than misparsed by IPC.
+
+The helper retains command errors, stderr, missing commands, timeouts and partial
+output failures. It queries `listactive` after acceptance and checks each active
+output against the selected image. Missing/wrong targets are not reported as
+applied. Older daemons explicitly lacking this status query can report acceptance
+with `active_reported: null`; this is not target or rendering verification.
+An applied choice closes the picker; an unapplied choice stays open with
+"Background recorded." and its actual failure. A theme whose colors were saved
+but whose wallpaper failed also stays open with that distinction. No rollback
+of successfully changed colors is implied by the wallpaper error.
+
+Login restoration retries only transient daemon/output readiness within a total
+13-second IPC/readiness budget (per-probe maximum 5 seconds); interactive image
+selection does not wait for or start a missing daemon. The manager's existing
+20-second helper boundary remains. Saved wallpaper bytes/choices are preserved;
+application-only updates deliberately do not reapply wallpaper.
+
+### Read-only wallpaper diagnosis
+
+After deploying a release containing this repair, run from the affected
+Hyprland terminal:
+
+```sh
+omabuntu wallpaper-status
+```
+
+This validates the installed release and runs its `background_backend.py diagnose`
+helper without creating state/control locks, selecting an image, starting a daemon
+or changing a service. The five fixed probes each have a 3-second timeout. Reports
+include selected-file existence, available image count, selected session variables,
+active targets, service state, version and the last 30 current-boot hyprpaper journal
+entries. Missing commands, timeouts and partial failures stay explicit. Review
+private paths/display names before sharing; do not commit reports.
+
+A healthy daemon, accepted request or correct active-target report is **not proof
+of rendered pixels**. Reports always retain `rendering_verified: false`. If the
+VM stays black despite a correct target, examine the actual guest renderer and
+EGL/GBM journal errors; no speculative permission/environment/graphics override
+is applied. Plan 109 has no guest rendering, service activation or native logout
+acceptance.
 
 ## Not included
 

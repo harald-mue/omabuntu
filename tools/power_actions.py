@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
-"""Gated session-ending actions for the Omabuntu system menu.
+"""Normal session actions; explicit grants only for suspend/hibernate.
 
-Omarchy's system menu runs `systemctl suspend`, `systemctl hibernate`,
-`omarchy-system logout/reboot/shutdown` directly (pinned commit 03ff1eff,
-bin/omarchy-system). This Ubuntu adaptation keeps the same five actions but
-refuses every one until its gate flag is present in the state file
-`current/power-gates.json` (schema {"gates": {"suspend": true, ...}}). Gates
-are granted only by an explicit user-approved step; the menu never writes
-this file. Suspend and hibernate additionally require the kernel to report
-the power state, mirroring upstream's availability guards. The shutdown
-row's action is `systemctl:poweroff`; that name is the same gate as
-`shutdown`. An enabled hibernate gate is the approval to run hibernate;
-this helper does not inspect the resume path.
+Logout/reboot/shutdown need no application-only grant, including legacy
+installations. Ubuntu authorization and inhibitors remain in force. Logout
+validates the current Hyprland socket and targets only that compositor or
+its exact UWSM unit. No broad user termination or forced window closing.
 
-CLI: power_actions.py <verb>            run one gated action (if approved)
-      power_actions.py enable <verb>     record a gate flag (explicit user step)
-      power_actions.py gates             print the current gate state as JSON
+CLI: power_actions.py <verb> | enable <verb> | gates
+Legacy ordinary-action flags remain readable but no longer control availability.
+An enabled hibernate gate does not establish a working resume path.
 """
 import json
+import os
+from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -26,6 +22,51 @@ import menu_common
 
 VERBS = ('suspend', 'hibernate', 'logout', 'reboot', 'shutdown')
 ALIASES = {'poweroff': 'shutdown'}
+SLEEP_VERBS = ('suspend', 'hibernate')
+UWSM_UNIT = re.compile(r'wayland-wm@[A-Za-z0-9_.@\\\-]+\.service\Z')
+EXIT = ['hyprctl', 'dispatch', 'hl.dsp.exit()']
+
+
+def logout_command(run, env=None, proc_root='/proc', runtime_root=None):
+    """Validate the current instance; honor ordered UWSM shutdown when managed.
+
+    UWSM documents stopping the exact wayland-wm@ instance. Identify it from
+    the compositor's cgroup, not an inherited flag or another active session.
+    """
+    env = os.environ if env is None else env
+    signature = env.get('HYPRLAND_INSTANCE_SIGNATURE', '')
+    display = env.get('WAYLAND_DISPLAY', '')
+    runtime = Path(runtime_root) if runtime_root is not None else Path('/run/user') / str(os.getuid())
+    if ('hyprland' not in env.get('XDG_CURRENT_DESKTOP', '').lower().split(':')
+            or not re.fullmatch(r'[A-Za-z0-9_.-]+', signature)
+            or not re.fullmatch(r'wayland-\d+', display)
+            or env.get('XDG_RUNTIME_DIR', str(runtime)) != str(runtime)
+            or not (runtime / display).is_socket()
+            or not (runtime / 'hypr' / signature / '.socket.sock').is_socket()):
+        raise ValueError('Logout requires the current live Hyprland session, not GNOME or a TTY.')
+    code, output = run(['hyprctl', 'instances', '-j'])
+    instances = json.loads(output) if code == 0 else None
+    if not isinstance(instances, list):
+        raise ValueError('Could not verify the current Hyprland instance.')
+    matches = [i for i in instances if isinstance(i, dict) and i.get('instance') == signature
+               and i.get('wl_socket') == display]
+    if len(matches) != 1 or type(matches[0].get('pid')) is not int or matches[0]['pid'] <= 1:
+        raise ValueError('Logout environment does not match one live Hyprland instance.')
+    pid = matches[0]['pid']
+    process = Path(proc_root) / str(pid)
+    if process.stat().st_uid != os.getuid():
+        raise ValueError('Logout compositor is not owned by this user.')
+    units = {part for line in (process / 'cgroup').read_text().splitlines()
+             for part in line.split(':', 2)[-1].split('/') if UWSM_UNIT.fullmatch(part)}
+    if len(units) > 1:
+        raise ValueError('Ambiguous compositor service; logout was not attempted.')
+    if units:
+        unit = units.pop()
+        code, output = run(['systemctl', '--user', 'show', unit, '--property=MainPID', '--value'])
+        if code != 0 or output.strip() != str(pid):
+            raise ValueError('UWSM service identity changed; logout was not attempted.')
+        return ['systemctl', '--user', 'stop', unit]
+    return list(EXIT)
 
 
 def canonical(verb):
@@ -36,13 +77,13 @@ def canonical(verb):
 
 
 def _commands(verb, run=None):
-    """Exact command list per verb; the UWSM session maps logout to uwsm stop."""
+    """Exact command list per verb; logout is resolved after session validation."""
     if verb == 'suspend':
         return ['systemctl', 'suspend']
     if verb == 'hibernate':
         return ['systemctl', 'hibernate']
     if verb == 'logout':
-        return ['uwsm', 'stop']
+        return logout_command(run)
     if verb == 'reboot':
         return ['systemctl', 'reboot']
     if verb == 'shutdown':
@@ -95,7 +136,7 @@ def enable(verb, root=None):
 
 
 def perform(verb, run=None, root=None, states=None):
-    """Run one session-ending action after its gate. Returns a result dict.
+    """Run an ordinary action, or a sleep action after its explicit gate.
 
     run(argv) -> (returncode, stdout) defaults to the restricted live runner;
     tests inject a fake. Refusals are {'ok': False, 'error': ...} and never
@@ -108,24 +149,37 @@ def perform(verb, run=None, root=None, states=None):
         return {'ok': False, 'error': 'refused', 'message': 'Suspend is not available.'}
     if verb == 'hibernate' and not can_hibernate(states):
         return {'ok': False, 'error': 'refused', 'message': 'Hibernate is not available.'}
-    if not gates(root).get(verb):
+    if verb in SLEEP_VERBS and not gates(root).get(verb):
         return {'ok': False, 'error': 'gate',
-                'message': 'Power actions are not enabled yet.'}
-    command = _commands(verb)
+                'message': verb.capitalize() + ' requires a separate safety/recovery approval.'}
     if run is None:
         run = live_run
-    code, _ = run(command)
-    return {'ok': code == 0} if code == 0 else {'ok': False, 'error': 'failed'}
+    try:
+        command = _commands(verb, run)
+        code, output = run(command)
+    except subprocess.TimeoutExpired:
+        return {'ok': False, 'error': 'timeout', 'message': verb.capitalize() + ' command timed out.'}
+    except (OSError, ValueError) as error:
+        return {'ok': False, 'error': 'failed', 'message': str(error)[:600]}
+    if code != 0 or (command == EXIT and str(output).strip().lower() not in ('', 'ok')):
+        detail = ' '.join(str(output).split())[:500]
+        return {'ok': False, 'error': 'failed',
+                'message': verb.capitalize() + ' failed' + (': ' + detail if detail else '.')}
+    return {'ok': True}
 
 
 def live_run(argv, timeout=10):
     """Run one reviewed power command; the argument list is fixed above."""
-    if not isinstance(argv, list) or len(argv) != 2 or argv[0] not in ('systemctl', 'uwsm') \
-            or argv[1] not in ('suspend', 'hibernate', 'reboot', 'poweroff', 'stop') \
-            or (argv[0] == 'systemctl') != (argv[1] != 'stop'):
+    fixed = [['systemctl', verb] for verb in ('suspend', 'hibernate', 'reboot', 'poweroff')]
+    fixed += [EXIT, ['hyprctl', 'instances', '-j']]
+    unit_command = (isinstance(argv, list) and len(argv) >= 4 and argv[:2] == ['systemctl', '--user']
+                    and UWSM_UNIT.fullmatch(argv[3]) and
+                    ((len(argv) == 4 and argv[2] == 'stop') or
+                     (len(argv) == 6 and argv[2] == 'show' and argv[4:] == ['--property=MainPID', '--value'])))
+    if not isinstance(argv, list) or (argv not in fixed and not unit_command):
         raise ValueError('Refused power command: %r' % (argv,))
     completed = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False)
-    return completed.returncode, completed.stdout
+    return completed.returncode, (completed.stdout or '') + (completed.stderr or '')
 
 
 def main(argv):

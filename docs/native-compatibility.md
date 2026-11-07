@@ -2,12 +2,11 @@
 
 ## Delivery status
 
-This change is **prepared for v0.2.2, not yet published**, and is not applied
-retroactively to v0.2.1. v0.2.1's immutable installer still uses exact native
-package checks. Signing/publication must complete before the public installer
-can deliver this change. See [release scope](releases.md#v022-release-scope-preparation).
-No package update, installed-bundle replacement or desktop change is performed
-by changing this policy in the checkout.
+This change is shipped in public **[v0.2.2](releases.md#v022-release-scope)**.
+It is not applied retroactively to v0.2.1, whose immutable installer still uses
+exact native package checks. A new public installer run can fetch v0.2.2;
+publication alone does not update an installed application, native packages or
+the desktop. See the release scope for verification and acceptance limits.
 
 ## Build baseline versus compatible host
 

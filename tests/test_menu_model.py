@@ -187,9 +187,9 @@ class DispatchTests(unittest.TestCase):
         self.assertTrue(menu_model.ACTION_RE.fullmatch("omabuntu-open:themes"))
         self.assertTrue(menu_model.ACTION_RE.fullmatch("omabuntu-open:backgrounds"))
 
-    def test_power_actions_are_gated(self):
+    def test_normal_power_action_needs_no_gate(self):
         result = self.run_item('system.reboot')
-        self.assertEqual(result['error'], 'gate')
+        self.assertTrue(result['ok'])
 
     def test_enabled_reboot_uses_the_injected_runner(self):
         power_actions.enable('reboot')

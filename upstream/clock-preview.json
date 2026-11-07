@@ -1064,7 +1064,7 @@
     },
     "ImagePicker.qml": {
       "path": "config/shell/preview/ImagePicker.qml",
-      "sha256": "d84e0bb2df12c35a7a65edd33bacc850ee30cba9e65d5852df380302f5f55c65"
+      "sha256": "c38481cc42e152fe3435e60be4e1f7fdef9d77af40f3acbb0c45fedfc1a5f2b8"
     },
     "ImagePickerModel.js": {
       "path": "config/shell/preview/ImagePickerModel.js",

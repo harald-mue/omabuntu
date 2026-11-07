@@ -26,7 +26,7 @@ configuration — install and update it without building anything yourself.
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-The latest release is **[v0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)**;
+The latest release is **[v0.2.2](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.2)**;
 fresh-machine installation is not yet
 accepted. The installer downloads it, verifies the publisher signature and
 archive checksums before extraction, and asks before installing missing
@@ -123,16 +123,16 @@ make guide                    # review local installation stages
 make test                     # unit suite
 ```
 
-Version **v0.2.2 is being prepared**, replacing exact native patch-version
-checks with scoped compatibility checks and clearer installer diagnostics.
-v0.2.1 remains the latest public release until publication completes. See the
-[0.2.2 scope and acceptance limits](docs/releases.md#v022-release-scope-preparation).
+Version **[v0.2.2](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.2)** is
+published, replacing exact native patch-version checks with scoped compatibility
+checks and clearer installer diagnostics. See the
+[0.2.2 scope and acceptance limits](docs/releases.md#v022-release-scope).
 
 Maintainers publish a signed release after setting up the publisher key and
-GitHub access. The preparation command for this release is:
+GitHub access. Choose an unused version; for example, for a future release:
 
 ```bash
-make release VERSION=0.2.2
+make release VERSION=0.2.3
 ```
 
 This asks before committing, builds the committed source without theme

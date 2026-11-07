@@ -29,7 +29,8 @@ import check_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKER = 'OMABUNTU_PICKER_FIXTURE_OK'
-HELPERS = ('menu_model.py', 'menu_common.py', 'defaults_backend.py', 'theme_backend.py',
+HELPERS = ('menu_model.py', 'menu_common.py', 'appearance_backend.py', 'dock_state.py', 'menu_update.py',
+           'defaults_backend.py', 'theme_backend.py',
            'font_backend.py', 'background_backend.py', 'power_actions.py')
 DATA = (('omabuntu-menu.jsonc', 'config/shell/omabuntu-menu.jsonc'),
         ('themes.json', 'config/menu/themes.json'))

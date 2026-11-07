@@ -12,12 +12,12 @@ linked against.
 ## Compatibility versus recorded versions
 
 The tables below are historical observations, not an exact host-package lock.
-The post-v0.2.1 source uses a shared stable patch-family policy and still requires
+Public v0.2.2 uses a shared stable patch-family policy and still requires
 runtime linkage/import checks, with separate strict plugin build/ABI receipts.
 Hyprland 0.57.1 and Hyprlock 0.9.7 are not refused solely for differing from the
 0.57.0/0.9.6 baseline. See [native compatibility](native-compatibility.md) for
 minimums, upper bounds, diagnostics, optional-plugin exclusions and delivery
-status. The immutable v0.2.1 installer does not acquire this source follow-up.
+status. The immutable v0.2.1 installer does not acquire the v0.2.2 changes.
 
 ## 1. Compositor and session (pre-existing, unchanged)
 

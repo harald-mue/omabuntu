@@ -106,15 +106,27 @@ closed `omabuntu-appearance:<key>:<choice>` registry and write only owned
 preferences with prestate receipts; see [Appearance controls](appearance-controls.md)
 for scope, recovery and the separate deployment gate. Anything else is refused.
 
-Every session-ending action goes through `tools/power_actions.py` and is
-refused until its gate flag exists in the state home's
-`current/power-gates.json` (`enable <verb>` records one). The shutdown row's
-action is `systemctl:poweroff`; that is the same gate as `shutdown`. Suspend
-and hibernate also require the kernel power state (`mem` or `freeze`, and
-`disk`). An enabled hibernate gate is the approval to run it; this helper
-does not check the resume path. `systemctl` verbs are run with a fixed
-argument shape; no shell, no arbitrary argv. A refusal shows "Power actions
-are not enabled yet." in the card and keeps it open.
+Every session-ending action goes through `tools/power_actions.py`.
+Logout/reboot/shutdown (including the `poweroff` alias) need no extra application
+consent flag. This also repairs older installations when the packaged helper is
+updated: old missing/false ordinary-action flags are ignored, not rewritten.
+Ubuntu authorization and inhibitors remain unchanged; no polkit or sudo grant
+is installed. A click still explicitly requests the action; installation/update
+never executes it.
+
+Logout validates the current Hyprland/Wayland sockets, unique instance and owned
+compositor PID. When that compositor belongs to a UWSM `wayland-wm@` service,
+it checks MainPID and stops only that exact service, preserving UWSM's ordered
+shutdown. Otherwise it uses the supported `hl.dsp.exit()` dispatcher for that
+current instance. GNOME, TTY, stale/ambiguous instances and service identity drift
+are refused; no wildcard service stop, broad user termination or forced window
+closing. Missing commands, timeouts and command refusals have visible messages.
+
+Suspend and hibernate still require separate explicit grants in
+`current/power-gates.json` (`enable <verb>`) and kernel power states (`mem` or
+`freeze`, and `disk`). They are not enabled by this repair. An enabled hibernate
+gate does not validate the resume path. All commands have a closed argument
+shape with no shell or arbitrary argv; failure keeps the menu open.
 
 ## Application updates
 
@@ -165,8 +177,9 @@ hyprctl application fails by design in the sandbox (no compositor socket), so
 live color application is not covered; no font/background provider run,
 native focus, or visual acceptance is claimed.
 
-Live session, after approval: Super+Space and Super+Escape are bound to
-`omabuntu:menu` and `omabuntu:system`. The gate file enables logout, reboot,
-shutdown, and hibernate. Suspend has no gate. Hibernate's resume path was
-not verified; choosing that row runs `systemctl hibernate`. The binds are
-not in `~/.config/hypr/hyprland.lua`.
+Historical live-session evidence, not acceptance of plan 109: Super+Space and
+Super+Escape were bound to `omabuntu:menu` and `omabuntu:system` outside the
+personal `hyprland.lua`. Historical ordinary-action grants are no longer
+necessary after deploying the repaired helper. Suspend/hibernate still require
+explicit safety grants; hibernate's resume path was not verified. No actual
+logout, reboot, shutdown or sleep action was exercised for this repair.

@@ -143,7 +143,7 @@ class ThemeTests(TempState):
             still = theme_dir / '0-forest.jpg'
             still.write_bytes(b'x')
 
-            def fake_background_run(argv):
+            def fake_background_run(argv, timeout=5):
                 return 1, ''
 
             result = theme_backend.set_theme('gruvbox', run=lambda a: (0, ''),
@@ -272,7 +272,7 @@ class BackgroundTests(TempState):
         (self.base / 'note.txt').write_text('no')
 
     def test_rows_list_images_with_current_flag(self):
-        rows = background_backend.rows([self.base])
+        rows = background_backend.rows([self.base], assets=self.base / 'no-theme-assets')
         self.assertEqual([row['value'] for row in rows],
                          [str(self.base / 'one.jpg'), str(self.base / 'two.png')])
         self.assertFalse(any(row['current'] for row in rows))
@@ -335,6 +335,8 @@ class BackgroundTests(TempState):
             calls.append(argv)
             if argv[1] == 'monitors':
                 return 0, '[{"name": "DP-1"}, {"name": "HDMI-A-1"}]'
+            if argv[2] == 'listactive':
+                return 0, 'DP-1: /tmp/wall.jpg\nHDMI-A-1: /tmp/wall.jpg\n'
             return 0, ''
 
         result = background_backend.apply_background('/tmp/wall.jpg', run=fake_run)
@@ -343,7 +345,7 @@ class BackgroundTests(TempState):
         self.assertIn(['hyprctl', 'hyprpaper', 'wallpaper', 'DP-1,/tmp/wall.jpg'], calls)
         self.assertIn(['hyprctl', 'hyprpaper', 'wallpaper', 'HDMI-A-1,/tmp/wall.jpg'], calls)
         self.assertNotIn(['hyprctl', 'hyprpaper', 'preload', '/tmp/wall.jpg'], calls)
-        self.assertEqual(len(calls), 3)
+        self.assertEqual(len(calls), 4)
 
     def test_apply_background_falls_back_to_the_legacy_sequence(self):
         calls = []
@@ -354,17 +356,20 @@ class BackgroundTests(TempState):
                 return 0, '[{"name": "DP-1"}]'
             # Before the legacy preload the current request is rejected.
             if argv[2] == 'wallpaper' and not any(call[2] == 'preload' for call in calls):
-                return 1, 'error: invalid hyprpaper request'
+                return 1, 'error: wallpaper not preloaded'
+            if argv[2] == 'listactive':
+                return 1, 'unknown request'
             return 0, ''
 
         result = background_backend.apply_background('/tmp/wall.jpg', run=fake_run)
         self.assertTrue(result['ok'])
         self.assertIn(['hyprctl', 'hyprpaper', 'preload', '/tmp/wall.jpg'], calls)
-        self.assertEqual(calls[-1], ['hyprctl', 'hyprpaper', 'unload', 'all'])
+        self.assertIn(['hyprctl', 'hyprpaper', 'unload', '/tmp/wall.jpg'], calls)
+        self.assertNotIn(['hyprctl', 'hyprpaper', 'unload', 'all'], calls)
 
     def test_apply_background_fails_closed_without_a_daemon(self):
-        self.assertEqual(background_backend.apply_background('/tmp/wall.jpg', run=lambda a, t=5: (1, '')),
-                         {'ok': False, 'method': 'hyprpaper'})
+        self.assertEqual(background_backend.apply_background('/tmp/wall.jpg', run=lambda a, t=5: (1, ''))['error'],
+                         'monitors')
         failing = {'wallpaper': (1, ''), 'preload': (1, '')}
 
         def fake_run(argv, timeout=5):
@@ -386,6 +391,8 @@ class BackgroundTests(TempState):
         def fake_run(argv, timeout=5):
             if argv[1] == 'monitors':
                 return 0, '[{"name": "DP-1"}]'
+            if argv[2] == 'listactive':
+                return 0, 'DP-1: ' + str(self.base / 'one.jpg')
             return 0, ''
 
         result = background_backend.set_background(str(self.base / 'one.jpg'), dirs=[self.base],
@@ -407,8 +414,8 @@ class PowerTests(TempState):
     def test_unknown_verb_is_refused(self):
         self.assertEqual(power_actions.perform('explode')['error'], 'refused')
 
-    def test_gates_block_every_verb(self):
-        for verb in ('suspend', 'logout', 'reboot', 'shutdown', 'hibernate', 'poweroff'):
+    def test_gates_block_sleep_verbs(self):
+        for verb in ('suspend', 'hibernate'):
             result = power_actions.perform(verb, run=lambda a: (0, ''),
                                             states='freeze mem disk')
             self.assertEqual(result['error'], 'gate', verb)
@@ -448,13 +455,12 @@ class PowerTests(TempState):
         self.assertTrue(result['ok'])
         self.assertEqual(runs, [['systemctl', 'reboot']])
 
-    def test_logout_maps_to_uwsm_stop(self):
-        power_actions.enable('logout')
+    def test_logout_uses_the_validated_session_command_without_a_gate(self):
         runs = []
-        result = power_actions.perform('logout', run=lambda argv: (runs.append(argv), (0, ''))[1],
-                                        states='freeze mem disk')
+        with patch.object(power_actions, 'logout_command', return_value=list(power_actions.EXIT)):
+            result = power_actions.perform('logout', run=lambda argv: (runs.append(argv), (0, ''))[1])
         self.assertTrue(result['ok'])
-        self.assertEqual(runs, [['uwsm', 'stop']])
+        self.assertEqual(runs, [power_actions.EXIT])
 
     def test_live_run_rejects_anything_else(self):
         with self.assertRaises(ValueError):
@@ -490,6 +496,9 @@ class BackgroundRestoreTests(TempState):
             calls.append(list(argv))
             if argv[1:3] == ['monitors', '-j']:
                 return 0, json.dumps([{'name': name} for name in monitors])
+            if argv[2] == 'listactive':
+                return 0, '\n'.join(call[3].replace(',', ': ', 1) for call in calls
+                                     if call[2] == 'wallpaper')
             return 0, 'ok'
 
         return run, calls
@@ -510,7 +519,8 @@ class BackgroundRestoreTests(TempState):
         self.assertEqual(calls[1:], [['hyprctl', 'hyprpaper', 'wallpaper',
                                       'eDP-1,' + str(self.assets / 'tokyo-night' / '1-winding-road.webp')],
                                      ['hyprctl', 'hyprpaper', 'wallpaper',
-                                      'DP-5,' + str(self.assets / 'tokyo-night' / '1-winding-road.webp')]])
+                                      'DP-5,' + str(self.assets / 'tokyo-night' / '1-winding-road.webp')],
+                                     ['hyprctl', 'hyprpaper', 'listactive']])
         link = menu_common.state_home() / 'current' / 'lock-background'
         self.assertEqual(os.readlink(link),
                          str((self.assets / 'tokyo-night' / '1-winding-road.webp').resolve()))

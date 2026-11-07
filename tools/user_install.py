@@ -446,6 +446,25 @@ class Installation:
             raise ValueError('Lock helper reported failure; see the private lock log')
         return {'status': 'lock-session-finished', 'release': target}
 
+    def wallpaper_status(self):
+        """Read-only diagnostics from the selected, integrity-checked helper."""
+        target = self.selected()
+        if target is None:
+            raise ValueError('No installed release')
+        helper = self.root / target / 'helpers/background_backend.py'
+        if helper.is_symlink() or not helper.is_file():
+            raise ValueError('Installed release has no wallpaper diagnostic helper')
+        result = subprocess.run([sys.executable, '-B', str(helper), 'diagnose'],
+                                env={**os.environ, 'OMABUNTU_STATE_HOME': str(self.state),
+                                     'PYTHONDONTWRITEBYTECODE': '1'},
+                                capture_output=True, text=True, timeout=18, check=False)
+        if result.returncode != 0:
+            raise ValueError('Wallpaper diagnostic helper failed: ' + result.stderr[:500])
+        report = json.loads(result.stdout)
+        if not isinstance(report, dict) or report.get('read_only') is not True:
+            raise ValueError('Installed helper does not support read-only wallpaper diagnostics; update the application first')
+        return report
+
     def restore_wallpaper(self, release):
         """Best-effort recorded-background restore (plan 020); never blocks.
 
@@ -585,7 +604,7 @@ def main(argv=None):
     parser.add_argument('--root', type=Path, default=root)
     parser.add_argument('--state', type=Path, default=state)
     parser.add_argument('--launcher', type=Path, default=launcher)
-    parser.add_argument('action', choices=('plan', 'install', 'verify', 'rollback', 'recover', 'start', 'stop', 'status', 'lock'))
+    parser.add_argument('action', choices=('plan', 'install', 'verify', 'rollback', 'recover', 'start', 'stop', 'status', 'lock', 'wallpaper-status'))
     parser.add_argument('bundle', type=Path, nargs='?')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
@@ -597,6 +616,8 @@ def main(argv=None):
     os.umask(0o077)
     if args.action == 'plan' or (args.action == 'install' and not args.apply):
         result = install.plan(args.bundle)
+    elif args.action == 'wallpaper-status':
+        result = install.wallpaper_status()
     elif args.action in ('status', 'verify'):
         safe_parents(install.state)
         target = install.selected()

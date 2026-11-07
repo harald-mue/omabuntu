@@ -30,6 +30,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 import menu_common
 
@@ -121,12 +122,12 @@ def backgrounds(dirs=None, root=None, assets=None):
     files = []
     seen = set()
     theme_id = current_theme(root)
-    if theme_id:
-        for path in theme_backgrounds(theme_id, assets):
-            real = path.resolve()
-            if real not in seen:
-                seen.add(real)
-                files.append(path)
+    candidates = theme_backgrounds(theme_id, assets) if theme_id else all_theme_backgrounds(assets)
+    for path in candidates:
+        real = path.resolve()
+        if real not in seen:
+            seen.add(real)
+            files.append(path)
     dirs = background_dirs() if dirs is None else [Path(d) for d in dirs]
     for directory in dirs:
         for path in _images(directory):
@@ -166,11 +167,13 @@ def rows(dirs=None, root=None, assets=None):
 
 def hyprctl_run(argv, timeout=5):
     """One reviewed hyprctl hyprpaper or monitors command, list argv only."""
-    if not isinstance(argv, list) or argv[0] != 'hyprctl' or len(argv) > 5:
+    if not isinstance(argv, list) or not argv or argv[0] != 'hyprctl' or not 2 <= len(argv) <= 4:
         raise ValueError('Refused hyprctl command: %r' % (argv,))
     if argv[1:3] == ['monitors', '-j'] and len(argv) == 3:
         shape = True
-    elif argv[1] == 'hyprpaper' and argv[2] in ('preload', 'wallpaper', 'unload'):
+    elif argv == ['hyprctl', 'hyprpaper', 'listactive']:
+        shape = True
+    elif len(argv) >= 3 and argv[1] == 'hyprpaper' and argv[2] in ('preload', 'wallpaper', 'unload'):
         value = argv[3] if len(argv) == 4 else ''
         shape = bool(value) and '\n' not in value and '\x00' not in value and len(value) <= 4096
     else:
@@ -178,69 +181,108 @@ def hyprctl_run(argv, timeout=5):
     if not shape:
         raise ValueError('Refused hyprctl command: %r' % (argv,))
     completed = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False)
-    return completed.returncode, completed.stdout
+    return completed.returncode, (completed.stdout or '') + (completed.stderr or '')
 
 
-def monitor_names(run=None, timeout=5):
-    """Output names from `hyprctl monitors -j`, empty when Hyprland is away."""
-    if run is None:
-        run = hyprctl_run
-    try:
-        code, output = run(['hyprctl', 'monitors', '-j'])
-    except (ValueError, OSError, subprocess.TimeoutExpired):
-        return []
-    if code != 0:
-        return []
-    try:
-        monitors = json.loads(str(output))
-    except ValueError:
-        return []
-    if not isinstance(monitors, list):
-        return []
-    return [entry.get('name') for entry in monitors
-            if isinstance(entry, dict) and isinstance(entry.get('name'), str) and entry.get('name')]
+def _detail(text):
+    return ' '.join(str(text).split())[:500]
 
 
-def _legacy_wallpaper(path, monitors, run, timeout):
-    """Preload/wallpaper/unload sequence of hyprpaper before 0.8.4."""
-    try:
-        if run(['hyprctl', 'hyprpaper', 'preload', path], timeout)[0] != 0:
-            return {'ok': False, 'method': 'hyprpaper'}
-        for name in monitors:
-            if run(['hyprctl', 'hyprpaper', 'wallpaper', '%s,%s' % (name, path)], timeout)[0] != 0:
-                return {'ok': False, 'method': 'hyprpaper'}
-        run(['hyprctl', 'hyprpaper', 'unload', 'all'], timeout)
-    except (ValueError, OSError, subprocess.TimeoutExpired):
-        return {'ok': False, 'method': 'hyprpaper'}
-    return {'ok': True, 'method': 'hyprpaper'}
+def _failure(error, message, **extra):
+    return {'ok': False, 'method': 'hyprpaper', 'error': error, 'message': message, **extra}
 
 
-def apply_background(path_text, run=None, timeout=5):
-    """Set the still through a running hyprpaper daemon.
+def apply_background(path_text, run=None, timeout=5, wait_seconds=0):
+    """Apply to each active output, retaining failure evidence and target status.
 
-    hyprpaper 0.8.4 replaced the preload/wallpaper/unload requests with a
-    single per-output `wallpaper <mon>,<path>` request; that shape is tried
-    first and only an older daemon falls back to the legacy sequence.
-    Returns {'ok': True/False, 'method': 'hyprpaper'}; any refused or failing
-    step means not applied, never a crash."""
+    The overall deadline bounds IPC/readiness, never daemon lifetime. Only login
+    restoration opts into readiness retries. No service activation or renderer
+    replacement. An active-target report is not visual/rendering acceptance.
+    """
     path = str(path_text)
-    if run is None:
-        run = hyprctl_run
-    monitors = monitor_names(run, timeout)
-    if not monitors:
-        return {'ok': False, 'method': 'hyprpaper'}
-    accepted = True
-    for name in monitors:
-        try:
-            code = run(['hyprctl', 'hyprpaper', 'wallpaper', '%s,%s' % (name, path)], timeout)[0]
-        except (ValueError, OSError, subprocess.TimeoutExpired):
-            return {'ok': False, 'method': 'hyprpaper'}
+    if not path.startswith('/') or any(c in path for c in ('\n', '\r', '\x00', ',')):
+        return _failure('path', 'The wallpaper path must be absolute and contain no comma or control separator.')
+    run = hyprctl_run if run is None else run
+    deadline = time.monotonic() + timeout + wait_seconds
+
+    def request(argv):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise subprocess.TimeoutExpired(argv, timeout + wait_seconds)
+        return run(argv, min(timeout, remaining))
+
+    def failed(code, output, stage):
+        detail = _detail(output)
+        unavailable = any(s in detail.lower() for s in (
+            'failed to connect', "couldn't connect", 'connection refused', 'no such file or directory'))
+        error = 'daemon-unavailable' if unavailable and stage != 'monitors' else stage
+        return _failure(error, 'Wallpaper ' + stage + ' failed' +
+                        (': ' + detail if detail else ' (exit %s).' % code))
+
+    def accepted(argv):
+        code, output = request(argv)
+        # Modern Hyprwire returns no text; legacy successful replies are "ok".
+        if code != 0 or str(output).strip().lower() not in ('', 'ok'):
+            return failed(code, output, 'apply')
+        return None
+
+    def attempt():
+        code, output = request(['hyprctl', 'monitors', '-j'])
         if code != 0:
-            accepted = False
-            break
-    if accepted:
-        return {'ok': True, 'method': 'hyprpaper'}
-    return _legacy_wallpaper(path, monitors, run, timeout)
+            return failed(code, output, 'monitors')
+        try:
+            data = json.loads(output)
+        except (ValueError, TypeError):
+            return _failure('monitors', 'Hyprland returned an invalid monitor report.')
+        if not isinstance(data, list):
+            return _failure('monitors', 'Hyprland returned an invalid monitor report.')
+        monitors = [m.get('name') for m in data if isinstance(m, dict) and not m.get('disabled')]
+        if not monitors:
+            return _failure('no-monitors', 'No active Hyprland output is ready for a wallpaper.')
+        if any(not isinstance(m, str) or not m or any(c in m for c in ',\n\r\x00') for m in monitors):
+            return _failure('monitors', 'Hyprland returned an invalid output name.')
+        legacy = False
+        for name in monitors:
+            failure = accepted(['hyprctl', 'hyprpaper', 'wallpaper', name + ',' + path])
+            if failure and not legacy and 'not preloaded' in failure['message'].lower():
+                # A positive legacy preload requirement, not a connection,
+                # file, handshake, rendering or generic invalid-request error.
+                failure = accepted(['hyprctl', 'hyprpaper', 'preload', path])
+                if not failure:
+                    legacy = True
+                    failure = accepted(['hyprctl', 'hyprpaper', 'wallpaper', name + ',' + path])
+            if failure:
+                return failure
+        if legacy:
+            # Do not unload all: that would discard other clients' preloads.
+            request(['hyprctl', 'hyprpaper', 'unload', path])
+        code, output = request(['hyprctl', 'hyprpaper', 'listactive'])
+        detail = _detail(output).lower()
+        if code != 0 or detail.startswith(('error:', 'err:', 'invalid ', 'unknown ')):
+            if any(s in detail for s in ('invalid hyprpaper request', 'unknown request', 'protocol version too low')):
+                return {'ok': True, 'method': 'hyprpaper', 'active_reported': None,
+                        'message': 'Wallpaper accepted; this daemon cannot report active targets.'}
+            return failed(code, output, 'status')
+        active = dict(line.split(': ', 1) for line in str(output).splitlines() if ': ' in line)
+        missing = [name for name in monitors if active.get(name) != path]
+        if missing:
+            return _failure('not-active', 'Wallpaper accepted, but hyprpaper did not report the selected image on: '
+                            + ', '.join(missing) + '. Check wallpaper diagnostics.', accepted=True)
+        return {'ok': True, 'method': 'hyprpaper', 'active_reported': True}
+
+    while True:
+        try:
+            result = attempt()
+        except subprocess.TimeoutExpired:
+            return _failure('timeout', 'Wallpaper IPC/readiness timed out. Check hyprpaper and its session socket.')
+        except OSError as error:
+            return _failure('command', 'Wallpaper command could not run: ' + _detail(error))
+        except ValueError as error:
+            return _failure('command', 'Wallpaper command was refused: ' + _detail(error))
+        if (result['ok'] or not wait_seconds or result.get('error') not in ('daemon-unavailable', 'no-monitors')
+                or time.monotonic() + 0.25 >= deadline):
+            return result
+        time.sleep(0.25)
 
 
 LOCK_BACKGROUND_NAME = 'lock-background'
@@ -285,16 +327,20 @@ def set_background(path_text, dirs=None, root=None, run=None, assets=None):
         resolved = str(path.absolute())
     if resolved not in allowed:
         return {'ok': False, 'error': 'refused', 'message': 'Background is outside the listed directories.'}
+    if any(c in resolved for c in (',', '\n', '\r', '\x00')):
+        return {'ok': False, 'error': 'refused',
+                'message': 'Wallpaper IPC does not support commas or control separators in file paths.'}
     published = publish_lock_background(resolved, root)
     applied = apply_background(resolved, run)
     payload = {'schema_version': 1, 'path': str(path), 'applied': applied['ok']}
     if not applied['ok']:
-        payload['note'] = 'Recorded; no wallpaper daemon answered (hyprpaper is not running).'
+        payload['note'] = applied['message']
     target = menu_common.state_home(root) / 'current' / 'background.json'
     backup = menu_common.backup_and_write(
         target, lambda target_path: menu_common.write_json(target_path, payload))
     menu_common.record('background-set', str(path), backup, {'applied': applied['ok']})
-    return {'ok': True, 'path': str(path), 'applied': applied['ok'], 'lock_background': published}
+    return {'ok': True, 'path': str(path), 'applied': applied['ok'], 'lock_background': published,
+            'wallpaper': applied, 'message': applied.get('message', '')}
 
 
 def resolve_recorded(path_text, assets=None):
@@ -317,7 +363,7 @@ def resolve_recorded(path_text, assets=None):
     return Path(text)
 
 
-def restore_background(run=None, timeout=5, root=None, assets=None):
+def restore_background(run=None, timeout=5, root=None, assets=None, wait_seconds=0):
     """Apply the recorded background without re-recording it (plan 020).
 
     Best-effort login restore: a missing record, file, daemon or a refusal
@@ -337,12 +383,73 @@ def restore_background(run=None, timeout=5, root=None, assets=None):
         return {'ok': False, 'error': 'refused',
                 'message': 'The recorded background is outside the listed directories.'}
     published = publish_lock_background(resolved, root)
-    applied = apply_background(resolved, run, timeout)
-    return {'ok': applied['ok'], 'path': str(path), 'applied': applied['ok'],
-            'method': applied['method'], 'lock_background': published}
+    applied = apply_background(resolved, run, timeout, wait_seconds=wait_seconds)
+    return {**applied, 'path': str(path), 'applied': applied['ok'], 'lock_background': published}
+
+
+def diagnose(run=None, root=None):
+    """Read-only bounded guest evidence; never set/restore/start/reload anything.
+
+    Reports may contain private file/display names. Review before sharing.
+    Neither active targets nor a healthy process establish rendered pixels.
+    """
+    commands = {
+        'monitors': ['hyprctl', 'monitors', '-j'],
+        'active': ['hyprctl', 'hyprpaper', 'listactive'],
+        'hyprpaper_version': ['hyprpaper', '--version'],
+        'service': ['systemctl', '--user', 'show', 'hyprpaper.service',
+                    '-p', 'ActiveState', '-p', 'SubState', '-p', 'MainPID',
+                    '-p', 'ExecMainStatus', '-p', 'NRestarts'],
+        'journal': ['journalctl', '--user', '-b', '-u', 'hyprpaper.service', '-n', '30', '--no-pager'],
+    }
+    if run is None:
+        def run(argv, timeout):
+            if argv not in commands.values():
+                raise ValueError('Refused wallpaper diagnostic command')
+            result = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False)
+            return result.returncode, (result.stdout or '') + (result.stderr or '')
+    probes = {}
+    for name, command in commands.items():
+        try:
+            code, output = run(command, 3)
+            probes[name] = {'status': 'ok' if code == 0 else 'failed', 'exit': code,
+                            'output': str(output)[:8000]}
+        except subprocess.TimeoutExpired:
+            probes[name] = {'status': 'timeout'}
+        except (OSError, ValueError) as error:
+            probes[name] = {'status': 'unavailable', 'message': _detail(error)}
+    # menu_common.state_home() creates directories even for a normal reader;
+    # diagnostics must not use it (nor rows/current_theme, which call it).
+    state = Path(root) if root is not None else Path(os.environ.get('OMABUNTU_STATE_HOME')
+                                                     or Path.home() / '.local/state/omabuntu')
+    recorded = None
+    theme = None
+    if any(part.is_symlink() for part in (state, *state.parents, state / 'current')):
+        probes['preferences'] = {'status': 'refused', 'message': 'Symlinked preference path was not read.'}
+    else:
+        record = menu_common.read_json(state / 'current/background.json')
+        selection = menu_common.read_json(state / 'current/theme.json')
+        recorded = record.get('path') if isinstance(record, dict) else None
+        theme = selection.get('name') if isinstance(selection, dict) else None
+    images = theme_backgrounds(theme) if isinstance(theme, str) and theme else all_theme_backgrounds()
+    images += [image for directory in background_dirs() for image in _images(directory)]
+    journal = probes['journal'].get('output', '').lower()
+    rendering_errors = [word for word in ('egl_not_initialized', 'failed to create screen',
+                        'create_dumb failed', 'gbm', 'segfault', 'status=11/segv') if word in journal]
+    return {'ok': all(p['status'] == 'ok' for p in probes.values()),
+            'read_only': True, 'rendering_verified': False,
+            'environment': {key: os.environ.get(key, '') for key in (
+                'XDG_CURRENT_DESKTOP', 'XDG_SESSION_TYPE', 'WAYLAND_DISPLAY',
+                'HYPRLAND_INSTANCE_SIGNATURE', 'XDG_RUNTIME_DIR')},
+            'recorded': recorded, 'recorded_file_exists': isinstance(recorded, str) and Path(recorded).is_file(),
+            'listed_images': min(len(set(map(str, images))), MAX_FILES), 'rendering_error_hints': rendering_errors,
+            'probes': probes}
 
 
 def main(argv):
+    if argv == ['diagnose']:
+        print(json.dumps(diagnose(), indent=2))
+        return 0
     if argv == ['list']:
         print(json.dumps({'ok': True, 'rows': rows()}))
         return 0
@@ -350,7 +457,7 @@ def main(argv):
         print(json.dumps({'ok': True, 'current': current()}))
         return 0
     if argv == ['restore']:
-        print(json.dumps(restore_background()))
+        print(json.dumps(restore_background(wait_seconds=8)))
         return 0
     if len(argv) == 2 and argv[0] == 'set':
         print(json.dumps(set_background(argv[1])))

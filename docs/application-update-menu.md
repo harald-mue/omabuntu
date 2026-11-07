@@ -67,10 +67,10 @@ installation, source compilation, automatic legacy adoption or native migration.
 Missing dependencies, incompatible native/state targets or failed preflight
 block the switch rather than installing prerequisites or prompting for sudo.
 Power/lock safety and the existing refusal while a locker is present are kept.
-The post-v0.2.1 source preflight shares the [native patch-family policy](native-compatibility.md)
+The public v0.2.2 preflight shares the [native patch-family policy](native-compatibility.md)
 and reports concrete failed checks as well as the private report path. It still
 requires runtime checks and does not generalize native-contract migrations or
-change plugin ABI approval. That source follow-up is not retroactive to v0.2.1.
+change plugin ABI approval. The change is not retroactive to immutable v0.2.1.
 
 Network metadata, downloads, extracted candidates and reports are retained in
 private `$XDG_CACHE_HOME/omabuntu/menu-updates/<timestamp>/` (default `~/.cache`).

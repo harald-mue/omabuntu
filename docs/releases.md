@@ -2,9 +2,9 @@
 
 ## Status
 
-The current published release is **[v0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)**,
-published on 2026-11-07 at 15:47:10 UTC from commit
-`26e9ca4dca0752569bbd17b7a717a1210445e85e`. It is public, not a draft or
+The current published release is **[v0.2.2](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.2)**,
+published on 2026-11-07 at 18:17:35 UTC from commit
+`bb5a20c63bcc4e9e2a295497aba60aa4aadb7043`. It is public, not a draft or
 prerelease. All four expected assets are present: the Ubuntu 26.04 x86_64
 archive, `release.json`, `SHA256SUMS` and `SHA256SUMS.sig`. Retained artifact
 hashes match GitHub's asset digests; publisher-signature, source-export,
@@ -147,10 +147,14 @@ Target versions/pins remain unchanged. Public archives remain artwork-free;
 no package/service/plugin activation, desktop deployment or system updater is
 part of release publication. Existing tags/assets remain immutable.
 
-### v0.2.2 release scope (preparation)
+### v0.2.2 release scope
 
-Version **0.2.2 is being prepared, not yet published**. v0.2.1 remains the latest
-public release until signed publication and remote verification complete.
+Version **[0.2.2](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.2)** is
+published. Local and remote tags identify source commit
+`bb5a20c63bcc4e9e2a295497aba60aa4aadb7043`. All four expected assets are public;
+retained hashes/sizes match GitHub asset digests. Publisher signature, source-
+export/packaged-source identity, bundle integrity and artwork exclusion verify.
+Documentation follow-up does not replace the published commit or artifacts.
 
 Changes since v0.2.1:
 
@@ -176,15 +180,53 @@ Changes since v0.2.1:
 
 The fresh candidate fixture reproduces the old refusal and passes with the new
 policy. All 1158 unit tests and clean-source checks pass, and a contained review
-bundle's helper/updater imports and manifest verify. This is not a full fresh
-bootstrap build, native fresh-VM installation, plugin activation, verified unlock/
-recovery, GNOME/login or actual update-pair acceptance. The exact legacy native
+bundle's helper/updater imports and manifest verify. The published isolated build
+and artifact checks do not establish native fresh-VM installation, plugin
+activation, verified unlock/recovery, GNOME/login or actual update-pair acceptance.
+The exact legacy native
 handoff is not generalized. Unknown plugin targets remain explicitly deferred;
 family admission is not proof of every future patch's behavior or plugin ABI.
 
 Public artifacts remain artwork-free. Publication does not install the release,
 change native packages, activate plugins/locking, replace private profiles or
 modify previous immutable tags/assets.
+
+### v0.2.3 release preparation
+
+Version **0.2.3 is being prepared**, not yet published. v0.2.2 remains latest
+until the interactive publisher completes and public assets are verified.
+
+Changes since v0.2.2:
+
+- Make logout/reboot/shutdown available without hidden application grants on
+  fresh installs and after updates, ignoring obsolete ordinary-action flags
+  without rewriting user preferences. Ubuntu authorization/inhibitors and
+  separate suspend/hibernate safety grants remain unchanged.
+- Resolve logout against the current owned Hyprland session. Validate an exact
+  UWSM compositor service's MainPID before stopping it, or use the current
+  direct compositor's dispatcher. Refuse GNOME/TTY/stale/ambiguous contexts;
+  no wildcard service stop, broad user termination or forced window closing.
+- Retain wallpaper command/stderr errors and show them in the existing background
+  and theme picker. Check active image targets after daemon acceptance; no legacy
+  preload fallback for connection/handshake/file errors. Preserve recorded choices
+  and add bounded transient readiness retry only to login restoration.
+- List downloaded theme stills even before the first theme is selected. Add
+  read-only `omabuntu wallpaper-status` with bounded daemon/session/IPC/journal
+  diagnostics, no daemon start and no state-directory/control-lock creation.
+- Keep the application-only update path free of wallpaper restoration or native
+  package/service changes. See [command actions](command-menu.md) and
+  [wallpaper behavior and diagnostics](image-picker.md).
+
+All 1185 unit tests, clean-source, contained picker/menu and private bundle
+integrity checks pass. These are source/fixture checks, not native logout or
+VM rendering acceptance. The guest's selectable-but-black wallpaper is not
+proven fixed; a correct active-target report cannot establish rendered pixels.
+No guest graphics, daemon activation, authentication, plugin activation or local
+installation change is part of publication. Public artifacts remain artwork-free.
+
+The user also requested retiring old GitHub releases. Exact version/tag scope,
+private backups and destructive-action confirmation remain separate from this
+publication; no old public release/tag has been removed by preparation.
 
 ## One-time publisher setup
 

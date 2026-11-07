@@ -207,6 +207,7 @@ def set_theme(theme_id, path=None, root=None, run=None, config_path=None,
     persisted = persist_border_colors(active, inactive, config_path) \
         if active and inactive else False
     background_ok = False
+    background_result = None
     background_path = theme_background(theme_id, root, assets)
     if background_path:
         background_result = background_backend.set_background(
@@ -223,7 +224,7 @@ def set_theme(theme_id, path=None, root=None, run=None, config_path=None,
                        {'applied': sorted(applied), 'persisted': persisted,
                         'background': background_path})
     return {'ok': True, 'name': theme_id, 'applied': sorted(applied),
-            'persisted': persisted, 'background': background_ok}
+            'persisted': persisted, 'background': background_ok, 'wallpaper': background_result}
 
 
 def hyprctl_run(argv, timeout=5):
