@@ -5,11 +5,14 @@ No shell helper, no Hyprland config write and no service. Every write is atomic,
 keeps one previous copy and is restricted to installed desktop ids.
 """
 import argparse
+import contextlib
+import fcntl
 import datetime
 import json
 import os
 from pathlib import Path
 import re
+import stat
 import sys
 import tempfile
 
@@ -69,12 +72,39 @@ def write(path, data):
         raise
 
 
+@contextlib.contextmanager
+def preference_lock(path):
+    """Serialize context-menu and Appearance read/modify/write operations."""
+    for part in reversed(path.absolute().parents):
+        if part.is_symlink():
+            raise ValueError('Symlinked dock configuration path')
+    safe(path)
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if path.parent.stat().st_uid != os.getuid() or path.parent.stat().st_mode & 0o077:
+        raise ValueError('Dock configuration directory must be owned and private')
+    lock = path.with_name('.dock.lock')
+    fd = os.open(lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, 'rb') as stream:
+        info = os.fstat(stream.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+            raise ValueError('Dock lock must be owned and private')
+        fcntl.flock(stream, fcntl.LOCK_EX)
+        yield
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=('get', 'set-position', 'set-autohide', 'set-pinned'))
     parser.add_argument('values', nargs='*')
     args = parser.parse_args(argv)
     path = safe(config_path())
+    if args.action == 'get':
+        return request(args, path)
+    with preference_lock(path):
+        return request(args, path)
+
+
+def request(args, path):
     data = read(path)
     if args.action == 'set-position':
         if len(args.values) != 1 or args.values[0] not in POSITIONS:

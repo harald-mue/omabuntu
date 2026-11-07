@@ -148,6 +148,16 @@ class FrameLookTests(unittest.TestCase):
         # live layerrule removal, so blur stays the user's own setting.
         self.assertNotIn("hyprctl", text)
 
+    def test_bar_surface_remains_alpha_capable_after_opaque_startup(self):
+        text = read("config/shell/preview/TrialPanel.qml")
+        panel = text.split("  PanelWindow {", 1)[1]
+        # Quickshell fixes the alpha buffer at creation, before persisted
+        # preferences arrive. Color bindings alone cannot enable it later.
+        self.assertIn("surfaceFormat.opaque: false", panel)
+        self.assertLess(panel.index("surfaceFormat.opaque: false"), panel.index("color: clockBar.transparentBar"))
+        self.assertIn('clockBar.transparentBar ? "transparent"', panel)
+        self.assertIn("clockBar.glassy ? clockBar.glassBackground : clockBar.themeBackground", panel)
+
     def test_bar_off_parks_without_exclusion(self):
         text = read("config/shell/preview/TrialPanel.qml")
         self.assertIn("toggles/bar-off", text)

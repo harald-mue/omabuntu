@@ -15,19 +15,22 @@ Variants {
   id: bars
   // Left-edge menu button route opener, wired by TrialShell to CommandMenu.
   property var openMenu: null
-  // Session copy of the clock entry. Replacing it updates every screen that
-  // is still bound; the clicked screen also assigns its own copy.
-  property var clockSettings: ({format:"dddd HH:mm"})
+  property var appearance: null
+  // Shared persistent clock entry when the preference adapter is available.
+  // Persisted updates retain the shared binding on every screen.
+  property var clockSettings: ({format: appearance && appearance.loaded ? appearance.bar.clock_format : "dddd HH:mm"})
   // Bar background look, read from the reviewed state file
   // (~/.local/state/omabuntu/current/bar.json): opaque, glassy or none.
-  // Nothing in this shell writes it; a change is picked up live.
-  property string backgroundLook: "opaque"
+  // The shared adapter writes through the reviewed transactional helper.
+  property string backgroundLook: appearance && appearance.loaded ? appearance.bar.background : "opaque"
   // Mirrors the on-disk bar-off flag so the user can hide the bar without
   // killing the shell. Hidden bars park off-screen without an exclusion
   // zone (upstream Bar.qml probe and toggles-directory watch).
-  property bool barHidden: false
+  property bool legacyBarHidden: false
+  readonly property bool barHidden: appearance && appearance.loaded ? appearance.bar.hidden : legacyBarHidden
 
   function applyBarState(raw) {
+    if (appearance) { appearance.refresh(); return }
     var parsed = null
     try { parsed = JSON.parse(String(raw || "")) } catch (e) { return }
     if (!parsed || parsed.schema_version !== 1) return
@@ -35,12 +38,22 @@ Variants {
     if (look === "opaque" || look === "glassy" || look === "none") backgroundLook = look
   }
 
+  function appearanceClockChoice(format) {
+    var formats = ["dddd HH:mm", "dddd h:mm AP", "dddd HH:mm:ss", "dddd h:mm:ss AP", "HH:mm", "h:mm AP",
+      "ddd d MMM HH:mm", "ddd d MMM h:mm AP", "d MMMM 'W'ww yyyy", "yyyy-MM-dd HH:mm"]
+    var choices = ["sunday-24h", "sunday-12h", "sunday-seconds-24h", "sunday-seconds-12h", "time-24h", "time-12h",
+      "date-24h", "date-12h", "week", "iso"]
+    return choices[formats.indexOf(format)] || ""
+  }
+
   property FileView barStateFile: FileView {
-    path: Quickshell.env("HOME") + "/.local/state/omabuntu/current/bar.json"
+    path: (Quickshell.env("OMABUNTU_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state/omabuntu")) + "/current/bar.json"
     watchChanges: true
     printErrors: false
     onLoaded: bars.applyBarState(text())
-    onLoadFailed: {}
+    // Removing a newly created preference file is a valid exact rollback.
+    // Refresh even when reloading that now-absent file fails.
+    onLoadFailed: if (bars.appearance) bars.appearance.refresh()
     onFileChanged: reload()
   }
 
@@ -48,7 +61,10 @@ Variants {
   // directory because FileView cannot observe a file that does not exist yet.
   property Process barHiddenProbe: Process {
     command: ["bash", "-c", "[[ -f $HOME/.local/state/omabuntu/toggles/bar-off ]] && echo yes || echo no"]
-    stdout: StdioCollector { onStreamFinished: bars.barHidden = String(text || "").trim() === "yes" }
+    stdout: StdioCollector { onStreamFinished: {
+      bars.legacyBarHidden = String(text || "").trim() === "yes"
+      if (bars.appearance) bars.appearance.refresh()
+    } }
     running: true
   }
   property FileView togglesDirFile: FileView {
@@ -69,6 +85,9 @@ Variants {
     // it, so a reveal is a margin change (upstream BarPanel behavior).
     margins { top: bars.barHidden ? -26 : 0 }
     exclusionMode: bars.barHidden ? ExclusionMode.Ignore : ExclusionMode.Auto
+    // Preferences load after creation. Keep an alpha buffer even when the
+    // initial Opaque default would otherwise permanently select an opaque surface.
+    surfaceFormat.opaque: false
     color: clockBar.transparentBar ? "transparent" : (clockBar.glassy ? clockBar.glassBackground : clockBar.themeBackground)
     WlrLayershell.namespace: "omabuntu-clock-trial"
     WlrLayershell.layer: WlrLayer.Top
@@ -114,9 +133,11 @@ Variants {
       readonly property var activePopout: barBus.activePopout
       readonly property var clickTargets: barBus.clickTargets
       readonly property QtObject shell: QtObject {
+        readonly property bool persistAppearance: bars.appearance !== null
         function updateEntryInline(id, entry) {
           if (id !== "omarchy.clock" || !entry) return
-          bars.clockSettings = entry
+          if (bars.appearance) bars.appearance.set("clock", bars.appearanceClockChoice(entry.format))
+          else bars.clockSettings = entry
         }
       }
       function registerClickTarget(target) {
@@ -230,6 +251,7 @@ Variants {
             height: implicitHeight
           }
           PowerControlView {
+            appearanceSettings: bars.appearance
             bar: trayHost.ownerApi
             width: implicitWidth
             height: implicitHeight

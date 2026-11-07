@@ -18,6 +18,17 @@ class DesktopPanelTests(unittest.TestCase):
             source = ROOT / 'vendor/omarchy' / checker.DESKTOP_UPSTREAM[name]
             self.assertEqual(derive(source.read_bytes()), (ROOT / 'config/shell/preview' / name).read_bytes())
 
+    def test_power_percentage_reserves_button_and_measured_label_width(self):
+        text = (ROOT / 'config/shell/preview/PowerControlView.qml').read_text()
+        self.assertIn('implicitWidth: Math.max(button.implicitWidth', text)
+        self.assertIn('button.canvasSize + percentageMetrics.advanceWidth + Style.space(4)', text)
+        self.assertIn('implicitHeight: button.implicitHeight', text)
+        self.assertIn('text: button.labelText', text)
+        self.assertIn('font.family: button.fontFamily', text)
+        self.assertIn('font.pixelSize: button.fontSize', text)
+        # Keep the original button, icon and percentage slot rule intact.
+        self.assertIn('slotSize: Style.bar.iconSlot * (root.showPercentage && !vertical ? 2 : 1)', text)
+
     def test_all_surfaces_exclude_upstream_execution(self):
         for name in checker.DESKTOP_TRANSFORMS:
             text = (ROOT / 'config/shell/preview' / name).read_text()

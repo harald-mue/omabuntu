@@ -101,7 +101,10 @@ match a fixed registry only: `omabuntu-open:apps|keybindings` (surface-internal,
 refused inside the helper), `xdg-open:https://...`, `systemctl:<verb>` and
 `uwsm:stop`, and exact `omabuntu-session:lock|screenshot` tokens. The last two
 launch only the installed manager or packaged screenshot wrapper, never an
-arbitrary shell command. Anything else is refused.
+arbitrary shell command. Appearance bar/dock actions additionally match the
+closed `omabuntu-appearance:<key>:<choice>` registry and write only owned
+preferences with prestate receipts; see [Appearance controls](appearance-controls.md)
+for scope, recovery and the separate deployment gate. Anything else is refused.
 
 Every session-ending action goes through `tools/power_actions.py` and is
 refused until its gate flag exists in the state home's
@@ -127,7 +130,12 @@ are not enabled yet." in the card and keeps it open.
 Python contracts: `tests/test_menu_model.py` (parser, merge, routes, guard
 batch, allowlist), `tests/test_menu_backends.py` (theme/font/background/power
 backends against fixtures; no live gsettings, hyprctl or systemctl in tests),
-`tests/test_command_menu.py` (fixture derivation witnesses).
+`tests/test_command_menu.py` (fixture derivation witnesses), and
+`tests/test_appearance_controls.py` (read-only guards, persisted bar/dock choices,
+session refusal, transaction/rollback safety, helper closure and shared bindings).
+The extended contained fixture also checks the real shared Appearance adapter,
+queued writes and Hide/Show recovery using a synthetic session identity inside
+its private sandbox, not the live desktop.
 
 Offscreen report: `work/menu-port/20261025T203721.360444Z/report.json`
 (`isolated-menu-fixtures-passed`). The derived fixture copy replaces PanelWindow

@@ -18,6 +18,14 @@ QtObject {
     if (!helper || !helper.endsWith("/dock_state.py") || helper.indexOf(" ") >= 0) return;
     backend.exec(["python3", helper, kind].concat(args));
   }
+  function applyPreferences(data) {
+    if (!data || ["top", "bottom", "left", "right"].indexOf(data.position) < 0
+        || typeof data.autohide !== "boolean" || !Array.isArray(data.pinned)) return
+    position = data.position
+    autohide = data.autohide
+    pinned = data.pinned.filter(function(id) { return typeof id === "string" })
+    if (!loaded) { loaded = true; changed() }
+  }
   Component.onCompleted: request("get", [])
   function setPosition(value) {
     if (["top", "bottom", "left", "right"].indexOf(value) < 0 || value === position) return;

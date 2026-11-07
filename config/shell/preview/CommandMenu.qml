@@ -23,6 +23,8 @@ PanelWindow {
   property var openKeybindings: null
   property var openThemes: null
   property var openBackgrounds: null
+  property var appearanceChanged: null
+  property string currentWorkspace: ""
 
   property bool shown: false
   property var items: ({})
@@ -74,6 +76,7 @@ PanelWindow {
 
   function focusedScreen() {
     var monitor = Hyprland.focusedMonitor
+    root.currentWorkspace = monitor && monitor.activeWorkspace ? String(monitor.activeWorkspace.id) : ""
     var screens = Quickshell.screens
     if (!monitor || !screens) return screens ? screens[0] : null
     for (var i = 0; i < screens.length; ++i) {
@@ -331,7 +334,7 @@ PanelWindow {
       var route = root.activeMenu
       root.activeMenu = "root"
       root.setActiveMenu(MenuModel.resolveRoute(root.items, route), false)
-      root.queryHelper("guards", [])
+      root.queryHelper("guards", root.currentWorkspace ? [root.currentWorkspace] : [])
     } else if (kind === "guards") {
       var results = payload.results || {}
       root.whenResults = results.when || ({})
@@ -341,6 +344,7 @@ PanelWindow {
     } else if (kind === "providers") {
       root.mergeProviderRows(payload.rows || [], root.pendingProviderMenu)
     } else if (kind === "run") {
+      if (payload.appearance && root.appearanceChanged) root.appearanceChanged(payload.appearance)
       root.close()
     }
     root.pump()

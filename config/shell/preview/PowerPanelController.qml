@@ -8,7 +8,8 @@ import "Port/PowerModel.js" as Model
 DesktopPanelController {
   id: root
   readonly property var battery: UPower.displayDevice
-  property bool showPercentage: false
+  property var appearanceSettings: null
+  property bool showPercentage: appearanceSettings && appearanceSettings.loaded ? appearanceSettings.bar.battery_percentage : false
   property int profileIndex: 0
   property var previousProfiles: []
   readonly property var profiles: PowerProfiles.hasPerformanceProfile
@@ -41,7 +42,10 @@ DesktopPanelController {
   function batteryIcon() { return Model.batteryIcon(battery, discharging, states()); }
   function profileIcon(name) { return Model.profileIcon(name); }
   function reading(value) { return value === undefined ? "" : String(value); }
-  function togglePercentage() { showPercentage = !showPercentage; }
+  function togglePercentage() {
+    if (appearanceSettings) appearanceSettings.set("battery-percentage", showPercentage ? "off" : "on")
+    else showPercentage = !showPercentage
+  }
   function selectProfileByDelta(delta) { profileIndex = Model.selectProfileIndex(profileIndex, delta, profiles); }
   function activateSelectedProfile() { setProfile(profiles[profileIndex]); }
   function setProfile(profile) {

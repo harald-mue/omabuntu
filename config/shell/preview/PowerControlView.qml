@@ -11,6 +11,15 @@ PowerPanelController {
   id: root
   panelWindow: panel
 
+  implicitWidth: Math.max(button.implicitWidth, button.labelText !== ""
+    ? Math.ceil(button.canvasSize + percentageMetrics.advanceWidth + Style.space(4)) : 0)
+  implicitHeight: button.implicitHeight
+  TextMetrics {
+    id: percentageMetrics
+    text: button.labelText
+    font.family: button.fontFamily
+    font.pixelSize: button.fontSize
+  }
   BarIconButton {
     id: button
     anchors.fill: parent

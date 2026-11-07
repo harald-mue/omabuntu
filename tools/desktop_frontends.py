@@ -41,12 +41,25 @@ def surface(data, name):
     for forbidden in ("Process {", "execDetached", "ShellIpc", "omarchy-", "Util."):
         if forbidden in body:
             raise ValueError("Unsafe desktop surface: " + forbidden)
+    # The static Ubuntu Row allocates the view's implicit size, unlike the
+    # upstream module host. Reserve the original button slot and measured label
+    # group, including three-digit percentages, instead of the base 26 px.
+    dimensions = '''  implicitWidth: Math.max(button.implicitWidth, button.labelText !== ""
+    ? Math.ceil(button.canvasSize + percentageMetrics.advanceWidth + Style.space(4)) : 0)
+  implicitHeight: button.implicitHeight
+  TextMetrics {
+    id: percentageMetrics
+    text: button.labelText
+    font.family: button.fontFamily
+    font.pixelSize: button.fontSize
+  }
+''' if name == "Power" else ""
     model = 'import "Port/' + name + 'Model.js" as Model\n'
     return ("// Derived from the pinned Omarchy Panel.qml, MIT; see LICENSE.\n"
             "// Original visible surface; Ubuntu actions and lifetime are separate.\n"
             "import QtQuick\nimport QtQuick.Controls\nimport Quickshell\n"
             "import qs.Ui\nimport qs.Commons\nimport qs.Commons as Commons\n" + model +
-            name + "PanelController {\n  id: root\n  panelWindow: panel\n\n" + body).encode()
+            name + "PanelController {\n  id: root\n  panelWindow: panel\n\n" + dimensions + body).encode()
 
 
 def bluetooth(data):

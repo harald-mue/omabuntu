@@ -24,7 +24,8 @@ import check_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKER = 'OMABUNTU_MENU_FIXTURE_OK'
-HELPERS = ('menu_model.py', 'menu_common.py', 'defaults_backend.py', 'theme_backend.py',
+HELPERS = ('menu_model.py', 'menu_common.py', 'appearance_backend.py', 'dock_state.py',
+           'defaults_backend.py', 'theme_backend.py',
            'font_backend.py', 'background_backend.py', 'power_actions.py')
 DATA = (('omabuntu-menu.jsonc', 'config/shell/omabuntu-menu.jsonc'),
         ('themes.json', 'config/menu/themes.json'))
@@ -41,14 +42,27 @@ OVERLAY = '''{
 PROBE = '''//@ pragma IgnoreSystemSettings
 import QtQuick
 import Quickshell
+import Quickshell.Io
 ShellRoot {
   id: test
   property var menu: null
+  AppearanceState { id: preferences }
+  QtObject {
+    id: bars
+    property var appearance: preferences
+    function applyBarState(raw) { preferences.refresh() }
+__BAR_STATE_FILE__
+  }
+  Process {
+    id: removePreferences
+    command: ["python3", "-c", "from pathlib import Path; Path('/home/probe/state/current/bar.json').unlink()"]
+  }
   property int appsOpened: 0
   property int keysOpened: 0
   property int themesOpened: 0
   property int stage: 0
   property int tries: 0
+  property int preferenceSettleTicks: 0
   function assert(value, message) { if (!value) throw new Error(String(message)) }
   property string lastWait: ""
   function ready(value, message) { if (!value) { lastWait = String(message); throw new Error("NOTREADY " + lastWait) } lastWait = "" }
@@ -74,6 +88,8 @@ ShellRoot {
       menu.openApps = function() { appsOpened += 1 }
       menu.openKeybindings = function() { keysOpened += 1 }
       menu.openThemes = function() { themesOpened += 1 }
+      menu.appearanceChanged = function(data) { preferences.apply(data) }
+      preferences.refresh()
       menu.openRoute("root")
       assert(menu.shown === true, "open shows the menu")
     },
@@ -161,6 +177,44 @@ ShellRoot {
       menu.activateIndex(theme)
       assert(themesOpened === 1, "theme row opens the picker")
       assert(menu.shown === false, "picker route closes the menu")
+      ready(preferences.loaded, "appearance initial read")
+      preferences.set("background", "none")
+      preferences.set("clock", "time-12h")
+      preferences.set("battery-percentage", "on")
+    },
+    function() {
+      ready(preferences.bar.background === "none" && preferences.bar.clock_format === "h:mm AP"
+        && preferences.bar.battery_percentage, "serialized appearance persistence")
+      assert(preferences.errorText === "", "appearance helper succeeded")
+      menu.openRoute("appearance.top-bar")
+    },
+    function() {
+      ready(findRow("Hide Bar") >= 0 && menu.checkedResults["appearance.top-bar.background.clear"], "appearance menu state")
+      menu.activateIndex(findRow("Hide Bar"))
+    },
+    function() {
+      ready(preferences.bar.hidden && !menu.shown, "menu action refreshes shared appearance")
+      menu.openRoute("appearance.top-bar")
+    },
+    function() {
+      ready(findRow("Show Bar") >= 0, "hidden bar recovery route")
+      assert(findRow("Hide Bar") < 0, "inverse visibility")
+      menu.activateIndex(findRow("Show Bar"))
+    },
+    function() {
+      ready(!preferences.bar.hidden && !menu.shown, "show bar recovery succeeds")
+    },
+    function() {
+      ready(preferences.queue.length === 0 && !preferences.backend.running, "preference requests drained")
+      preferenceSettleTicks += 1
+      ready(preferenceSettleTicks >= 12, "file watcher settled before deletion")
+      assert(preferences.bar.background === "none" && preferences.bar.clock_format === "h:mm AP"
+        && preferences.bar.battery_percentage, "non-default state immediately before deletion")
+      removePreferences.running = true
+    },
+    function() {
+      ready(preferences.bar.background === "opaque" && preferences.bar.clock_format === "dddd HH:mm"
+        && !preferences.bar.battery_percentage && !preferences.bar.hidden, "removed preference file restores defaults")
       console.log("__MARKER__")
       menu.destroy()
       Qt.callLater(function() { Qt.quit() })
@@ -241,7 +295,7 @@ def _setenv(command, key, value):
 def log_is_clean(text):
     """A model-only success marker cannot excuse missing rendered rows."""
     return not any(marker in text for marker in (
-        'OMABUNTU_MENU_ASSERT', 'TypeError:', 'ReferenceError:',
+        'OMABUNTU_MENU_ASSERT', 'OMABUNTU_APPEARANCE_FAILED', 'TypeError:', 'ReferenceError:',
         'is not installed', 'Binding loop', 'Cannot create delegate',
         'Required property'))
 
@@ -265,7 +319,12 @@ def run(root, build, timeout=120):
         (case / 'probe/helpers' / name).write_bytes((root / 'tools' / name).read_bytes())
     for target, source in DATA:
         (case / 'probe' / target).write_bytes((root / source).read_bytes())
-    (case / 'probe/shell.qml').write_text(PROBE)
+    # Exercise the actual production file watcher, including deletion rollback.
+    panel = files['TrialPanel.qml'].decode()
+    start = panel.index('  property FileView barStateFile: FileView {')
+    end = panel.index('\n  }', start) + len('\n  }')
+    watcher = panel[start:end]
+    (case / 'probe/shell.qml').write_text(PROBE.replace('__BAR_STATE_FILE__', watcher))
     (case / 'probe/fonts.conf').write_text('<fontconfig><dir>/usr/share/fonts</dir></fontconfig>')
     command = check_runtime.sandbox_command(
         runtime, case, [check_runtime.PREFIX + '/bin/quickshell', '--no-color', '--path', '/probe/shell.qml'])
@@ -276,6 +335,11 @@ def run(root, build, timeout=120):
     _setenv(command, 'OMABUNTU_MENU_THEMES', '/probe/themes.json')
     _setenv(command, 'OMABUNTU_STATE_HOME', '/home/probe/state')
     _setenv(command, 'PYTHONDONTWRITEBYTECODE', '1')
+    # Synthetic identity grants writes only to this sealed, temporary home.
+    # No host compositor socket or real session is available in the fixture.
+    for key, value in (('XDG_CURRENT_DESKTOP', 'Hyprland'), ('XDG_SESSION_TYPE', 'wayland'),
+                       ('HYPRLAND_INSTANCE_SIGNATURE', 'fixture'), ('WAYLAND_DISPLAY', 'fixture')):
+        _setenv(command, key, value)
     result = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
     text = result.stdout + result.stderr
     (case / 'output.log').write_text(text)
@@ -286,7 +350,8 @@ def run(root, build, timeout=120):
     report = {'status': 'isolated-menu-fixtures-passed' if ok else 'failed', 'checks': checks,
               'limits': ('Synthetic key events and the real helper inside bwrap; guards from the'
                          ' sandboxed /sys and a staged overlay; no shortcut registration, hyprctl'
-                         ' success, font/background provider run, native focus or visual acceptance.')}
+                         ' success, font/background provider run, native focus or visual acceptance. Appearance'
+                         ' uses a synthetic Hyprland identity and private preferences, not a real session.')}
     (case / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(case / 'report.json')
     if not ok:

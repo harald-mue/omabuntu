@@ -140,6 +140,7 @@ AUTHORED["Commons/TrialDesktopState.qml"] = "config/shell/preview/TrialDesktopSt
 AUTHORED["Commons/BluetoothDiscovery.qml"] = "config/shell/preview/BluetoothDiscovery.qml"
 AUTHORED["Commons/InputMethodState.qml"] = "config/shell/preview/InputMethodState.qml"
 AUTHORED["DockState.qml"] = "config/shell/preview/DockState.qml"
+AUTHORED["AppearanceState.qml"] = "config/shell/preview/AppearanceState.qml"
 AUTHORED["CommandMenu.qml"] = "config/shell/preview/CommandMenu.qml"
 AUTHORED["LaunchFeedback.qml"] = "config/shell/preview/LaunchFeedback.qml"
 AUTHORED["ImagePicker.qml"] = "config/shell/preview/ImagePicker.qml"

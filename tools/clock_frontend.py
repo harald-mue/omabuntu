@@ -84,6 +84,9 @@ def derive_host(data):
   }
 
 ''', "")
+    # Keep the live shared preference binding until the transactional write succeeds.
+    text = replace(text, '    root.settings = entry',
+                   '    if (!root.bar || !root.bar.shell || !root.bar.shell.persistAppearance) root.settings = entry')
     text = replace(text, 'source: Qt.resolvedUrl("Panel.qml")', 'source: Qt.resolvedUrl("CalendarPanel.qml")')
     text = replace(text, '''    onPressed: function(b) {
       if (b === Qt.RightButton) root.cycleFormat()

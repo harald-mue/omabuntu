@@ -102,7 +102,7 @@
       "license": "MIT",
       "source_modifications": [],
       "stage_transform": "clock-calendar-host-v1",
-      "staged_sha256": "68a35d3666c111f232f12c2ebeb0ab2253498bc95ea9aa715aee49e2a60db229"
+      "staged_sha256": "cf214b1e417afbe91f594cfa5509cd1820549cf94bc8251854174c3f4e142aca"
     },
     "Port/Tray.qml": {
       "path": "shell/plugins/bar/widgets/Tray.qml",
@@ -546,7 +546,7 @@
       "license": "MIT",
       "source_modifications": [],
       "stage_transform": "power-surface-v1",
-      "staged_sha256": "ac38f12071568dd40fe5156f43a45ae02ee8365762acc76664cdda1e1a23f95e"
+      "staged_sha256": "feffaae9e77eb0ef806f72a2277174cf2326bf3008581a2bd545da641b226c0b"
     },
     "DockWindow.qml": {
       "path": "shell/plugins/dock/DockWindow.qml",
@@ -944,11 +944,11 @@
     },
     "TrialShell.qml": {
       "path": "config/shell/preview/TrialShell.qml",
-      "sha256": "0299b7af91ed9e1153354f6fa0386311d83125dd4446b13e178bdb4243ebb310"
+      "sha256": "87620a206fad9763fe7c5dfaef5b43951d581995b9e2ab6e5492c4fb85432826"
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "b9abb19d321e1c0138a26485682647ed47c2794644da704e80218b42089c265f"
+      "sha256": "766b0770e4cf2238ce0f4a36acf8316ddcd782dc3b7b6e9ffed0232f4884db79"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
@@ -1016,7 +1016,7 @@
     },
     "PowerPanelController.qml": {
       "path": "config/shell/preview/PowerPanelController.qml",
-      "sha256": "25df4163927083d9d046a2698b8ae5c6f9bb0b6768e8395034093b3cdc6137b8"
+      "sha256": "3f8a7d38316927fac6f109d78ed6bf11133b441e9f930ce4f98c6c5f9a174e2d"
     },
     "FloatingDock.qml": {
       "path": "config/shell/preview/FloatingDock.qml",
@@ -1034,13 +1034,17 @@
       "path": "config/shell/preview/InputMethodState.qml",
       "sha256": "36e35dcd1a9e18cc80ae1424a29f5bd04612d9a3cbf9df21a941282ae3fdb4b8"
     },
+    "AppearanceState.qml": {
+      "path": "config/shell/preview/AppearanceState.qml",
+      "sha256": "63ea1dff711601eb8fb705daeea36ffe5c788b996275744ee0e283883d5d22ae"
+    },
     "DockState.qml": {
       "path": "config/shell/preview/DockState.qml",
-      "sha256": "8a81decb37fe2833c8b6e79238473121b463c59a7952a5b9b0dc540115f87727"
+      "sha256": "f54ca6e9c2191e314fd4ed130dc4eb7c44b5b1bf14eeb80ddc0ff75e9010537d"
     },
     "CommandMenu.qml": {
       "path": "config/shell/preview/CommandMenu.qml",
-      "sha256": "e4c58ffaad366312cebf1770fd1f61655dccceb528ed7d0ca110855f5521e604"
+      "sha256": "6f78ecc0cbf99f3fdd90b29770d7ecfeee9e6e205cf03d1bc61d0411c6e46b99"
     },
     "MenuModel.js": {
       "path": "config/shell/preview/MenuModel.js",

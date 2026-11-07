@@ -21,9 +21,25 @@ import "FixtureHyprland"
 ShellRoot {
   id: test
   property var views: []
+  readonly property QtObject geometryBar: bar
   property var workspaceSwitcher: null
   Timer { interval: 2000; running: true; onTriggered: { console.error("DESKTOP_COMPILE_FAILED: fixture did not finish"); Qt.exit(45); } }
-  Window { width: 1200; height: 800; visible: true; Item { id: surface; anchors.fill: parent } }
+  Window {
+    width: 1200; height: 800; visible: true
+    Item { id: surface; anchors.fill: parent }
+    Row {
+      id: powerLayout
+      spacing: 0
+      Item { width: 26; height: 26 }
+      PowerControlView {
+        id: percentagePower
+        bar: test.geometryBar
+        width: implicitWidth
+        height: implicitHeight
+      }
+      Item { id: batteryNeighbor; width: 26; height: 26 }
+    }
+  }
   QtObject {
     id: bar
     property bool vertical: false
@@ -283,7 +299,48 @@ ShellRoot {
       var ws = test.workspaceSwitcher;
       if (ws.claimQueue.length !== 0) throw new Error("Revoked grant queued a retile correction");
       console.log("OMABUNTU_WORKSPACE_RETILE_OK");
-      console.log("OMABUNTU_DESKTOP_COMPILE_OK"); Qt.quit();
+      checkBatteryGeometry.start();
+    }
+  }
+  Timer {
+    id: checkBatteryGeometry
+    interval: 30; repeat: true
+    property int stage: 0
+    onTriggered: {
+      var view = percentagePower;
+      var button = null;
+      for (var i = 0; i < view.children.length; i++) {
+        var child = view.children[i];
+        if (child.labelText !== undefined && child.canvasSize !== undefined) button = child;
+      }
+      if (!button) throw new Error("Battery button not found");
+      if (stage === 0 || stage === 4) {
+        if (view.width !== button.slotSize || button.width !== view.width || button.labelText !== "")
+          throw new Error("Battery icon-only allocation");
+        if (stage === 4) {
+          if (batteryNeighbor.x !== view.x + view.width) throw new Error("Battery neighbor did not contract");
+          console.log("OMABUNTU_BATTERY_GEOMETRY_OK");
+          console.log("OMABUNTU_DESKTOP_COMPILE_OK"); Qt.quit(); return;
+        }
+        view.togglePercentage();
+        UPower.displayDevice = Object.assign({}, UPower.displayDevice, {percentage:0.01});
+      } else {
+        var expected = [1, 63, 100][stage - 1] + "%";
+        if (button.labelText !== expected || view.width < button.slotSize || button.width !== view.width)
+          throw new Error("Battery percentage allocation " + expected);
+        if (batteryNeighbor.x !== view.x + view.width) throw new Error("Battery neighbor did not expand");
+        var content = null;
+        for (var j = 0; j < button.children.length; j++) {
+          var candidate = button.children[j];
+          if (candidate.width > button.canvasSize && candidate.height === button.canvasSize) content = candidate;
+        }
+        if (!content || content.x < -0.01 || content.x + content.width > view.width + 0.01)
+          throw new Error("Battery percentage content escapes slot " + expected);
+        if (stage < 3)
+          UPower.displayDevice = Object.assign({}, UPower.displayDevice, {percentage:stage === 1 ? 0.63 : 1});
+        else view.togglePercentage();
+      }
+      stage += 1;
     }
   }
 }
@@ -374,9 +431,10 @@ QtObject {
     text = result.stdout + result.stderr
     (case / 'output.log').write_text(text)
     ok = (result.returncode == 0 and 'OMABUNTU_DESKTOP_COMPILE_OK' in text
+          and 'OMABUNTU_BATTERY_GEOMETRY_OK' in text
           and not any(marker in text for marker in ('DESKTOP_COMPILE_FAILED', 'DESKTOP_CREATE_FAILED', 'TypeError:', 'ReferenceError:', 'Cannot assign', 'Unable to assign', 'Binding loop')))
     report = {'status': 'isolated-compile-passed' if ok else ('timeout' if result.returncode == 124 else 'failed'), 'returncode': result.returncode,
-              'limits': 'Compilation and original panel construction with synthetic layer ownership, BlueZ and UPower. Mock action routing, shared discovery leases, dock provenance, the derived calendar grid, late workspace-state loading, fullscreen restore scheduling, the native drag event sequence, addressed retile policy, serialized claims and workspace-mode-switch suppression are tested. No native device actions, popup/focus or visual acceptance.'}
+              'limits': 'Compilation and original panel construction with synthetic layer ownership, BlueZ and UPower. Battery icon/percentage allocation, measured content bounds and adjacent Row placement at 1/63/100 percent, mock action routing, shared discovery leases, dock provenance, the derived calendar grid, late workspace-state loading, fullscreen restore scheduling, the native drag event sequence, addressed retile policy, serialized claims and workspace-mode-switch suppression are tested. No native device actions, popup/focus or visual acceptance.'}
     (case / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(case / 'report.json')
     if not ok:

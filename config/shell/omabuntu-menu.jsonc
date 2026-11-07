@@ -40,6 +40,38 @@
   "appearance.background": {"icon": "\uf03e", "label": "Background", "aliases": ["background", "wallpaper", "style.background"], "provider": "backgrounds", "action": "omabuntu-open:backgrounds"},
   "appearance.font": {"icon": "\ue659", "label": "Font", "aliases": ["style.font"], "provider": "fonts"},
 
+  // Original stable Appearance rows with a closed Ubuntu preference registry.
+  // Bar positioning, window effects, branding and Plymouth remain excluded.
+  "appearance.top-bar": {"icon":"󰍜","label":"Menu Bar","when":"appearance:available"},
+  "appearance.top-bar.hide": {"icon":"󰈉","label":"Hide Bar","when":"appearance:hidden:off","action":"omabuntu-appearance:hidden:on"},
+  "appearance.top-bar.show": {"icon":"󰈈","label":"Show Bar","when":"appearance:hidden:on","action":"omabuntu-appearance:hidden:off"},
+  "appearance.top-bar.background": {"icon":"󰂵","label":"Bar Background"},
+  "appearance.top-bar.background.opaque": {"icon":"󰝤","label":"Opaque Bar","checked":"appearance:background:opaque","action":"omabuntu-appearance:background:opaque"},
+  "appearance.top-bar.background.glassy": {"icon":"󰂵","label":"Glassy Bar","checked":"appearance:background:glassy","action":"omabuntu-appearance:background:glassy","description":"Translucent bar background; compositor blur remains user-owned"},
+  "appearance.top-bar.background.clear": {"icon":"󰝣","label":"Clear Bar","checked":"appearance:background:none","action":"omabuntu-appearance:background:none"},
+  "appearance.top-bar.indicators": {"icon":"󰋽","label":"Bar Indicators"},
+  "appearance.top-bar.indicators.battery-percentage-on": {"icon":"󰁹","label":"Show Battery %","when":"appearance:battery-show","action":"omabuntu-appearance:battery-percentage:on"},
+  "appearance.top-bar.indicators.battery-percentage-off": {"icon":"󰁹","label":"Hide Battery %","when":"appearance:battery-hide","action":"omabuntu-appearance:battery-percentage:off"},
+  "appearance.top-bar.indicators.clock": {"icon":"󰥔","label":"Clock"},
+  "appearance.top-bar.indicators.clock.sunday-24h": {"icon":"󰥔","label":"Sunday 14:30","checked":"appearance:clock:sunday-24h","action":"omabuntu-appearance:clock:sunday-24h"},
+  "appearance.top-bar.indicators.clock.sunday-12h": {"icon":"󰥔","label":"Sunday 2:30 PM","checked":"appearance:clock:sunday-12h","action":"omabuntu-appearance:clock:sunday-12h"},
+  "appearance.top-bar.indicators.clock.sunday-seconds-24h": {"icon":"󰥔","label":"Sunday 14:30:05","checked":"appearance:clock:sunday-seconds-24h","action":"omabuntu-appearance:clock:sunday-seconds-24h"},
+  "appearance.top-bar.indicators.clock.sunday-seconds-12h": {"icon":"󰥔","label":"Sunday 2:30:05 PM","checked":"appearance:clock:sunday-seconds-12h","action":"omabuntu-appearance:clock:sunday-seconds-12h"},
+  "appearance.top-bar.indicators.clock.time-24h": {"icon":"󰥔","label":"14:30","checked":"appearance:clock:time-24h","action":"omabuntu-appearance:clock:time-24h"},
+  "appearance.top-bar.indicators.clock.time-12h": {"icon":"󰥔","label":"2:30 PM","checked":"appearance:clock:time-12h","action":"omabuntu-appearance:clock:time-12h"},
+  "appearance.top-bar.indicators.clock.date-24h": {"icon":"󰥔","label":"Sun 3 May 14:30","checked":"appearance:clock:date-24h","action":"omabuntu-appearance:clock:date-24h"},
+  "appearance.top-bar.indicators.clock.date-12h": {"icon":"󰥔","label":"Sun 3 May 2:30 PM","checked":"appearance:clock:date-12h","action":"omabuntu-appearance:clock:date-12h"},
+  "appearance.top-bar.indicators.clock.week": {"icon":"󰥔","label":"3 May W18 2026","checked":"appearance:clock:week","action":"omabuntu-appearance:clock:week"},
+  "appearance.top-bar.indicators.clock.iso": {"icon":"󰥔","label":"2026-05-03 14:30","checked":"appearance:clock:iso","action":"omabuntu-appearance:clock:iso"},
+  "appearance.dock": {"icon":"󱂩","label":"Dock","when":"appearance:floating"},
+  "appearance.dock.autohide": {"icon":"󰈉","label":"Auto-hide Dock","when":"appearance:dock-autohide:off","action":"omabuntu-appearance:dock-autohide:on"},
+  "appearance.dock.always-on": {"icon":"󰈈","label":"Always-on Dock","when":"appearance:dock-autohide:on","action":"omabuntu-appearance:dock-autohide:off"},
+  "appearance.dock.position": {"icon":"","label":"Dock Position"},
+  "appearance.dock.position.top": {"icon":"󰁝","label":"Top Dock","checked":"appearance:dock-position:top","action":"omabuntu-appearance:dock-position:top"},
+  "appearance.dock.position.bottom": {"icon":"󰁅","label":"Bottom Dock","checked":"appearance:dock-position:bottom","action":"omabuntu-appearance:dock-position:bottom"},
+  "appearance.dock.position.left": {"icon":"󰁍","label":"Left Dock","checked":"appearance:dock-position:left","action":"omabuntu-appearance:dock-position:left"},
+  "appearance.dock.position.right": {"icon":"󰁔","label":"Right Dock","checked":"appearance:dock-position:right","action":"omabuntu-appearance:dock-position:right"},
+
   // Setup > Defaults: only installed browsers and terminals, applied through
   // xdg-settings and the xdg-terminal-exec preference list. Rows come from
   // tools/defaults_backend.py at dispatch time; nothing is installed here.

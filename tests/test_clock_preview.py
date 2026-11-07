@@ -180,6 +180,15 @@ class ClockPreviewTests(unittest.TestCase):
                 for forbidden in ("execDetached", "hyprctl", "omarchy-", "sudo", "FileView", "Timer {"):
                     self.assertNotIn(forbidden, text)
                 continue
+            if name.endswith("AppearanceState.qml"):
+                self.assertEqual(text.count("Process {"), 1)
+                self.assertIn("OMABUNTU_MENU_HELPER", text)
+                self.assertIn("appearance-state", text)
+                self.assertIn("appearance-set", text)
+                self.assertIn("queue", text)
+                for forbidden in ("execDetached", "ShellIpc", "hyprctl", "sudo", "Timer {"):
+                    self.assertNotIn(forbidden, text)
+                continue
             if name.endswith("CommandMenu.qml"):
                 self.assertEqual(text.count("Process {"), 1)
                 self.assertIn("OMABUNTU_MENU_HELPER", text)

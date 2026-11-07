@@ -27,6 +27,7 @@ import shlex
 import subprocess
 import sys
 
+import appearance_backend
 import background_backend
 import defaults_backend
 import font_backend
@@ -223,7 +224,7 @@ def guard_line(item_id, tag, expression):
 
 def guard_prelude(guards, state_home_text=None):
     """Start every wanted reader at once, then collect (port of guardPrelude)."""
-    home = menu_common.state_home() if state_home_text is None else Path(state_home_text)
+    home = appearance_backend.state_root() if state_home_text is None else Path(state_home_text)
     state = shlex.quote(str(home))
     start = ''
     collect = ''
@@ -246,7 +247,7 @@ def guard_script(items, state_home_text=None):
     lines = []
     for item_id, entry in items.items():
         for tag, key in (('w', 'when'), ('c', 'checked'), ('d', 'disabled')):
-            if entry.get(key):
+            if entry.get(key) and not entry[key].startswith('appearance:'):
                 lines.append(guard_line(item_id, tag, entry[key]))
     if not lines:
         return ''
@@ -278,16 +279,19 @@ def parse_guard_output(text):
     return results
 
 
-def evaluate_guards(items, run=None):
+def evaluate_guards(items, run=None, workspace=None):
     script = guard_script(items)
-    if not script:
-        return {'when': {}, 'checked': {}, 'disabled': {}}
-    if run is None:
-        run = guard_run
-    code, output = run(script)
-    if code != 0 and not output:
-        return {'when': {}, 'checked': {}, 'disabled': {}}
-    return parse_guard_output(output)
+    results = {'when': {}, 'checked': {}, 'disabled': {}}
+    if script:
+        code, output = (run or guard_run)(script)
+        if code == 0 or output:
+            results = parse_guard_output(output)
+    if any(entry.get(key, '').startswith('appearance:')
+           for entry in items.values() for key in results):
+        extra = appearance_backend.guards(items, workspace)
+        for key in results:
+            results[key].update(extra[key])
+    return results
 
 
 def guard_run(script, timeout=8):
@@ -408,6 +412,11 @@ def launch_session_action(action):
 
 def _run_action(action, run=None, palettes_path=None, state_root=None, dirs=None, font_output=None):
     """Execute one registry action; session-ending verbs go through gates."""
+    if action in appearance_backend.ACTIONS:
+        try:
+            return appearance_backend.change(*appearance_backend.ACTIONS[action])
+        except (OSError, ValueError) as error:
+            return {'ok': False, 'error': 'appearance', 'message': str(error)}
     if action.startswith('omabuntu-session:'):
         return launch_session_action(action)
     if action.startswith('omabuntu-open:'):
@@ -449,7 +458,7 @@ def run_item(row_id, definitions=None, run=None):
             return defaults_backend.set_terminal(row['value'])
         return {'ok': False, 'error': 'refused'}
     action = entry.get('action')
-    if not action or not ACTION_RE.fullmatch(action):
+    if not action or not (ACTION_RE.fullmatch(action) or action in appearance_backend.ACTIONS):
         return {'ok': False, 'error': 'refused', 'message': 'That action is not allowed here.'}
     return _run_action(action, run=run)
 
@@ -492,9 +501,23 @@ def main(argv):
         print(json.dumps({'ok': True, 'items': items, 'itemOrder': order,
                           'palette': menu_palette()}))
         return 0
-    if argv == ['guards']:
+    if argv and argv[0] in ('appearance-state', 'appearance-set', 'appearance-rollback'):
+        try:
+            if argv == ['appearance-state']:
+                result = {'ok': True, 'appearance': appearance_backend.snapshot()}
+            elif len(argv) == 3 and argv[0] == 'appearance-set':
+                result = appearance_backend.change(argv[1], argv[2])
+            elif len(argv) == 2 and argv[0] == 'appearance-rollback':
+                result = appearance_backend.rollback(argv[1])
+            else:
+                raise ValueError('Invalid appearance command')
+        except (OSError, ValueError) as error:
+            result = {'ok': False, 'error': 'appearance', 'message': str(error)}
+        print(json.dumps(result))
+        return 0
+    if argv == ['guards'] or (len(argv) == 2 and argv[0] == 'guards'):
         items, _ = load_definitions()
-        print(json.dumps({'ok': True, 'results': evaluate_guards(items)}))
+        print(json.dumps({'ok': True, 'results': evaluate_guards(items, workspace=argv[1] if len(argv) == 2 else None)}))
         return 0
     if len(argv) == 2 and argv[0] == 'providers':
         items, _ = load_definitions()

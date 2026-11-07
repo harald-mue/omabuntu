@@ -48,7 +48,7 @@ BarWidget {
 
     // Applied locally first so the label changes on the click itself; the
     // shell.json write comes back through the bar as the same value.
-    root.settings = entry
+    if (!root.bar || !root.bar.shell || !root.bar.shell.persistAppearance) root.settings = entry
     if (root.bar && root.bar.shell && typeof root.bar.shell.updateEntryInline === "function")
       root.bar.shell.updateEntryInline(root.moduleName, entry)
   }

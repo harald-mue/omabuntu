@@ -16,6 +16,10 @@ ShellRoot {
   property var launchFeedback: null
   property var keybindings: null
   property var commandMenu: null
+  AppearanceState {
+    id: appearance
+    onChanged: if (root.dock) root.dock.prefs.applyPreferences(dock)
+  }
   property var imagePicker: null
   property int lifetimeMs: 0
 
@@ -54,7 +58,7 @@ ShellRoot {
       console.error("OMABUNTU_TRIAL_COMPONENT_FAILED", factory.errorString());
       factory.destroy(); Qt.exit(43); return;
     }
-    panel = factory.createObject(root);
+    panel = factory.createObject(root, {appearance: appearance});
     factory.destroy();
     if (!panel) { console.error("OMABUNTU_TRIAL_CREATE_FAILED"); Qt.exit(43); return; }
     var appsFactory = Qt.createComponent(Qt.resolvedUrl("AppLauncher.qml"), Component.PreferSynchronous);
@@ -109,11 +113,13 @@ ShellRoot {
       openApps: function() { launcher.toggle(); },
       openKeybindings: function() { keybindings.toggle(); },
       openThemes: function() { imagePicker.toggleThemes(); },
-      openBackgrounds: function() { imagePicker.toggleBackgrounds(); }
+      openBackgrounds: function() { imagePicker.toggleBackgrounds(); },
+      appearanceChanged: function(data) { appearance.apply(data); }
     });
     menuFactory.destroy();
     if (!commandMenu) { console.error("OMABUNTU_TRIAL_MENU_CREATE_FAILED"); Qt.exit(43); return; }
     panel.openMenu = function() { commandMenu.toggleRoute("root"); };
+    appearance.refresh();
     lifetimeMs = snapshot.scope === "bar-session-v1" ? 0 : snapshot.duration_seconds * 1000;
     if (lifetimeMs > 0) expiry.start();
     else console.log("OMABUNTU_BAR_SESSION_NO_EXPIRY");
