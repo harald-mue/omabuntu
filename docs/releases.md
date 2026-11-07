@@ -2,9 +2,9 @@
 
 ## Status
 
-The current published release is **[v0.2.0](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.0)**,
-published on 2026-11-07 at 00:02:56 UTC from commit
-`9537b211a02fa5f74c40558f3f31f218e0427ec2`. It is public, not a draft or
+The current published release is **[v0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)**,
+published on 2026-11-07 at 15:47:10 UTC from commit
+`26e9ca4dca0752569bbd17b7a717a1210445e85e`. It is public, not a draft or
 prerelease. All four expected assets are present: the Ubuntu 26.04 x86_64
 archive, `release.json`, `SHA256SUMS` and `SHA256SUMS.sig`. Retained artifact
 hashes match GitHub's asset digests; publisher-signature, source-export,
@@ -105,10 +105,14 @@ machine/first-login acceptance, all browser actions, PWA/PiP or a fresh GNOME
 login. Public artifacts remain artwork-free; plugin preparation/activation and
 local desktop deployment are separate approval gates.
 
-### v0.2.1 release scope (preparation)
+### v0.2.1 release scope
 
-Version **0.2.1 is being prepared, not yet published**. The latest public release
-remains v0.2.0 until signing/publication and remote verification complete.
+Version **[0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)** is
+published. Local and remote tags identify source commit
+`26e9ca4dca0752569bbd17b7a717a1210445e85e`. Post-release documentation changes
+do not replace that commit or its immutable artifacts. Signature, retained
+artifact/GitHub asset-digest comparison, source-export identity, bundle integrity
+and artwork-exclusion checks pass.
 
 Changes since v0.2.0:
 
@@ -135,8 +139,8 @@ A separately approved real metadata-only check verified the public v0.2.0
 signature and correctly protected the private installed derivative. This does
 not establish a real public-version update pair/self-restart or native failure
 recovery. GNOME, fresh-machine, full focus/lifetime and generic security
-acceptance remain separate. Publication will not automatically replace the
-current private installation or weaken its local-release protection.
+acceptance remain separate. Publication does not automatically replace the
+private installation or weaken its local-release protection.
 
 No desktop double-click gesture is included; the proposal was rejected.
 Target versions/pins remain unchanged. Public archives remain artwork-free;

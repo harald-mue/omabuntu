@@ -26,7 +26,7 @@ configuration — install and update it without building anything yourself.
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-The latest release is **[v0.2.0](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.0)**;
+The latest release is **[v0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)**;
 fresh-machine installation is not yet
 accepted. The installer downloads it, verifies the publisher signature and
 archive checksums before extraction, and asks before installing missing
@@ -79,6 +79,12 @@ It downloads the latest published release and asks before switching. No Git
 checkout or `git pull` is needed; your preferences and private configuration
 stay, and the previous release remains installed for rollback.
 
+v0.2.1 also includes **Super+Space → Update → Omabuntu** for application-only
+updates in a separate terminal. It asks separately before checking signed release
+metadata, downloading a candidate and applying the reviewed switch. It does not
+install packages or reset configuration, and blocks automatic replacement of
+private/local adaptations. See [the Update menu](docs/application-update-menu.md).
+
 Rollback and recovery of interrupted updates are documented in the
 [installation guide](docs/installer.md#release-install-and-update). Rolling back
 the application does not undo APT package changes.
@@ -117,16 +123,16 @@ make guide                    # review local installation stages
 make test                     # unit suite
 ```
 
-Version **v0.2.1 is being prepared**, with persistent Menu Bar/Dock appearance
-controls, rendering fixes and the signed application-only Update menu. It is not
-yet published; v0.2.0 remains the latest public release. See the
-[0.2.1 scope and acceptance limits](docs/releases.md#v021-release-scope-preparation).
+Version **[v0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)** is
+published, with persistent Menu Bar/Dock appearance controls, rendering fixes and
+the signed application-only Update menu. See the
+[0.2.1 scope and acceptance limits](docs/releases.md#v021-release-scope).
 
 Maintainers publish a signed release after setting up the publisher key and
-GitHub access. The preparation command for this release is:
+GitHub access. Choose an unused version; for example, for a future release:
 
 ```bash
-make release VERSION=0.2.1
+make release VERSION=0.2.2
 ```
 
 This asks before committing, builds the committed source without theme

@@ -126,9 +126,14 @@ Current/previous selection, bundle integrity and running identity were unchanged
 This validates signed discovery and the current local-version refusal, not a
 native terminal's behavior through a full update.
 
-Real update-switch acceptance remains outstanding. A future public release must
-publish this feature before public installations can obtain
-it through the release path; a Git commit alone is not a published update.
+The feature and publisher-style bundle-version comparison fix are now shipped
+in public [v0.2.1](releases.md#v021-release-scope). Publishing it does not switch
+an existing installation; a private/local derivative remains protected from
+automatic replacement. The earlier private deployment is not retroactively
+changed by publication.
+
+Real update-switch acceptance remains outstanding; a Git commit or published
+release alone does not establish that acceptance.
 Tests do not establish native terminal focus/floating behavior, recovery after
 an actual shell-parent exit, a real public-version update pair, GNOME
 coexistence or fresh-machine behavior. Those remain explicit acceptance gates.

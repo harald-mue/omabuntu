@@ -8,7 +8,7 @@ Update implementation, publisher packaging and acceptance evidence. Admitted
 Omarchy components remain pinned to v4.5.0 commit
 `ac2690cd7be4f47e4a255f5e2e78d904d436b068`; no upstream update scripts are added.
 
-## Current gaps and proposed shape
+## Initial gaps and proposed shape (historical)
 
 Main contains the unpublished Appearance commit plus uncommitted Update work.
 The publisher creates bundle versions `release-VERSION`, but the new updater
@@ -43,11 +43,11 @@ establish a real version-pair update/recovery or generic native/security accepta
 - [x] Fix and regression-test publisher bundle-version compatibility.
 - [x] Prepare release scope documentation and review publication candidate.
 - [x] Run full tests, clean-source and contained menu checks.
-- [ ] Obtain approval and commit reviewed preparation.
-- [ ] Build fresh isolated artwork-free artifacts and sign/verify interactively.
-- [ ] Publish after confirmation and verify remote tag/assets/signature.
+- [x] Obtain approval and commit reviewed preparation.
+- [x] Build fresh isolated artwork-free artifacts and sign/verify interactively.
+- [x] Publish after confirmation and verify remote tag/assets/signature.
 
-## Initial preflight
+## Initial preflight (historical)
 
 Local main is at the unpublished Appearance commit. Remote main remains at the
 v0.2.0 documentation follow-up. No local/remote v0.2.1 tag, GitHub release or
@@ -76,5 +76,22 @@ No new third-party code/assets were imported. Backups, negative-control failures
 candidate inventory and check logs are private under ignored
 `work/release-021-preparation/`.
 
-Preparation is ready for explicit commit approval. No staging, commit, build,
-signing, push, tag, release publication or local desktop change has occurred.
+At the end of preparation, commit approval was still pending; no staging,
+commit, build, signing, push, tag, publication or desktop change had occurred.
+
+## Completed publication
+
+The user approved the preparation commit `26e9ca4`
+(`chore(release): prepare v0.2.1`) and subsequently completed the interactive
+publisher. Public [v0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)
+was published on 2026-11-07 at 15:47:10 UTC, neither draft nor prerelease. Local
+and remote tags resolve to `26e9ca4dca0752569bbd17b7a717a1210445e85e`.
+
+Post-release verification under plan 103 confirms all four expected assets,
+retained hashes/sizes matching GitHub asset digests, valid publisher signature,
+original source export/packaged-source identity, bundle integrity and excluded
+theme artwork. Private verification evidence remains under ignored
+`work/release-021-docs-103/`. These checks establish publication, not fresh-machine,
+GNOME, real public-version update-pair/self-restart or native recovery/security
+acceptance. Published tags/assets and the running private desktop are unchanged
+by documentation follow-up.
