@@ -105,6 +105,44 @@ machine/first-login acceptance, all browser actions, PWA/PiP or a fresh GNOME
 login. Public artifacts remain artwork-free; plugin preparation/activation and
 local desktop deployment are separate approval gates.
 
+### v0.2.1 release scope (preparation)
+
+Version **0.2.1 is being prepared, not yet published**. The latest public release
+remains v0.2.0 until signing/publication and remote verification complete.
+
+Changes since v0.2.0:
+
+- Original-derived Menu Bar/Dock Appearance controls: visibility, bar
+  Opaque/Glassy/Clear, clock presets, battery percentage and dock position/
+  visibility policy. Preferences persist through guarded, backed-up atomic
+  changes with exact conditional rollback. See [Appearance controls](appearance-controls.md).
+- Correct translucent bar rendering by requesting an alpha-capable surface
+  before creation; user-confirmed Opaque/Glassy/Clear behavior on the local
+  desktop. Correct battery-percentage allocation so it does not overlap the
+  next component, with contained layout regression checks.
+- Original Update menu placement with **Update > Omabuntu**, an independent
+  terminal and separately confirmed signed-metadata check, candidate download
+  and application-only switch. Preserve wallpaper/preferences, block local
+  adaptations and downgrades, and refuse missing prerequisites/migrations
+  instead of installing system components. See [Application Update menu](application-update-menu.md).
+- Recognize the publisher's `release-VERSION` bundle names during installed
+  version comparison and incoming bundle validation, while retaining strict
+  numeric signed metadata and local-adaptation refusal. Temporary transaction/
+  recovery tests now exercise publisher-style bundle names.
+
+The user confirmed local terminal invocation and pre-network cancellation.
+A separately approved real metadata-only check verified the public v0.2.0
+signature and correctly protected the private installed derivative. This does
+not establish a real public-version update pair/self-restart or native failure
+recovery. GNOME, fresh-machine, full focus/lifetime and generic security
+acceptance remain separate. Publication will not automatically replace the
+current private installation or weaken its local-release protection.
+
+No desktop double-click gesture is included; the proposal was rejected.
+Target versions/pins remain unchanged. Public archives remain artwork-free;
+no package/service/plugin activation, desktop deployment or system updater is
+part of release publication. Existing tags/assets remain immutable.
+
 ## One-time publisher setup
 
 Use an existing, dedicated Ed25519 SSH signing key stored outside the repository.

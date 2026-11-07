@@ -8,7 +8,7 @@
   // process evaluates (see tools/menu_model.py). Actions use a reviewed
   // omabuntu registry instead of arbitrary shell commands; tools/menu_model.py
   // builds the dispatch allowlist from this file and refuses everything else.
-  // Excluded upstream sections (install, remove, update, trigger, about,
+  // Excluded upstream sections (install, remove, about,
   // dmenu modes, locale catalogs) are documented in plans/002-command-menu.md
   // and docs/command-menu.md. Setup keeps only reviewed default-application
   // rows backed by xdg-settings and xdg-terminal-exec.
@@ -21,6 +21,9 @@
   "appearance": {"icon": "\udb80\udfd8", "label": "Appearance", "aliases": ["style", "theme-menu"]},
   "trigger": {"icon": "\udb85\udcde", "label": "Trigger"},
   "setup": {"icon": "\ue615", "label": "Setup", "aliases": ["settings"]},
+  // Original Update placement; application-only review, never system provisioning.
+  "update": {"icon": "", "label": "Update"},
+  "update.omabuntu": {"icon": "", "label": "Omabuntu", "description": "Review signed application updates in a separate terminal", "action": "omabuntu-update:review"},
   "system": {"icon": "\uf011", "label": "System", "aliases": ["power-menu", "power"]},
 
   // Learn (adapted: Ubuntu documentation replaces the Arch wiki; the Tmux,

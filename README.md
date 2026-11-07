@@ -117,8 +117,13 @@ make guide                    # review local installation stages
 make test                     # unit suite
 ```
 
+Version **v0.2.1 is being prepared**, with persistent Menu Bar/Dock appearance
+controls, rendering fixes and the signed application-only Update menu. It is not
+yet published; v0.2.0 remains the latest public release. See the
+[0.2.1 scope and acceptance limits](docs/releases.md#v021-release-scope-preparation).
+
 Maintainers publish a signed release after setting up the publisher key and
-GitHub access. Choose an unused version; for example, for a future release:
+GitHub access. The preparation command for this release is:
 
 ```bash
 make release VERSION=0.2.1

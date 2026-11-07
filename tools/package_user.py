@@ -16,6 +16,7 @@ import build_omasnap
 import build_plugin
 import desktop_font
 import plugin_manager
+import update_payload
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -171,7 +172,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
             path.write_bytes(data)
             path.chmod(0o444)
         for name in ('network_nm.py', 'display_backend.py', 'qrcodegen.py', 'dock_state.py',
-                     'keybindings_menu.py', 'menu_model.py', 'menu_common.py', 'appearance_backend.py',
+                     'keybindings_menu.py', 'menu_model.py', 'menu_common.py', 'appearance_backend.py', 'menu_update.py',
                      'theme_backend.py', 'font_backend.py', 'background_backend.py',
                      'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py',
                      'capture_screenshot.py', 'weather_probe.py', 'omabuntu_hyprland_window_minimize.py', 'plugin_login.py'):
@@ -185,6 +186,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
             target.parent.mkdir(exist_ok=True)
             target.write_bytes(source.read_bytes())
             target.chmod(0o444)
+        update_payload.stage(ROOT, temporary)
         # Theme background stills and preview images (plan 006). The staged
         # helpers resolve these through their ROOT default
         # (config/menu/backgrounds, config/menu/themes-previews); provenance

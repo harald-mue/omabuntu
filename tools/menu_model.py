@@ -28,6 +28,7 @@ import subprocess
 import sys
 
 import appearance_backend
+import menu_update
 import background_backend
 import defaults_backend
 import font_backend
@@ -376,7 +377,7 @@ def provider_row_for(items, row_id):
 # an id absent from them, or a provider row that is no longer enumerated,
 # is refused.
 
-ACTION_RE = re.compile(r'^(omabuntu-open:(apps|keybindings|themes|backgrounds)|omabuntu-session:(lock|screenshot)|xdg-open:https://[A-Za-z0-9./_-]+/?|systemctl:(suspend|hibernate|reboot|poweroff)|uwsm:stop)$')
+ACTION_RE = re.compile(r'^(omabuntu-open:(apps|keybindings|themes|backgrounds)|omabuntu-session:(lock|screenshot)|omabuntu-update:review|xdg-open:https://[A-Za-z0-9./_-]+/?|systemctl:(suspend|hibernate|reboot|poweroff)|uwsm:stop)$')
 
 
 def launch_session_action(action):
@@ -412,6 +413,8 @@ def launch_session_action(action):
 
 def _run_action(action, run=None, palettes_path=None, state_root=None, dirs=None, font_output=None):
     """Execute one registry action; session-ending verbs go through gates."""
+    if action == 'omabuntu-update:review':
+        return menu_update.launch()
     if action in appearance_backend.ACTIONS:
         try:
             return appearance_backend.change(*appearance_backend.ACTIONS[action])

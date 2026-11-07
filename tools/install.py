@@ -237,8 +237,8 @@ def package_review(wallpaper=False, run=omabuntu.probe, manifest_path=MANIFEST):
             'status': 'blocked' if blockers else 'review-required'}
 
 
-def private_case():
-    parent = user_install.private_directory(ROOT / 'work')
+def private_case(report_root=None):
+    parent = user_install.private_directory((ROOT / 'work') if report_root is None else Path(report_root))
     parent = user_install.private_directory(parent / 'installer')
     case = parent / user_install.stamp()
     case.mkdir(mode=0o700)
@@ -286,7 +286,7 @@ def runtime_probe(bundle, case, run=omabuntu.probe):
             'scope': 'Isolated linkage/imports and WebP decode, not native visual acceptance'}
 
 
-def preflight(bundle, wallpaper=False, run=omabuntu.probe, os_info=None, runtime=None):
+def preflight(bundle, wallpaper=False, run=omabuntu.probe, os_info=None, runtime=None, report_root=None):
     bundle = Path(bundle).absolute()
     meta = user_install.verify_bundle(bundle)
     spec, names = manifest(wallpaper=wallpaper)
@@ -320,7 +320,7 @@ def preflight(bundle, wallpaper=False, run=omabuntu.probe, os_info=None, runtime
                           'running': True if running.get('status') == 'ok' else
                           False if running.get('returncode') == 1 else None,
                           'limit': 'Informational only: no process start, ownership grant or live apply'}
-    case = private_case()
+    case = private_case(report_root)
     runtime_result = (runtime or runtime_probe)(bundle, case)
     checks.append({'name': 'runtime-linkage-imports-webp', 'ok': runtime_result.get('status') == 'passed',
                    'result': runtime_result})

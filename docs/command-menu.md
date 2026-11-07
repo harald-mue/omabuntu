@@ -116,9 +116,24 @@ does not check the resume path. `systemctl` verbs are run with a fixed
 argument shape; no shell, no arbitrary argv. A refusal shows "Power actions
 are not enabled yet." in the card and keeps it open.
 
+## Application updates
+
+Update > Omabuntu preserves the original Update root placement before System.
+Its closed `omabuntu-update:review` action opens a separate interactive terminal;
+menu loading/guards do not perform update checks. See
+[Application Update menu](application-update-menu.md) for signed verification,
+local-version refusal, confirmation stages, packaging and deployment boundaries.
+The menu addition and updater payload were locally deployed after explicit
+approval with a bar-only restart. Startup/menu definitions and preserved
+preferences were verified. The user subsequently confirmed terminal invocation
+and cancellation before network access. A separately approved metadata-only
+check verified the public v0.2.0 signature/metadata and correctly blocked automatic
+replacement of the local derivative; no bundle was downloaded and selection/
+running identity were unchanged. Real update-switch acceptance remains outstanding.
+
 ## Not included
 
-- Upstream Install/Remove/Update sections (pacman-based; an apt adaptation is
+- Upstream Install/Remove and the rest of Update (pacman-based; an apt adaptation is
   a separate plan), the rest of Setup beyond default browser/terminal, the
   rest of Trigger beyond Screenshot, About, dmenu select/input modes, locale catalogs, upstream theme
   background images, and the font/background providers' live daemon work.

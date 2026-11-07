@@ -24,7 +24,7 @@ import check_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKER = 'OMABUNTU_MENU_FIXTURE_OK'
-HELPERS = ('menu_model.py', 'menu_common.py', 'appearance_backend.py', 'dock_state.py',
+HELPERS = ('menu_model.py', 'menu_common.py', 'appearance_backend.py', 'dock_state.py', 'menu_update.py',
            'defaults_backend.py', 'theme_backend.py',
            'font_backend.py', 'background_backend.py', 'power_actions.py')
 DATA = (('omabuntu-menu.jsonc', 'config/shell/omabuntu-menu.jsonc'),
@@ -103,10 +103,18 @@ __BAR_STATE_FILE__
       assert(menu.checkedResults["learn.checked-row"] === true, "checked guard")
     },
     function() {
-      assert(menu.probeCount() === 6, "root row count")
+      assert(menu.probeCount() === 7, "root row count")
       assert(rowLabel(0) === "Apps", "apps label")
-      assert(findRow("Learn") === 1 && findRow("Appearance") === 2 && findRow("Trigger") === 3 && findRow("Setup") === 4 && findRow("System") === 5, "root labels")
-      assert(rowAt(5).kind === "menu", "system is a submenu")
+      assert(findRow("Learn") === 1 && findRow("Appearance") === 2 && findRow("Trigger") === 3 && findRow("Setup") === 4 && findRow("Update") === 5 && findRow("System") === 6, "root labels")
+      assert(rowAt(6).kind === "menu", "system is a submenu")
+      menu.activateIndex(findRow("Update"))
+      assert(menu.activeMenu === "update", "update root route")
+      var applicationUpdate = findRow("Omabuntu")
+      assert(applicationUpdate >= 0 && rowAt(applicationUpdate).kind === "action", "application update row")
+      assert(rowAt(applicationUpdate).action === "omabuntu-update:review", "closed application update action")
+      // Inspect the action only: this sandbox must not launch a host terminal.
+      menu.handleKey({ key: Qt.Key_Backspace, text: "" })
+      assert(menu.activeMenu === "root", "return from update")
     },
     function() {
       menu.select(1)
@@ -115,8 +123,8 @@ __BAR_STATE_FILE__
       assert(menu.activeMenu === "learn", "learn route")
       menu.handleKey({ key: Qt.Key_Backspace, text: "" })
       assert(menu.activeMenu === "root", "back out")
-      menu.select(5)
-      menu.activateIndex(5)
+      menu.select(6)
+      menu.activateIndex(6)
       assert(menu.activeMenu === "system", "system route")
     },
     function() {
