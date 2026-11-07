@@ -729,6 +729,12 @@ def system_stage(args):
                 console.step(3, 'Native service warning', 'CHECK',
                              'Ubuntu package maintainer scripts may activate system services.\nNo desktop start or explicit service restart is requested.')
             if args.packages:
+                native_checks = plan.get('native_checks', [])
+                if native_checks:
+                    console.step(4, 'Native compatibility (not plugin ABI)',
+                                 'OK' if all(check['ok'] for check in native_checks) else 'BLOCKED',
+                                 '\n'.join(check['message'] for check in native_checks)
+                                 + '\nRuntime linkage/imports and optional hyprbars ABI/build checks remain separate.')
                 for choice in (plan['payload'].get('compatibility') or {}).get('selections', []):
                     console.line('  Matching header: %s=%s (candidate %s); preserves installed %s=%s.' %
                                  (choice['package'], choice['selected_version'], choice['candidate_version'],

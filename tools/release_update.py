@@ -317,7 +317,7 @@ def stage(installation, bundle):
 def preflight(bundle):
     report, path = guided.preflight(bundle)
     if report['status'] != 'passed':
-        raise UpdateError('Runtime preflight blocked deployment; inspect ' + str(path))
+        raise UpdateError(guided.preflight_failure(report, path))
     return report
 
 

@@ -12,6 +12,7 @@ import subprocess
 import sys
 
 import check_runtime
+import native_compatibility
 import omabuntu
 import package_plan
 import user_install
@@ -272,17 +273,28 @@ def runtime_probe(bundle, case, run=omabuntu.probe):
               [binary, '--no-color', '--path', '/probe/shell.qml']), timeout=30)
     text = qml.get('stdout', '') + qml.get('stderr', '')
     libraries = linkage.get('stdout', '') + linkage.get('stderr', '')
-    passed = (linkage.get('status') == 'ok' and qml.get('status') == 'ok'
-              and not any(x in libraries for x in ('not found', 'undefined symbol'))
-              and all(x in libraries for x in ('libQt6Core', 'libQt6Qml', 'libQt6Quick'))
-              and 'Configuration Loaded' in text and 'OMABUNTU_INSTALL_WEBP_READY' in text
-              and not re.search(r'^\s*(?:ERROR|FATAL|CRITICAL)\b', text, re.MULTILINE)
-              and not any(x in text for x in ('ReferenceError:', 'TypeError:',
-                          'is not installed', 'Cannot create', 'Required property',
-                          'Failed to load configuration')))
+    failures = []
+    if linkage.get('status') != 'ok':
+        failures.append('Runtime linkage probe failed (%s).' % linkage.get('status', 'unknown'))
+    elif any(x in libraries for x in ('not found', 'undefined symbol')):
+        failures.append('Runtime has missing libraries or unresolved symbols; see runtime-probe.json.')
+    elif not all(x in libraries for x in ('libQt6Core', 'libQt6Qml', 'libQt6Quick')):
+        failures.append('Runtime linkage did not identify the required Qt Core/Qml/Quick libraries.')
+    if qml.get('status') != 'ok':
+        failures.append('QML import/WebP probe failed (%s).' % qml.get('status', 'unknown'))
+    else:
+        if 'Configuration Loaded' not in text:
+            failures.append('Quickshell did not confirm successful QML configuration loading.')
+        if 'OMABUNTU_INSTALL_WEBP_READY' not in text:
+            failures.append('The QML probe did not confirm WebP image decoding.')
+        if (re.search(r'^\s*(?:ERROR|FATAL|CRITICAL)\b', text, re.MULTILINE)
+                or any(x in text for x in ('ReferenceError:', 'TypeError:', 'is not installed',
+                                          'Cannot create', 'Required property', 'Failed to load configuration'))):
+            failures.append('The QML probe reported runtime/import errors; see runtime-probe.json.')
+    passed = not failures
     save(case, 'runtime-probe.json', {'linkage': linkage, 'qml': qml})
     user_install.verify_bundle(bundle)
-    return {'status': 'passed' if passed else 'failed',
+    return {'status': 'passed' if passed else 'failed', 'failures': failures,
             'scope': 'Isolated linkage/imports and WebP decode, not native visual acceptance'}
 
 
@@ -295,13 +307,11 @@ def preflight(bundle, wallpaper=False, run=omabuntu.probe, os_info=None, runtime
     checks = []
     checks.append({'name': 'ubuntu-target', 'ok': not host_blockers(spec, os_info),
                    'blockers': host_blockers(spec, os_info)})
-    version = run(['Hyprland', '--version'], timeout=15)
-    checks.append({'name': 'hyprland-target', 'ok': version.get('status') == 'ok'
-                   and re.search(r'(?<![\d.])' + re.escape(spec['target']['hyprland']) + r'(?![\d.])',
-                                 version.get('stdout', '') + version.get('stderr', '')) is not None,
-                   'probe': version})
-    qt = package_version(state, 'libqt6core6t64') or ''
-    checks.append({'name': 'qt-target', 'ok': qt.split('+')[0].split('-')[0] == spec['target']['qt']})
+    version = run(['Hyprland', '--version-json'], timeout=15)
+    hyprland = native_compatibility.hyprland_binary(version)
+    checks.append(dict(hyprland, name='hyprland-target', probe=version))
+    qt = native_compatibility.assess('qt', package_version(state, 'libqt6core6t64'), 'installed package')
+    checks.append(dict(qt, name='qt-target'))
     missing = [name for name in names if not package_version(state, name)]
     checks.append({'name': 'runtime-packages', 'ok': not missing, 'missing': missing})
     font = run(['fc-match', '--format=%{family}\\n', 'monospace'], timeout=15)
@@ -323,9 +333,12 @@ def preflight(bundle, wallpaper=False, run=omabuntu.probe, os_info=None, runtime
     case = private_case(report_root)
     runtime_result = (runtime or runtime_probe)(bundle, case)
     checks.append({'name': 'runtime-linkage-imports-webp', 'ok': runtime_result.get('status') == 'passed',
+                   'message': 'Runtime linkage/imports/WebP: ' + '; '.join(runtime_result.get('failures') or
+                       [str(runtime_result.get('status', 'unknown'))]),
                    'result': runtime_result})
     report = {'kind': 'omabuntu-preflight', 'bundle': str(bundle), 'version': meta['version'],
               'bundle_sha256': digest(meta), 'manifest_sha256': digest(spec), 'wallpaper': wallpaper,
+              'native_compatibility_sha256': digest(native_compatibility.policy()),
               'checks': checks, 'wallpaper_daemon': wallpaper_info,
               'status': 'passed' if all(c['ok'] for c in checks) else 'blocked',
               'limits': ['No session activation, configuration merge or native acceptance.',
@@ -403,14 +416,31 @@ def apply_packages(plan_path, approval, run=omabuntu.probe, execute=terminal_ins
     return case
 
 
+def preflight_failure(report, path=None):
+    details = []
+    for check in report.get('checks', []):
+        if check.get('ok'):
+            continue
+        detail = check.get('message')
+        if not detail:
+            values = check.get('missing') or check.get('blockers')
+            detail = check.get('name', 'unknown check') + ': ' + (
+                ', '.join(values) if values else 'failed; inspect the private probe result')
+        details.append(detail)
+    return ('Preflight blocked deployment: ' + '; '.join(details or ['runtime checks did not pass']).rstrip('. ')
+            + '. No application switch was attempted.'
+            + (' Private report: ' + str(path) if path is not None else ''))
+
+
 def deployment_review(bundle, installation, wallpaper=False):
     report, path = preflight(bundle, wallpaper)
     if report['status'] != 'passed':
-        raise ValueError('Preflight blocked deployment; inspect ' + str(path))
+        raise ValueError(preflight_failure(report, path))
     if installation.running():
         raise ValueError('Managed shell is running; stop it explicitly before planning replacement')
     return {'bundle': str(Path(bundle).absolute()), 'bundle_sha256': report['bundle_sha256'],
             'manifest_sha256': report['manifest_sha256'], 'wallpaper': wallpaper,
+            'native_compatibility_sha256': report['native_compatibility_sha256'],
             'root': str(installation.root), 'state': str(installation.state),
             'launcher': str(installation.launcher), 'deployment': installation.plan(bundle)}
 

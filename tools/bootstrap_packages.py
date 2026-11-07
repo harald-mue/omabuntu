@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 
 import bootstrap_sources
+import native_compatibility
 import install as guided
 import omabuntu
 import package_plan
@@ -16,7 +17,6 @@ import user_install
 import upgrade_policy
 
 ROOT = Path(__file__).resolve().parents[1]
-NATIVE_VERSIONS = {'hyprland': '0.57.0', 'libqt6core6t64': '6.10.2', 'hyprlock': '0.9.6'}
 
 
 def request_manifest(base_only=False, runtime_only=False, plugin_build_only=False):
@@ -53,19 +53,13 @@ def request_manifest(base_only=False, runtime_only=False, plugin_build_only=Fals
         # Only this reviewed header/runtime pair may replace a newer candidate.
         manifest['matching_development_versions'] = {'libudev-dev': 'libudev1'}
     inputs = {'bootstrap': guided.digest(bootstrap), 'runtime': guided.digest(runtime),
-              'quickshell': guided.digest(quickshell)}
+              'quickshell': guided.digest(quickshell),
+              'native_compatibility': guided.digest(native_compatibility.policy())}
     return manifest, inputs
 
 
 def native_blockers(payload):
-    candidates = package_plan.parse_policy(payload['policy'])
-    blockers = []
-    for name, expected in NATIVE_VERSIONS.items():
-        value = guided.package_version(payload['before'], name) or candidates.get(name, {}).get('candidate')
-        actual = (value or '').split(':')[-1].split('+')[0].split('-')[0]
-        if actual != expected:
-            blockers.append('Native target differs: ' + name + ' requires ' + expected)
-    return blockers
+    return [row['message'] for row in native_compatibility.package_checks(payload) if not row['ok']]
 
 
 def prepare(case, run=omabuntu.probe, base_only=False, runtime_only=False, plugin_build_only=False):
@@ -76,11 +70,13 @@ def prepare(case, run=omabuntu.probe, base_only=False, runtime_only=False, plugi
     user_install.atomic_json(path, manifest)
     payload = guided.package_review(manifest_path=path, run=run)
     decision = upgrade_policy.classify(payload['transaction'])
+    native_checks = [] if base_only else native_compatibility.package_checks(payload)
     blockers = [*payload['blockers'], *([] if decision['permitted'] else [decision['reason']]),
-                *([] if base_only else native_blockers(payload))]
+                *(row['message'] for row in native_checks if not row['ok'])]
     plan = {'schema_version': 1, 'kind': 'omabuntu-bootstrap-packages', 'case': str(case.absolute()),
             'inputs': inputs, 'base_only': base_only, 'runtime_only': runtime_only,
-            'plugin_build_only': plugin_build_only, 'payload': payload, 'blockers': blockers,
+            'plugin_build_only': plugin_build_only, 'payload': payload, 'native_checks': native_checks,
+            'blockers': blockers,
             'status': 'blocked' if blockers else 'review-required'}
     user_install.atomic_json(case / 'package-plan.json', plan)
     return plan

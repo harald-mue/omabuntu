@@ -40,7 +40,19 @@ def review_plugin_packages():
     return plan, case / 'package-plan.json'
 
 
-def offer_plugin_packages():
+def offer_plugin_packages(root=None):
+    root = Path(__file__).resolve().parents[1] if root is None else Path(root)
+    try:
+        native = plugin_manager.build_hyprbars.installed_version()
+        issue = plugin_manager.target_blocker(plugin_manager.policy(root), native)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        issue = 'Optional hyprbars build compatibility could not be checked: ' + str(error)
+    if issue:
+        print(issue)
+        print('Shell installation can continue; no optional compiler/header packages were requested.')
+        if not ask('Continue application installation without the optional hyprbars titlebar integration? Existing plugin state is preserved'):
+            raise SystemExit('Cancelled before application deployment; optional plugin state preserved.')
+        return False
     stage = setup_guide.packages_stage(setup_guide.default_installed, plugin_build_only=True)
     if stage['status'] == 'done':
         return True
@@ -70,7 +82,7 @@ def offer_plugin_packages():
     return ready
 
 
-def offer_session(root):
+def offer_session(root, *, plugin_ready=True):
     try:
         session_config.require_stopped()
         reviewed = session_config.plan(root)
@@ -97,8 +109,11 @@ def offer_session(root):
         print('Next-login files already current; no repeated grant questions.')
         return
     options = ['--session-activate', '--apply']
-    if ask('Grant persistent receipt-checked hyprpm loading at future logins? No builds or sudo at login'):
-        options.append('--enable-plugin-login')
+    if plugin_ready:
+        if ask('Grant persistent receipt-checked hyprpm loading at future logins? No builds or sudo at login'):
+            options.append('--enable-plugin-login')
+    else:
+        print('Optional hyprbars is deferred; no new plugin-login grant is offered. Existing grants are not removed.')
     if ask('Enable the existing bar login unit without starting it now?'):
         options.append('--enable-login')
     apply_stage(options)
@@ -127,7 +142,7 @@ def offer_plugins(root, prerequisites_ready=True):
                 apply_stage(['--plugins-activate', '--apply'])
             return
     if not prerequisites_ready:
-        print('Plugin build deferred because its package prerequisites are incomplete. Rerun this installer to revisit.')
+        print('Optional plugin build deferred: compatibility or package prerequisites were not approved. Rerun this installer to revisit.')
         return
     if reviewed['blockers']:
         print('Plugin preparation deferred: ' + '; '.join(reviewed['blockers']))
@@ -272,13 +287,16 @@ def main():
         if stage['status'] != 'done':
             options = [mode, '--apply'] + (['--runtime-only'] if mode == '--packages' else [])
             if setup.main(options) != 0:
-                raise SystemExit('Prerequisite stage failed; published bundle not installed.')
+                label = {'--ppa': 'Package-source', '--packages': 'Package', '--font': 'Font'}[mode]
+                raise SystemExit(label + ' prerequisite review was blocked or failed; the published application was not deployed. '
+                                 'See the detected versions, supported ranges and private plan above. '
+                                 'No automatic downgrade or compatibility bypass is attempted.')
             if inspect()['status'] != 'done':
                 raise SystemExit('Prerequisite deferred; application deployment not attempted.')
     installation = user_install.Installation(*user_install.defaults())
     prerequisites_ready = True
     if management is not None and not manager_reusable(root, installation):
-        prerequisites_ready = offer_plugin_packages()
+        prerequisites_ready = offer_plugin_packages(root)
     options = ['--bundle', str(args.bundle), '--apply']
     unchanged = False
     if installation.selected():
@@ -316,7 +334,10 @@ def main():
     if management is not None:
         if manager_reusable(root, installation):
             print('Verified manager build reused; no compiler packages or rebuild are needed.')
-        offer_session(root)
+        if prerequisites_ready:
+            offer_session(root)
+        else:
+            offer_session(root, plugin_ready=False)
         offer_plugins(root, prerequisites_ready=prerequisites_ready)
         print('Application installation is not native/titlebar acceptance; deferred stages remain explicit.')
         print('To continue deferred steps later, rerun the same install.sh entry point. No temporary-cache commands are needed.')

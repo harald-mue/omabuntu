@@ -72,6 +72,22 @@ class SessionConfigTests(unittest.TestCase):
         self.assertIn('omabuntu:menu', text)
         self.assertNotIn('SUPER + CTRL + L', text)
 
+    def test_new_patch_session_does_not_require_optional_plugin_source_approval(self):
+        native = dict(NATIVE, version='0.57.1', commit='a' * 40)
+        with patch.object(session.plugin_manager, 'policy', side_effect=AssertionError('No plugin policy for shell-only session')):
+            plan = self.plan(native=native)
+        self.assertFalse(plan['blockers'])
+        self.assertFalse(self.paths['entry'].parent.exists())
+        self.assertNotIn('hl.plugin.load', plan['payload']['module'])
+
+    def test_new_family_or_dirty_session_remains_blocked_with_version_details(self):
+        for native in (dict(NATIVE, version='0.58.0'), dict(NATIVE, version='0.57.1', dirty=True)):
+            with self.subTest(native=native):
+                plan = self.plan(native=native)
+                self.assertTrue(plan['blockers'])
+                self.assertIn(native['version'], '; '.join(plan['blockers']))
+                self.assertFalse(self.paths['entry'].parent.exists())
+
     def test_fresh_apply_records_before_state_and_does_not_activate(self):
         plan = self.plan(keyboard='de,us')
         with patch.object(session.subprocess, 'run') as run:

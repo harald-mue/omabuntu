@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 
 import bootstrap_packages
+import native_compatibility
 import bootstrap_sources
 import build_omasnap
 import build_plugin
@@ -61,13 +62,12 @@ def create_plan(root=ROOT, jobs=4, artwork=True, version=None, state=None):
     state = guided.package_state(omabuntu.probe) if state is None else state
     versions = {name: guided.package_version(state, name) for name in spec['groups']['runtime']}
     blockers = ['Missing build/runtime package: ' + name for name, value in versions.items() if not value]
-    for name, expected in bootstrap_packages.NATIVE_VERSIONS.items():
-        actual = (versions.get(name) or '').split(':')[-1].split('+')[0].split('-')[0]
-        if actual != expected:
-            blockers.append('Native build target differs: ' + name)
+    native_checks = [native_compatibility.assess(component, versions.get(name), 'installed build package')
+                     for name, component in native_compatibility.PACKAGES.items()]
+    blockers.extend(check['message'] for check in native_checks if not check['ok'])
     inputs = {'files': code_inputs(root), 'package_versions': versions, 'artwork': artwork,
               'update_contract': release_update.contract(), 'desktop_font': font_pin,
-              'plugin_management': plugin_pin}
+              'plugin_management': plugin_pin, 'native_compatibility': native_compatibility.policy()}
     digest = guided.digest(inputs)
     chosen = version or 'source-' + digest[:16]
     if not isinstance(chosen, str) or not user_install.VERSION.fullmatch(chosen):

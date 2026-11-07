@@ -48,7 +48,8 @@ class Host:
                 raise AssertionError('No real APT execution in tests')
             output = self.simulation
         elif command[0] == 'Hyprland':
-            output = self.hyprland
+            output = (json.dumps({'version': self.hyprland.split()[-1], 'commit': 'a' * 40, 'dirty': False})
+                      if command[1:] == ['--version-json'] else self.hyprland)
         elif command[0] == 'fc-match':
             output = 'JetBrainsMono Nerd Font\n'
         elif command[0] == 'pgrep':
@@ -285,6 +286,37 @@ class InstallerTests(unittest.TestCase):
         self.host.hyprland = 'Hyprland 0.57.0'
         self.host.installed['libqt6core6t64'] = '6.11.0-1'
         self.assertEqual(self.preflight()[0]['status'], 'blocked')
+
+    def test_patch_family_preflight_still_requires_runtime_success(self):
+        self.host.hyprland = 'Hyprland 0.57.1'
+        self.host.installed['libqt6core6t64'] = '6.10.3+dfsg-1'
+        report, _ = self.preflight()
+        self.assertEqual(report['status'], 'passed')
+        self.assertIn(['Hyprland', '--version-json'], self.host.calls)
+        check = next(row for row in report['checks'] if row['name'] == 'hyprland-target')
+        self.assertEqual(check['upstream'], '0.57.1')
+        self.assertIn('native_compatibility_sha256', report)
+        with patch.object(guided, 'runtime_probe', return_value={'status': 'failed'}):
+            # This fixture normally supplies its own contained-runtime callback.
+            report, _ = guided.preflight(self.bundle, run=self.host.run,
+                runtime=lambda *_: {'status': 'failed'})
+        self.assertEqual(report['status'], 'blocked')
+
+    def test_runtime_probe_failures_name_linkage_and_import_timeout(self):
+        case = guided.private_case()
+        result = guided.runtime_probe(self.bundle, case, run=lambda *_args, **_kwargs: {'status': 'timeout'})
+        self.assertEqual(result['status'], 'failed')
+        self.assertIn('linkage probe failed (timeout)', '; '.join(result['failures']))
+        self.assertIn('QML import/WebP probe failed (timeout)', '; '.join(result['failures']))
+        self.assertTrue((case/'runtime-probe.json').is_file())
+
+    def test_failed_version_diagnostic_is_not_hidden_behind_report_path(self):
+        self.host.hyprland = 'Hyprland 0.58.0'
+        report, path = self.preflight()
+        with patch.object(guided, 'preflight', return_value=(report, path)), \
+             self.assertRaisesRegex(ValueError, r'0.58.0.*supported >=0.57.0, <0.58.0'):
+            guided.deployment_review(self.bundle, self.app)
+        self.assertFalse(self.app.root.exists())
 
     def test_wallpaper_is_reported_but_never_started_by_preflight(self):
         self.host.installed['hyprpaper'] = '0.8.4'

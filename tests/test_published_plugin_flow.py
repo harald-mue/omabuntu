@@ -21,6 +21,10 @@ class PublishedPluginFlowTests(unittest.TestCase):
         reusable = patch.object(published, 'manager_reusable', return_value=False)
         reusable.start()
         self.addCleanup(reusable.stop)
+        native = patch.object(published.plugin_manager.build_hyprbars, 'installed_version', return_value={
+            'version': '0.57.0', 'commit': '0aa6745f705f2c4b0a5004eb019ef76e5bbdb426', 'dirty': False})
+        native.start()
+        self.addCleanup(native.stop)
 
     def test_optional_review_creates_private_parent_directories(self):
         with tempfile.TemporaryDirectory(dir=ROOT / 'work') as temporary:
@@ -33,6 +37,29 @@ class PublishedPluginFlowTests(unittest.TestCase):
             for directory in (root / 'work', root / 'work/bootstrap', path.parent):
                 self.assertEqual(directory.stat().st_mode & 0o777, 0o700)
             prepare.assert_called_once_with(path.parent, plugin_build_only=True)
+
+    def test_unreviewed_patch_defers_only_plugin_without_compiler_package_review(self):
+        with patch.object(published.plugin_manager.build_hyprbars, 'installed_version', return_value={
+                'version': '0.57.1', 'commit': 'a' * 40, 'dirty': False}), \
+             patch.object(published, 'ask', return_value=True) as ask, \
+             patch.object(published.setup_guide, 'packages_stage') as packages, \
+             patch.object(published.setup, 'main') as apply:
+            self.assertFalse(published.offer_plugin_packages())
+        packages.assert_not_called()
+        apply.assert_not_called()
+        ask.assert_called_once()
+        self.assertIn('without the optional hyprbars', ask.call_args.args[0])
+        self.assertIn('0.57.1', self.stream.getvalue())
+        self.assertIn('not a plugin ABI proof', self.stream.getvalue())
+
+    def test_declining_optional_plugin_deferral_stops_before_application(self):
+        with patch.object(published.plugin_manager.build_hyprbars, 'installed_version', return_value={
+                'version': '0.57.1', 'commit': 'a' * 40, 'dirty': False}), \
+             patch.object(published, 'ask', return_value=False), \
+             patch.object(published.setup, 'main') as apply:
+            with self.assertRaisesRegex(SystemExit, 'Cancelled before application deployment'):
+                published.offer_plugin_packages()
+        apply.assert_not_called()
 
     def test_missing_plugin_tools_are_a_separately_approved_scope(self):
         with patch.object(published.setup_guide, 'packages_stage', side_effect=[
@@ -183,7 +210,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
             apply.side_effect = installed
             published.main()
         apply.assert_called_once_with(['--bundle', '/fixture', '--apply'])
-        session.assert_called_once_with(ROOT)
+        session.assert_called_once_with(ROOT, plugin_ready=False)
         plugins.assert_called_once_with(ROOT, prerequisites_ready=False)
         self.assertIn('rerun the same install.sh entry point', self.stream.getvalue())
         self.assertIn(published.setup_ui.BROWSER_TITLEBAR_NOTICE, self.stream.getvalue())
@@ -309,6 +336,18 @@ class PublishedPluginFlowTests(unittest.TestCase):
             published.offer_session(ROOT)
             ask.assert_not_called()
             apply.assert_not_called()
+
+    def test_deferred_plugin_does_not_offer_a_new_plugin_login_grant(self):
+        with patch.object(published.session_config, 'require_stopped'), \
+             patch.object(published.session_config, 'plan', return_value={'blockers': [], 'changes': []}), \
+             patch.object(published.session_activation, 'plan', return_value={'blockers': []}), \
+             patch.object(published, 'ask', return_value=False) as ask, \
+             patch.object(published.setup, 'main', return_value=0) as apply:
+            published.offer_session(ROOT, plugin_ready=False)
+        ask.assert_called_once()
+        self.assertIn('bar login unit', ask.call_args.args[0])
+        apply.assert_called_once_with(['--session-activate', '--apply'])
+        self.assertIn('Existing grants are not removed', self.stream.getvalue())
 
     def test_plugin_login_consent_does_not_enable_bar_unit(self):
         with patch.object(published.session_config, 'require_stopped'), \

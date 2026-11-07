@@ -41,6 +41,19 @@ def policy(root=ROOT):
     return data
 
 
+def target_blocker(source, native):
+    """Plugin provenance/build approval stays exact, independent of shell admission."""
+    target = source['targets'].get(native.get('version'))
+    if (target and target['apply_reviewed'] and native.get('dirty') is False
+            and native.get('commit') == target['hyprland_commit']):
+        return None
+    return ('Optional hyprbars: installed Hyprland %s (commit %s, dirty=%s) is not approved '
+            'for a pinned plugin build. A compatible shell version alone is not a plugin ABI proof. '
+            'No plugin build/load is authorized; existing plugin state is preserved. '
+            'Continue without this integration or revisit it when a matching source/build is reviewed.' %
+            (native.get('version', 'unknown'), native.get('commit', 'unknown'), native.get('dirty', 'unknown')))
+
+
 def bundle_policy(bundle):
     path = bundle / 'native/hyprpm.json'
     user_install.safe_parents(path.parent)
@@ -132,9 +145,9 @@ def plan(root=ROOT, home=None, action='prepare', native=None, running=None,
     native = build_hyprbars.installed_version() if native is None else native
     target = source['targets'].get(native.get('version'))
     blockers = []
-    if (not target or not target['apply_reviewed'] or native.get('dirty') is not False
-            or native.get('commit') != target['hyprland_commit']):
-        blockers.append('Hyprland version/commit is not approved for hyprpm apply')
+    target_issue = target_blocker(source, native)
+    if target_issue:
+        blockers.append(target_issue)
     required = ['hyprpm', 'hyprctl']
     if action == 'prepare':
         required.extend(('cmake', 'cpio', 'hyprwayland-scanner', 'pkg-config', 'g++', 'gcc', 'git', 'ninja', 'make'))

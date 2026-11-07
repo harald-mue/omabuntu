@@ -147,6 +147,45 @@ Target versions/pins remain unchanged. Public archives remain artwork-free;
 no package/service/plugin activation, desktop deployment or system updater is
 part of release publication. Existing tags/assets remain immutable.
 
+### v0.2.2 release scope (preparation)
+
+Version **0.2.2 is being prepared, not yet published**. v0.2.1 remains the latest
+public release until signed publication and remote verification complete.
+
+Changes since v0.2.1:
+
+- Replace exact native patch-version locks with a shared stable-family policy:
+  Hyprland >=0.57.0,<0.58.0; Qt >=6.10.2,<6.11.0; Hyprlock >=0.9.6,<0.10.0.
+  This admits current PPA 0.57.1/0.9.7 candidates to further checks rather than
+  rejecting their version numbers. Numeric comparisons, minimums, upper bounds,
+  explicit exclusions and malformed/prerelease/dirty-evidence refusal remain.
+- Apply the policy consistently to package/source-build planning, application
+  binary/Qt preflight, generic-session planning and lock-version preflight.
+  Keep runtime linkage/QML-import/WebP checks, policy/approval drift detection,
+  package add-only safety and existing native-transition contracts.
+- Decouple compatible shell/session installation from optional hyprbars source
+  approval. Offer explicit continuation without that integration when no
+  reviewed plugin target exists; skip unnecessary compiler-package review and
+  new plugin-login grants. Preserve existing plugins/grants and keep strict
+  source/header/ABI/build/receipt and separate activation checks.
+- Explain detected installed/candidate/binary version, supported range, reason
+  and next step. Preflight errors identify failed checks, library/symbol,
+  QML/codec and timeout categories as well as private report paths.
+- Package the shared compatibility helper in both ordinary helper and standalone
+  updater payloads. See [native compatibility](native-compatibility.md).
+
+The fresh candidate fixture reproduces the old refusal and passes with the new
+policy. All 1158 unit tests and clean-source checks pass, and a contained review
+bundle's helper/updater imports and manifest verify. This is not a full fresh
+bootstrap build, native fresh-VM installation, plugin activation, verified unlock/
+recovery, GNOME/login or actual update-pair acceptance. The exact legacy native
+handoff is not generalized. Unknown plugin targets remain explicitly deferred;
+family admission is not proof of every future patch's behavior or plugin ABI.
+
+Public artifacts remain artwork-free. Publication does not install the release,
+change native packages, activate plugins/locking, replace private profiles or
+modify previous immutable tags/assets.
+
 ## One-time publisher setup
 
 Use an existing, dedicated Ed25519 SSH signing key stored outside the repository.

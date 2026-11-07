@@ -77,6 +77,8 @@ def review_update(installation, resources, directory, confirm, emit=print,
     def preflight(candidate):
         report, path = guided.preflight(candidate, report_root=directory)
         emit('Private preflight report: ' + str(path))
+        if report.get('status') != 'passed':
+            emit(guided.preflight_failure(report, path))
         return report
     result = apply(installation, plan, release_update.approve_digest(plan), check=preflight)
     user_install.atomic_json(directory / 'result.json', result)

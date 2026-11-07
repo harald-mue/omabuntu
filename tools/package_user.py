@@ -173,6 +173,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
             path.chmod(0o444)
         for name in ('network_nm.py', 'display_backend.py', 'qrcodegen.py', 'dock_state.py',
                      'keybindings_menu.py', 'menu_model.py', 'menu_common.py', 'appearance_backend.py', 'menu_update.py',
+                     'native_compatibility.py',
                      'theme_backend.py', 'font_backend.py', 'background_backend.py',
                      'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py',
                      'capture_screenshot.py', 'weather_probe.py', 'omabuntu_hyprland_window_minimize.py', 'plugin_login.py'):

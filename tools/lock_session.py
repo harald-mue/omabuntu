@@ -3,7 +3,7 @@
 
 This is not autostart, not an idle timer and not a daemon. It requires --apply,
 a matching live Hyprland session, the packaged static configuration and the
-reviewed Hyprlock version. It never reads credentials and never runs commands
+supported stable Hyprlock family. It never reads credentials or runs commands
 from configuration.
 """
 import argparse
@@ -16,7 +16,7 @@ import shutil
 import subprocess
 import sys
 
-EXPECTED = re.compile(r'Hyprlock version v0\.9\.6\b')
+import native_compatibility
 FORBIDDEN = ('cmd[', 'onclick', 'exec', 'source', 'script', 'sleep')
 
 
@@ -53,8 +53,11 @@ def preflight(release):
     if not lock or lock != '/usr/bin/hyprlock':
         raise ValueError('Reviewed Hyprlock binary is not installed at /usr/bin/hyprlock')
     version = subprocess.run([lock, '--version'], capture_output=True, text=True, timeout=10, check=False)
-    if version.returncode or not EXPECTED.search(version.stdout + version.stderr):
-        raise ValueError('Hyprlock version differs from the reviewed v0.9.6')
+    compatibility = native_compatibility.hyprlock_binary({
+        'status': 'ok' if version.returncode == 0 else 'failed',
+        'stdout': version.stdout, 'stderr': version.stderr})
+    if not compatibility['ok']:
+        raise ValueError(compatibility['message'])
     if 'hyprland' not in os.environ.get('XDG_CURRENT_DESKTOP', '').lower().split(':'):
         raise ValueError('Lock only from the Hyprland session')
     signature = os.environ.get('HYPRLAND_INSTANCE_SIGNATURE', '')
@@ -68,7 +71,8 @@ def preflight(release):
     others = subprocess.run(['pgrep', '-u', str(os.getuid()), '-x', 'hyprlock'], capture_output=True, timeout=5, check=False)
     if others.returncode != 1:
         raise ValueError('A Hyprlock process already exists or lookup failed')
-    return {'binary': lock, 'config': str(helper_config(release)), 'display': display}
+    return {'binary': lock, 'config': str(helper_config(release)), 'display': display,
+            'compatibility': compatibility}
 
 
 def main(argv=None):
@@ -84,7 +88,7 @@ def main(argv=None):
         return 0
     directory = state_directory()
     command = [info['binary'], '--config', info['config']]
-    (directory / 'command.json').write_text(json.dumps({'command': command, 'expected': 'v0.9.6',
+    (directory / 'command.json').write_text(json.dumps({'command': command, 'compatibility': info['compatibility'],
                                                         'recovery': 'local TTY login, verified by the user'}, indent=2) + '\n')
     # The requested lock lasts until it exits; only preflight probes are timed.
     with (directory / 'output.log').open('x') as log:

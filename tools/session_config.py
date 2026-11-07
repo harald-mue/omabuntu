@@ -17,6 +17,7 @@ import bootstrap_sources
 import build_hyprbars
 import install as guided
 import plugin_manager
+import native_compatibility
 import user_install
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -173,10 +174,16 @@ def plan(root=ROOT, home=None, keyboard=None, manual_lock=None, native=None, kno
     if type(manual_lock) is not bool:
         raise ValueError('Manual lock shortcut choice must be boolean')
     native = build_hyprbars.installed_version() if native is None else native
-    target = plugin_manager.policy(root)['targets'].get(native.get('version'))
-    if (not target or not target['apply_reviewed'] or native.get('commit') != target['hyprland_commit']
-            or native.get('dirty') is not False):
-        blockers.append('Generic session requires a source-reviewed clean Hyprland version/commit')
+    if native.get('version') == '0.56.2':
+        # Retain the historical source-reviewed session path, not a new app target.
+        target = plugin_manager.policy(root)['targets'].get('0.56.2')
+        if (not target or not target['apply_reviewed'] or native.get('commit') != target['hyprland_commit']
+                or native.get('dirty') is not False):
+            blockers.append('Legacy 0.56.2 session requires its reviewed clean source commit.')
+    else:
+        compatibility = native_compatibility.hyprland_metadata(native, 'installed session binary')
+        if not compatibility['ok']:
+            blockers.append(compatibility['message'])
     app.require_settled()
     selected = app.selected()
     release_digest = None

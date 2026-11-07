@@ -69,7 +69,8 @@ class ManualLockTests(unittest.TestCase):
     def test_applied_locker_has_no_lifetime_limit_and_records_exit(self):
         directory = Path(self.temp.name) / 'lock-state'
         directory.mkdir()
-        info = {'binary': '/usr/bin/hyprlock', 'config': 'x', 'display': 'wayland-1'}
+        info = {'binary': '/usr/bin/hyprlock', 'config': 'x', 'display': 'wayland-1',
+                'compatibility': {'ok': True, 'upstream': '0.9.7'}}
         for returncode in (0, 1):
             with self.subTest(returncode=returncode):
                 log = directory / 'output.log'
@@ -97,8 +98,25 @@ class ManualLockTests(unittest.TestCase):
                 lock_session.preflight(self.release)
         with patch.dict(os.environ, env, clear=True), patch.object(lock_session.shutil, 'which', return_value='/usr/bin/hyprlock'), \
              patch.object(lock_session.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, 'Hyprlock version v0.9.5', '')):
-            with self.assertRaisesRegex(ValueError, 'version differs'):
+            with self.assertRaisesRegex(ValueError, r'0.9.5.*supported >=0.9.6, <0.10.0'):
                 lock_session.preflight(self.release)
+
+    def test_new_patch_lock_preflight_checks_without_starting_authentication(self):
+        env = {'XDG_CURRENT_DESKTOP': 'Hyprland', 'HYPRLAND_INSTANCE_SIGNATURE': 'sig', 'WAYLAND_DISPLAY': 'wayland-1'}
+        with patch.dict(os.environ, env, clear=True), \
+             patch.object(lock_session.shutil, 'which', return_value='/usr/bin/hyprlock'), \
+             patch.object(lock_session.subprocess, 'run', side_effect=[
+                 subprocess.CompletedProcess([], 0, 'Hyprlock version v0.9.7', ''),
+                 subprocess.CompletedProcess([], 1)]) as run, \
+             patch.object(lock_session.subprocess, 'check_output', return_value=b'[{"instance":"sig","wl_socket":"wayland-1"}]'), \
+             patch.object(lock_session, 'Path') as fake, \
+             patch.object(lock_session, 'helper_config', return_value='fixture.conf'):
+            fake.return_value.__truediv__.return_value.__truediv__.return_value.is_socket.return_value = True
+            info = lock_session.preflight(self.release)
+        self.assertEqual(info['compatibility']['upstream'], '0.9.7')
+        self.assertEqual(run.call_args_list[0].args[0], ['/usr/bin/hyprlock', '--version'])
+        self.assertEqual(run.call_args_list[1].args[0][0], 'pgrep')
+        self.assertEqual(run.call_count, 2)
 
     def test_lock_refuses_generic_or_gnome_session(self):
         with patch.dict(os.environ, {'XDG_CURRENT_DESKTOP': 'GNOME'}, clear=True), \

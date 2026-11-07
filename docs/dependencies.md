@@ -9,6 +9,16 @@ Package rollback is a separate reviewed transaction: the Hyprland dependency
 upgrade below changed a shared library that the running compositor is
 linked against.
 
+## Compatibility versus recorded versions
+
+The tables below are historical observations, not an exact host-package lock.
+The post-v0.2.1 source uses a shared stable patch-family policy and still requires
+runtime linkage/import checks, with separate strict plugin build/ABI receipts.
+Hyprland 0.57.1 and Hyprlock 0.9.7 are not refused solely for differing from the
+0.57.0/0.9.6 baseline. See [native compatibility](native-compatibility.md) for
+minimums, upper bounds, diagnostics, optional-plugin exclusions and delivery
+status. The immutable v0.2.1 installer does not acquire this source follow-up.
+
 ## 1. Compositor and session (pre-existing, unchanged)
 
 | Package | Version |

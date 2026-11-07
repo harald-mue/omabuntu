@@ -307,6 +307,16 @@ class BuildPipelineTests(unittest.TestCase):
 
 
 class BuildPlanTests(unittest.TestCase):
+    def test_new_patch_build_plan_uses_family_not_exact_package_target(self):
+        spec, _ = pipeline.bootstrap_packages.request_manifest()
+        versions = {name: '1.0-1' for name in spec['groups']['runtime']}
+        versions.update(hyprland='0.57.1-1ppa1~1resolute1', hyprlock='0.9.7-1', libqt6core6t64='6.10.3-1')
+        state = {'installed': versions, 'manual': [], 'held': []}
+        with patch.object(pipeline.bootstrap_sources, 'host_check'):
+            plan = pipeline.create_plan(state=state)
+        self.assertFalse(plan['blockers'])
+        self.assertIn('native_compatibility', plan['inputs'])
+
     def test_plan_is_repeatable_and_missing_dependencies_block(self):
         state = {'installed': {}, 'manual': [], 'held': []}
         with patch.object(pipeline.bootstrap_sources, 'host_check'):

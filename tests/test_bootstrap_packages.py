@@ -161,10 +161,53 @@ class BootstrapPackageTests(unittest.TestCase):
             packages.apply(plan, guided.digest(plan), run=self.apt.run,
                            execute=lambda _: self.fail('Unexpected sudo'))
 
+    def test_fresh_current_ppa_patches_are_admitted_without_existing_changes(self):
+        self.apt.versions.update(hyprland='0.57.1-1ppa1~1resolute1', hyprlock='0.9.7-1ppa1~1resolute1')
+        self.apt.installed = {'python3': self.apt.versions['python3']}
+        plan = self.prepare()
+        self.assertFalse(plan['blockers'])
+        self.assertTrue(all(row['ok'] and row['source'] == 'APT candidate' for row in plan['native_checks']))
+        self.assertEqual(plan['payload']['transaction']['upgraded_or_changed'], [])
+        self.assertEqual(plan['payload']['transaction']['removed'], [])
+        self.assertFalse(any(command[0] == 'sudo' for command in self.apt.commands))
+        result = packages.apply(plan, guided.digest(plan), run=self.apt.run, execute=self.apt.execute)
+        self.assertEqual(result['status'], 'packages-verified')
+        self.assertEqual(self.apt.installed['hyprland'], '0.57.1-1ppa1~1resolute1')
+
+    def test_unsupported_candidate_error_names_detected_value_range_and_origin(self):
+        self.apt.installed.pop('hyprland')
+        self.apt.versions['hyprland'] = '0.58.0-1'
+        plan = self.prepare()
+        message = next(row for row in plan['blockers'] if row.startswith('hyprland:'))
+        for text in ('APT candidate', '0.58.0-1', '>=0.57.0, <0.58.0', 'Next:'):
+            self.assertIn(text, message)
+
+    def test_policy_exclusion_drift_invalidates_saved_package_approval(self):
+        plan = self.prepare()
+        with patch.dict(packages.native_compatibility.EXCLUDED['hyprland'], {'0.57.0': 'synthetic regression'}):
+            with self.assertRaisesRegex(ValueError, 'inputs changed'):
+                packages.apply(plan, guided.digest(plan), run=self.apt.run,
+                               execute=lambda _: self.fail('Policy drift must not apply'))
+
+    def test_package_review_displays_admitted_family_versions(self):
+        self.apt.versions['hyprland'] = '0.57.1-1'
+        self.apt.installed.pop('hyprland')
+        plan = self.prepare()
+        output = io.StringIO()
+        with patch.object(frontend, 'ROOT', self.base), contextlib.redirect_stdout(output):
+            result = frontend.main(['--packages', '--plan', str(Path(plan['case'])/'package-plan.json'), '--plain'])
+        self.assertEqual(result, 0)
+        for text in ('Native compatibility (not plugin ABI)', '0.57.1-1', 'APT candidate', '>=0.57.0, <0.58.0'):
+            self.assertIn(text, ' '.join(output.getvalue().split()))
+
     def test_native_target_mismatch_blocks(self):
         self.apt.installed['hyprland'] = '0.56.2-1'
         plan = self.prepare()
-        self.assertIn('Native target differs: hyprland requires 0.57.0', plan['blockers'])
+        message = next(row for row in plan['blockers'] if row.startswith('hyprland:'))
+        self.assertIn('installed package', message)
+        self.assertIn('0.56.2-1', message)
+        self.assertIn('>=0.57.0, <0.58.0', message)
+        self.assertIn('Next:', message)
 
     def test_approved_apply_pins_dependencies_and_verifies_result(self):
         plan = self.prepare()
