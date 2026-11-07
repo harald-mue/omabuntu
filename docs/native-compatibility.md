@@ -2,10 +2,11 @@
 
 ## Delivery status
 
-This change is shipped in public **[v0.2.2](releases.md#v022-release-scope)**.
-It is not applied retroactively to v0.2.1, whose immutable installer still uses
-exact native package checks. A new public installer run can fetch v0.2.2;
-publication alone does not update an installed application, native packages or
+This policy was introduced in v0.2.2 and is retained in public
+**[v0.2.3](releases.md#v023-release-scope)**. It is not applied retroactively to
+v0.2.1, whose installer used exact native package checks. A new public installer
+run can fetch v0.2.3. Old release downloads were retired with source tags retained.
+Publication alone does not update an installed application, native packages or
 the desktop. See the release scope for verification and acceptance limits.
 
 ## Build baseline versus compatible host

@@ -67,7 +67,7 @@ installation, source compilation, automatic legacy adoption or native migration.
 Missing dependencies, incompatible native/state targets or failed preflight
 block the switch rather than installing prerequisites or prompting for sudo.
 Power/lock safety and the existing refusal while a locker is present are kept.
-The public v0.2.2 preflight shares the [native patch-family policy](native-compatibility.md)
+The public v0.2.3 preflight retains the shared [native patch-family policy](native-compatibility.md)
 and reports concrete failed checks as well as the private report path. It still
 requires runtime checks and does not generalize native-contract migrations or
 change plugin ABI approval. The change is not retroactive to immutable v0.2.1.

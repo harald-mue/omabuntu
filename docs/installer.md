@@ -35,9 +35,9 @@ The installer keeps these domains separate:
 A checksum proves that bytes match a pin. It is not a publisher signature.
 Application rollback does not undo APT changes.
 
-### Native patch compatibility (v0.2.2)
+### Native patch compatibility (since v0.2.2)
 
-Public v0.2.2 separates build baselines from compatible host patch
+Public v0.2.3 retains the separation of build baselines from compatible host patch
 families. Hyprland 0.57.x, Qt 6.10.x from 6.10.2, and Hyprlock 0.9.x from
 0.9.6 proceed to their remaining checks instead of requiring exact package
 versions. Package review names installed versus candidate versions and supported
@@ -49,8 +49,9 @@ has no reviewed source/build target, the public installer offers explicit
 continuation without that integration, avoids its compiler-package review and
 does not offer a new plugin-login grant. Existing plugin state/grants and private
 profiles are preserved. Lock family admission does not activate locking or prove
-unlock/recovery. This change is shipped in v0.2.2; immutable v0.2.1 retains
-its exact-version checks. Publication alone does not switch an installed release.
+unlock/recovery. This policy began in v0.2.2 and remains in v0.2.3; v0.2.1's
+installer used exact-version checks. Old GitHub downloads were retired, not
+modified; source tags remain. Publication alone does not switch an installed release.
 
 ### Explicit application handoff after a native upgrade
 

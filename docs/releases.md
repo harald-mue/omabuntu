@@ -2,14 +2,22 @@
 
 ## Status
 
-The current published release is **[v0.2.2](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.2)**,
-published on 2026-11-07 at 18:17:35 UTC from commit
-`bb5a20c63bcc4e9e2a295497aba60aa4aadb7043`. It is public, not a draft or
+The current published release is **[v0.2.3](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.3)**,
+published on 2026-11-07 at 22:11:52 UTC from commit
+`87d517f53ce8767135c7fac031c0bad32722f57a`. It is public, not a draft or
 prerelease. All four expected assets are present: the Ubuntu 26.04 x86_64
 archive, `release.json`, `SHA256SUMS` and `SHA256SUMS.sig`. Retained artifact
 hashes match GitHub's asset digests; publisher-signature, source-export,
 bundle-integrity and artwork-exclusion checks pass. Publication does not
 establish fresh-machine or native/security acceptance.
+
+After explicit approval and verified private backups, GitHub release objects and
+attached assets for v0.1.8, v0.1.9, v0.2.0, v0.2.1 and v0.2.2 were deleted.
+Only v0.2.3 remains a GitHub release. All six Git tags and peeled commits are
+unchanged; old source tags remain available, but their release download URLs no
+longer work. The historical scope/verification records below describe artifacts
+at publication or in retained private backups, not current download availability.
+Existing installed rollback copies were not touched.
 
 Historically, the signed v0.1.0 release was published, but its stock-VM installation failed.
 It is not fresh-machine accepted. New source builds use a separate hyprpm policy
@@ -78,8 +86,8 @@ do not remove those limitations. Artwork remains excluded from public builds.
 
 ### v0.2.0 release scope
 
-Version **[0.2.0](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.0)** is
-published. The tag identifies commit `9537b211a02fa5f74c40558f3f31f218e0427ec2`.
+Version **[0.2.0](https://github.com/harald-mue/omabuntu/tree/v0.2.0)** was
+published; its GitHub release/assets were subsequently retired, retaining the tag. The tag identifies commit `9537b211a02fa5f74c40558f3f31f218e0427ec2`.
 Post-release source-documentation updates do not replace its immutable artifacts.
 
 Changes since v0.1.9:
@@ -107,8 +115,8 @@ local desktop deployment are separate approval gates.
 
 ### v0.2.1 release scope
 
-Version **[0.2.1](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.1)** is
-published. Local and remote tags identify source commit
+Version **[0.2.1](https://github.com/harald-mue/omabuntu/tree/v0.2.1)** was
+published; its GitHub release/assets were subsequently retired, retaining the tag. Local and remote tags identify source commit
 `26e9ca4dca0752569bbd17b7a717a1210445e85e`. Post-release documentation changes
 do not replace that commit or its immutable artifacts. Signature, retained
 artifact/GitHub asset-digest comparison, source-export identity, bundle integrity
@@ -149,10 +157,11 @@ part of release publication. Existing tags/assets remain immutable.
 
 ### v0.2.2 release scope
 
-Version **[0.2.2](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.2)** is
-published. Local and remote tags identify source commit
-`bb5a20c63bcc4e9e2a295497aba60aa4aadb7043`. All four expected assets are public;
-retained hashes/sizes match GitHub asset digests. Publisher signature, source-
+Version **[0.2.2](https://github.com/harald-mue/omabuntu/tree/v0.2.2)** was
+published; its GitHub release/assets were subsequently retired, retaining the tag.
+Local and remote tags identify source commit
+`bb5a20c63bcc4e9e2a295497aba60aa4aadb7043`. All four expected assets were public;
+retained hashes/sizes matched GitHub asset digests. Publisher signature, source-
 export/packaged-source identity, bundle integrity and artwork exclusion verify.
 Documentation follow-up does not replace the published commit or artifacts.
 
@@ -191,10 +200,16 @@ Public artifacts remain artwork-free. Publication does not install the release,
 change native packages, activate plugins/locking, replace private profiles or
 modify previous immutable tags/assets.
 
-### v0.2.3 release preparation
+### v0.2.3 release scope
 
-Version **0.2.3 is being prepared**, not yet published. v0.2.2 remains latest
-until the interactive publisher completes and public assets are verified.
+Version **[0.2.3](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.3)** is
+published. Local/remote tags identify source commit
+`87d517f53ce8767135c7fac031c0bad32722f57a`; all four public assets match retained
+hashes/sizes and GitHub digests. Publisher signature, original committed export,
+packaged source, bundle integrity and artwork exclusion verify. The archive is
+8,403,206 bytes with SHA256
+`e579c22c9f5ee4cbf6bcd9125b20cf61fc900c49ade208b1c64c2f7f903756f4`.
+Post-publication documentation does not replace this tag or its assets.
 
 Changes since v0.2.2:
 
@@ -224,9 +239,12 @@ proven fixed; a correct active-target report cannot establish rendered pixels.
 No guest graphics, daemon activation, authentication, plugin activation or local
 installation change is part of publication. Public artifacts remain artwork-free.
 
-The user also requested retiring old GitHub releases. Exact version/tag scope,
-private backups and destructive-action confirmation remain separate from this
-publication; no old public release/tag has been removed by preparation.
+The user separately confirmed retirement of the five old release objects/assets
+listed in Status, preserving Git tags. Metadata and all twenty attached files
+were downloaded privately and checked against GitHub digests and signed checksums
+before deletion. The release list now contains only v0.2.3; every old tag/peeled
+commit still matches the pre-retirement snapshot. Evidence remains under ignored
+`work/release-023-preparation/`; no private backup was committed.
 
 ## One-time publisher setup
 
