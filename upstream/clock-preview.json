@@ -833,8 +833,8 @@
       "git_blob_sha1": "445840481a0956018ef2730fe6bba711355655d3",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "elsewhen-panel-v1",
-      "staged_sha256": "1f98c9f47af39a50545b768c5d22904db6cca09396a6c10c5c9cd47e80dae674"
+      "stage_transform": "elsewhen-panel-v2",
+      "staged_sha256": "7731178734208f09dd33036000d458bcf4cc969a96de29711ff8818d9aa5d488"
     },
     "Elsewhen/Model.js": {
       "path": "shell/plugins/panels/elsewhen/Model.js",
@@ -1069,11 +1069,15 @@
     "ImagePickerModel.js": {
       "path": "config/shell/preview/ImagePickerModel.js",
       "sha256": "194de174f4cc45671cfc391ea6f90552d301012e3b370835935c09987cb3d982"
+    },
+    "Commons/ElsewhenSettings.qml": {
+      "path": "config/shell/preview/ElsewhenSettings.qml",
+      "sha256": "88788231df66d576248a5fe4e3f626b61a01acacd7effed0df3ccb866e583813"
     }
   },
   "module_maps": {
     "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\nPanel 1.0 Panel.qml\nPanelController 1.0 PanelController.qml\n",
-    "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\nsingleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\nsingleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n",
+    "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\nsingleton ElsewhenSettings 1.0 ElsewhenSettings.qml\nsingleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\nsingleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n",
     "Elsewhen/qmldir": "ArcText 1.0 ArcText.qml\nAvatar 1.0 Avatar.qml\nCityMatches 1.0 CityMatches.qml\nCityRow 1.0 CityRow.qml\nCitySearch 1.0 CitySearch.qml\nDaylightStrip 1.0 DaylightStrip.qml\nElsewhenPanel 1.0 ElsewhenPanel.qml\nGlobe 1.0 Globe.qml\nGlobeFooter 1.0 GlobeFooter.qml\nHeroTitle 1.0 HeroTitle.qml\nMiniGlobe 1.0 MiniGlobe.qml\nMoonDot 1.0 MoonDot.qml\n",
     "Weather/qmldir": "WeatherPanel 1.0 WeatherPanel.qml\nWeatherWidget 1.0 WeatherWidget.qml\n",
     "Port/qmldir": "Tray 1.0 Tray.qml\n"
@@ -1089,7 +1093,7 @@
     "Commons has only authored passive Style/Color/I18n, no original singleton, watcher, process, catalog or font asset. Fixed palette and 12px monospace remain diagnostic adaptations. Panel labels and the clock format locale use the pinned English catalog: en-US. This is not full theme or locale-file loading.",
     "TrialShell defaults denied; exact finite grant before its fixed panel URL; sticky revoke on input change. No arbitrary QML/path/catalog/command. The panel uses pinned Quickshell Variants.model so each connected screen gets one non-focusable bar. A visible Wayland trial stays separately approved; production catalog remains empty.",
     "Clock calendar is a separate derivation (clock-calendar-v1 and clock-calendar-host-v1) of the pinned Panel.qml and BarWidget.qml. The sealed ClockLabel stays read-only. The live trial opens the original month grid. Shell IPC, the timezone helper, and configuration writes are not admitted; week start, label format, and birth year stay in session memory.",
-    "Elsewhen is a derived original panel (Jason Fried, MIT) on centerEnd. Cities stay in the process. Weather fetch, GitHub profiles, notifications and system timezone changes are excluded. Offsets use the read-only helper.",
+    "Elsewhen is a derived original panel (Jason Fried, MIT) on centerEnd. Cities and preferences persist in shared, backed-up Omabuntu state (plan 111). Weather fetch, GitHub profiles, notifications and system timezone changes are excluded. Offsets use the read-only helper.",
     "Plan 078: all mapped source parents checked against Omarchy v4.5.0 stable Git blobs. Changed parents and new WallClock reviewed; complete MIT notices unchanged. Original source bytes remain unmodified. The shared Style easing curve comes from stable Commons/Style.qml. Updated transforms retain Ubuntu backend and no-Exclusive-focus boundaries. Weather IP discovery continues through wttr.in, not the new upstream geo endpoint."
   ],
   "limits": [

@@ -1,6 +1,6 @@
 // Derived from Omarchy elsewhen/Panel.qml. Jason Fried, MIT.
-// Original world-clock panel. Cities stay in this process: no shell.json
-// write, weather fetch, profile fetch, notification helper, or timezone change.
+// Original world-clock panel with shared Omabuntu preference persistence.
+// No shell.json write, weather/profile fetch, notification, or timezone change.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -34,11 +34,15 @@ Panel {
 
 
   // ---- settings
+  settings: Commons.ElsewhenSettings.settings
+  readonly property bool settingsReady: Commons.ElsewhenSettings.ready
+  onSettingsReadyChanged: if (settingsReady) Qt.callLater(root.refresh)
+  onSettingsChanged: if (settingsReady) Qt.callLater(root.refresh)
   // `cities` once written; until then the older `zones` string.
   readonly property var zones: Model.parseCities(setting("cities", null), setting("zones", ""))
   readonly property var zoneIds: zones.map(function(z) { return z.id })
   // Never written: the first probe seeds the list around the local zone.
-  readonly property bool needsSeed: zones.length === 0
+  readonly property bool needsSeed: settingsReady && setting("cities", null) === null && zones.length === 0
   readonly property var probeIds: needsSeed ? zoneIds.concat(Model.seedCandidateZones()) : zoneIds
 
   readonly property var formatLocale: Qt.locale(Commons.I18n.formatLocale)
@@ -463,7 +467,7 @@ Panel {
     localOffsetMinutes = -(new Date().getTimezoneOffset())
   }
 
-  // Written straight back to this widget's shell.json entry, like the clock's.
+  // Shared, backed-up Omabuntu settings, persisted outside shell.json.
   // An undefined value removes its key.
   function persistSettings(values) {
     var entry = { id: root.moduleName }
@@ -473,7 +477,7 @@ Panel {
       else entry[key] = values[key]
     }
 
-    root.settings = entry
+    Commons.ElsewhenSettings.save(entry)
   }
 
   function setZones(next) {
@@ -573,7 +577,7 @@ Panel {
   // ---- processes
   // Each refresh queues behind one in flight rather than being dropped.
   function refresh() {
-    if (probeIds.length === 0) return
+    if (!settingsReady) return
     if (probeProc.running) { probeQueued = true; return }
     probeProc.running = true
   }
@@ -786,7 +790,7 @@ Panel {
     bar: root.bar
     slotSize: Style.bar.statusSlot
     text: "󰇧"
-    tooltipText: Commons.I18n.t("elsewhen.worldClock")
+    tooltipText: Commons.ElsewhenSettings.errorText || Commons.I18n.t("elsewhen.worldClock")
     onPressed: function(buttonCode) {
       if (buttonCode === Qt.RightButton || buttonCode === Qt.MiddleButton) root.refresh()
       else root.toggle()

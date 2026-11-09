@@ -189,6 +189,14 @@ class ClockPreviewTests(unittest.TestCase):
                 for forbidden in ("execDetached", "ShellIpc", "hyprctl", "sudo", "Timer {"):
                     self.assertNotIn(forbidden, text)
                 continue
+            if name.endswith("ElsewhenSettings.qml"):
+                self.assertEqual(text.count("Process {"), 1)
+                self.assertIn("OMABUNTU_ELSEWHEN_SETTINGS_HELPER", text)
+                self.assertIn('helper, "load"', text)
+                self.assertIn('helper, "save", snapshot', text)
+                for forbidden in ("execDetached", "ShellIpc", "hyprctl", "sudo", "FileView", "Timer {"):
+                    self.assertNotIn(forbidden, text)
+                continue
             if name.endswith("CommandMenu.qml"):
                 self.assertEqual(text.count("Process {"), 1)
                 self.assertIn("OMABUNTU_MENU_HELPER", text)

@@ -110,10 +110,36 @@ unit was edited. ~/.config/hypr/hyprland.lua retains its October 22 timestamp.
 | Keyboard layout | Original widget vendored byte-identically (single reviewed visibility deviation), mounted between tray and Bluetooth; xkb cycling through the allowlisted run | xkbcli briefs need an optional package decision (fallback label is the description's first word); input-method (fcitx) indicator deliberately not ported |
 | Clock/calendar | Derived original calendar on left click; sealed label stays read-only | Native click acceptance. No timezone helper, shell.json writes, IPC, or calendar hotkey |
 | Indicators/menu | Menu button at the left edge: original BarIconButton with the extracted U+E900 mark, left click opens the command menu's root route, right click opens a terminal | Native click acceptance; no Arch package or system-management routes
-| Elsewhen | Original panel derived to the right of the clock; cities stay in the process | Native open/click acceptance. No weather fetch, GitHub profiles, notifications, or system timezone change |
+| Elsewhen | Original panel derived to the right of the clock; Cities and preferences persist in shared, backed-up Omabuntu state (plans 111–112; locally deployed with clean startup) | Native open/click acceptance. No weather fetch, GitHub profiles, notifications, or system timezone change |
 | Weather | Original panel after Elsewhen, Celsius/km/h, 15-minute refresh; original city editor, wttr.in/IP location and Open-Meteo city search/forecast | Location-parity version deployed with clean startup; native editor acceptance pending. Notification actions and IPC remain out |
 | Agents | Not implemented | Dependency, notices and asset decisions |
 | Updates | Arch route excluded | Ubuntu-native, reviewed status/actions if agreed; never pacman or Omarchy migrations |
+
+### World Clock preference storage (plan 111)
+
+The source implementation saves Elsewhen cities, their order and people labels,
+home selection and display preferences in
+`$OMABUNTU_STATE_HOME/settings/elsewhen.json` (default
+`~/.local/state/omabuntu/settings/elsewhen.json`). All outputs share one adapter;
+loading completes before default cities can be seeded. An explicitly empty city
+list stays empty after restart. Globe-only jump destinations remain temporary,
+as upstream intended.
+
+The fixed Python helper validates bounded settings and rejects symlinked paths.
+Writes replace the file atomically with mode 0600, retain the previous bytes under
+`backups/<stamp>/elsewhen.json`, and record prior existence in `operations.jsonl`.
+It does not write upstream shell.json or change the machine timezone. Malformed
+existing state is not overwritten. Load/save errors are logged and shown in the
+World Clock button tooltip; recovery from a backup is explicit, never automatic.
+Rapid edits are serialized, with the newest pending snapshot retained. Separate
+bar processes do not live-sync state; deployment should maintain one bar owner.
+
+Plan 112 deployed a narrow private derivative of the installed release with a
+bar-only restart, unchanged native runtime and no wallpaper reapplication.
+Bundle integrity, clean startup and creation of valid private settings state
+were verified. Interactive add/remove and next-login acceptance remain pending.
+Existing process-only cities cannot be automatically migrated from an already
+running old bar by this change.
 
 The completion request is not treated as permission to change login, install
 packages/plugins, edit active Hyprland Lua, weaken authentication, disconnect

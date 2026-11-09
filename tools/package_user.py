@@ -175,7 +175,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
                      'keybindings_menu.py', 'menu_model.py', 'menu_common.py', 'appearance_backend.py', 'menu_update.py',
                      'native_compatibility.py',
                      'theme_backend.py', 'font_backend.py', 'background_backend.py',
-                     'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py',
+                     'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py', 'elsewhen_settings.py',
                      'capture_screenshot.py', 'weather_probe.py', 'omabuntu_hyprland_window_minimize.py', 'plugin_login.py'):
             target = temporary / 'helpers' / name
             target.parent.mkdir(exist_ok=True)

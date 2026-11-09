@@ -55,8 +55,10 @@ source/deployment boundary, dependency review and retained exclusions.
 
 Elsewhen (`shell/plugins/panels/elsewhen/`, Jason Fried, MIT) is vendored for
 the world-clock panel. The staged copy is derived by tools/elsewhen_frontend.py:
-cities stay in the process, and weather fetch, GitHub profiles, notifications
-and system timezone changes are removed. Offsets use tools/elsewhen_probe.py.
+cities and preferences use the shared Omabuntu settings adapter and
+settings/elsewhen.json, with backed-up writes via tools/elsewhen_settings.py.
+Weather fetch, GitHub profiles, notifications and system timezone changes
+are removed. Offsets use the read-only tools/elsewhen_probe.py.
 
 The deterministic derivations are recorded in upstream/clock-preview.json and
 implemented in tools/audio_frontend.py, tools/network_frontend.py,

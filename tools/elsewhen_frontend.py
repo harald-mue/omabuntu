@@ -1,7 +1,7 @@
 """Reviewed Elsewhen extraction: the original panel, without network or clock changes.
 
-Vendor parents stay byte-identical. The staged panel keeps the city list in
-the running process. Open-Meteo, GitHub profiles, notification delivery and
+Vendor parents stay byte-identical. The staged panel stores preferences through
+the shared Omabuntu settings adapter. Open-Meteo, GitHub profiles, notification delivery and
 timedatectl set-timezone are removed. Offsets come from the read-only helper.
 """
 
@@ -92,6 +92,23 @@ def derive_panel(data):
     start = text.rfind("\n    if (root.bar && root.bar.shell", 0, text.index(marker))
     end = text.index("\n", text.index(marker))
     text = text[:start] + text[end:]
+    text = text.replace('  // ---- settings\n',
+                        '  // ---- settings\n'
+                        '  settings: Commons.ElsewhenSettings.settings\n'
+                        '  readonly property bool settingsReady: Commons.ElsewhenSettings.ready\n'
+                        '  onSettingsReadyChanged: if (settingsReady) Qt.callLater(root.refresh)\n'
+                        '  onSettingsChanged: if (settingsReady) Qt.callLater(root.refresh)\n')
+    text = text.replace('readonly property bool needsSeed: zones.length === 0',
+                        'readonly property bool needsSeed: settingsReady && setting("cities", null) === null && zones.length === 0')
+    text = text.replace('    root.settings = entry',
+                        '    Commons.ElsewhenSettings.save(entry)')
+    text = text.replace("  // Written straight back to this widget's shell.json entry, like the clock's.",
+                        '  // Shared, backed-up Omabuntu settings, persisted outside shell.json.')
+    text = text.replace('    tooltipText: Commons.I18n.t("elsewhen.worldClock")',
+                        '    tooltipText: Commons.ElsewhenSettings.errorText || Commons.I18n.t("elsewhen.worldClock")')
+    text = text.replace('    if (probeIds.length === 0) return\n', '')
+    text = text.replace('  function refresh() {\n',
+                        '  function refresh() {\n    if (!settingsReady) return\n')
     text = _cut(
         text,
         "    if (next.zoneChange !== \"\")",
@@ -127,8 +144,8 @@ def derive_panel(data):
     text = _strip_shell_ipc(text)
     return (
         "// Derived from Omarchy elsewhen/Panel.qml. Jason Fried, MIT.\n"
-        "// Original world-clock panel. Cities stay in this process: no shell.json\n"
-        "// write, weather fetch, profile fetch, notification helper, or timezone change.\n" + text
+        "// Original world-clock panel with shared Omabuntu preference persistence.\n"
+        "// No shell.json write, weather/profile fetch, notification, or timezone change.\n" + text
     ).encode()
 
 

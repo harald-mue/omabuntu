@@ -87,7 +87,7 @@ UPSTREAM["Elsewhen/Model.js"] = "shell/plugins/panels/elsewhen/Model.js"
 UPSTREAM["Elsewhen/Globe.qml"] = "shell/plugins/panels/elsewhen/Globe.qml"
 UPSTREAM["Elsewhen/MiniGlobe.qml"] = "shell/plugins/panels/elsewhen/MiniGlobe.qml"
 ELSEWHEN_TRANSFORMS = {
-    "Elsewhen/ElsewhenPanel.qml": ("elsewhen-panel-v1", elsewhen_frontend.derive_panel),
+    "Elsewhen/ElsewhenPanel.qml": ("elsewhen-panel-v2", elsewhen_frontend.derive_panel),
     "Elsewhen/Model.js": ("elsewhen-model-v1", elsewhen_frontend.derive_model),
     "Elsewhen/Globe.qml": ("elsewhen-globe-v1", elsewhen_frontend.derive_globe),
     "Elsewhen/MiniGlobe.qml": ("elsewhen-miniglobe-v1", elsewhen_frontend.derive_miniglobe),
@@ -136,6 +136,7 @@ AUTHORED = {name: "config/shell/preview/" + source for name, source in (
     ("NetworkPanelController.qml", "NetworkPanelController.qml"))}
 for name in ("DesktopPanelController", "BluetoothActions", "DisplayPanelController", "PowerPanelController", "FloatingDock"):
     AUTHORED[name + ".qml"] = "config/shell/preview/" + name + ".qml"
+AUTHORED["Commons/ElsewhenSettings.qml"] = "config/shell/preview/ElsewhenSettings.qml"
 AUTHORED["Commons/TrialDesktopState.qml"] = "config/shell/preview/TrialDesktopState.qml"
 AUTHORED["Commons/BluetoothDiscovery.qml"] = "config/shell/preview/BluetoothDiscovery.qml"
 AUTHORED["Commons/InputMethodState.qml"] = "config/shell/preview/InputMethodState.qml"
@@ -159,6 +160,7 @@ MAPS["Elsewhen/qmldir"] = "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "ElsewhenPanel", "Globe", "GlobeFooter", "HeroTitle", "MiniGlobe", "MoonDot"))
 
 MAPS["Weather/qmldir"] = "WeatherPanel 1.0 WeatherPanel.qml\nWeatherWidget 1.0 WeatherWidget.qml\n"
+MAPS["Commons/qmldir"] += "singleton ElsewhenSettings 1.0 ElsewhenSettings.qml\n"
 MAPS["Commons/qmldir"] += "singleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\n"
 MAPS["Commons/qmldir"] += "singleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n"
 MAPS["Port/qmldir"] = "Tray 1.0 Tray.qml\n"

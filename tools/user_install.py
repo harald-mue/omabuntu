@@ -92,7 +92,7 @@ BASELINE = ('manager.py', 'runtime/bin/quickshell', 'shell/TrialShell.qml',
             'licenses/Quickshell-LGPL.txt', 'licenses/Quickshell-GPL.txt', 'licenses/cpptrace-MIT.txt')
 INCOMING = BASELINE + ('helpers/menu_model.py', 'helpers/menu_common.py', 'helpers/theme_backend.py',
                        'helpers/font_backend.py', 'helpers/background_backend.py', 'helpers/defaults_backend.py', 'helpers/power_actions.py',
-                       'helpers/elsewhen_probe.py', 'helpers/capture_screenshot.py', 'helpers/weather_probe.py',
+                       'helpers/elsewhen_probe.py', 'helpers/elsewhen_settings.py', 'helpers/capture_screenshot.py', 'helpers/weather_probe.py',
                        'shell/omabuntu-menu.jsonc', 'menu/themes.json')
 
 
@@ -532,6 +532,7 @@ class Installation:
                    OMABUNTU_MENU_DEFINITIONS=str(release / 'shell/omabuntu-menu.jsonc'),
                    OMABUNTU_MENU_THEMES=str(release / 'menu/themes.json'),
                    OMABUNTU_ELSEWHEN_HELPER=str(release / 'helpers/elsewhen_probe.py'),
+                   OMABUNTU_ELSEWHEN_SETTINGS_HELPER=str(release / 'helpers/elsewhen_settings.py'),
                    OMABUNTU_WEATHER_HELPER=str(release / 'helpers/weather_probe.py'),
                    OMABUNTU_ELSEWHEN_DIR=str(release / 'shell/Elsewhen'),
                    OMABUNTU_STATE_HOME=str(self.state), PYTHONDONTWRITEBYTECODE='1')
