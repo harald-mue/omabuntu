@@ -119,6 +119,19 @@ def dock(data):
       MenuRow {
         visible: menu.running
         text: Commons.I18n.t("dock.quit")''')
+    text = replace(text, '      Repeater {\n        model: [["top",', '''      Text {
+        width: parent.width
+        visible: !!window.dock && !!window.dock.prefs && window.dock.prefs.errorText !== ""
+        text: window.dock && window.dock.prefs ? window.dock.prefs.errorText : ""
+        textFormat: Text.PlainText
+        wrapMode: Text.Wrap
+        color: Commons.Color.popups.text
+        font.family: Style.font.family
+        font.pixelSize: Style.font.body
+      }
+
+      Repeater {
+        model: [["top",''')
     # Original menu's app-specific management helpers are not Ubuntu launchers.
     lines = text.splitlines(keepends=True)
     for i, line in enumerate(lines):

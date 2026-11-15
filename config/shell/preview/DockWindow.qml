@@ -550,6 +550,17 @@ PanelWindow {
       y: menu.contentTopInset
       width: menu.width - menu.contentLeftInset - menu.contentRightInset
 
+      Text {
+        width: parent.width
+        visible: !!window.dock && !!window.dock.prefs && window.dock.prefs.errorText !== ""
+        text: window.dock && window.dock.prefs ? window.dock.prefs.errorText : ""
+        textFormat: Text.PlainText
+        wrapMode: Text.Wrap
+        color: Commons.Color.popups.text
+        font.family: Style.font.family
+        font.pixelSize: Style.font.body
+      }
+
       Repeater {
         model: [["top", Commons.I18n.t("dock.positionTop")], ["bottom", Commons.I18n.t("dock.positionBottom")], ["left", Commons.I18n.t("dock.positionLeft")], ["right", Commons.I18n.t("dock.positionRight")]]
 

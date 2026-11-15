@@ -118,7 +118,7 @@ DESKTOP_TRANSFORMS = {
     "BluetoothPanelController.qml": ("bluetooth-cursor-v1", desktop_frontends.bluetooth_controller),
     "DisplayControlView.qml": ("display-surface-v1", desktop_frontends.display),
     "PowerControlView.qml": ("power-surface-v1", desktop_frontends.power),
-    "DockWindow.qml": ("floating-dock-window-v1", desktop_frontends.dock),
+    "DockWindow.qml": ("floating-dock-window-v2", desktop_frontends.dock),
 }
 UPSTREAM.update(DESKTOP_UPSTREAM)
 AUTHORED = {name: "config/shell/preview/" + source for name, source in (
@@ -222,7 +222,7 @@ def verified_sources(root):
         record = meta["upstream"][target]
         vendor = "vendor/omarchy/" + source_path
         transform = {"ClockLabel.qml": "readonly-clock-v1", "AudioOutputView.qml": "audio-output-frontend-v1",
-                     "CalendarPanel.qml": "clock-calendar-v1", "ClockControlView.qml": "clock-calendar-host-v1",
+                     "CalendarPanel.qml": "clock-calendar-v2", "ClockControlView.qml": "clock-calendar-host-v2",
                      "Ui/KeyboardPanel.qml": "ondemand-keyboard-panel-v1",
                      "BarTooltip.qml": "bar-tooltip-window-v1", "BarTooltipHost.qml": "bar-tooltip-host-v1",
                      "BarFrame.qml": "fixed-horizontal-sections-v1",
@@ -251,8 +251,8 @@ def verified_sources(root):
                       "fixed-horizontal-sections-v1": bar_frame.derive_frame,
                       "network-control-frontend-v1": network_frontend.derive_network,
                       "workspace-switcher-v1": workspace_modes.derive_workspaces,
-                      "clock-calendar-v1": clock_frontend.derive_calendar,
-                      "clock-calendar-host-v1": clock_frontend.derive_host}
+                      "clock-calendar-v2": clock_frontend.derive_calendar,
+                      "clock-calendar-host-v2": clock_frontend.derive_host}
         transforms.update({key: fn for key, fn in DESKTOP_TRANSFORMS.values()})
         transforms.update({key: fn for key, fn in ELSEWHEN_TRANSFORMS.values()})
         transforms.update({key: fn for key, fn in WEATHER_TRANSFORMS.values()})

@@ -18,7 +18,9 @@ Variants {
   property var appearance: null
   // Shared persistent clock entry when the preference adapter is available.
   // Persisted updates retain the shared binding on every screen.
-  property var clockSettings: ({format: appearance && appearance.loaded ? appearance.bar.clock_format : "dddd HH:mm"})
+  property var clockSettings: appearance && appearance.loaded
+    ? Object.assign({}, appearance.bar.clock_settings, {format: appearance.bar.clock_format})
+    : ({format: "dddd HH:mm"})
   // Bar background look, read from the reviewed state file
   // (~/.local/state/omabuntu/current/bar.json): opaque, glassy or none.
   // The shared adapter writes through the reviewed transactional helper.
@@ -36,14 +38,6 @@ Variants {
     if (!parsed || parsed.schema_version !== 1) return
     var look = String(parsed.background || "")
     if (look === "opaque" || look === "glassy" || look === "none") backgroundLook = look
-  }
-
-  function appearanceClockChoice(format) {
-    var formats = ["dddd HH:mm", "dddd h:mm AP", "dddd HH:mm:ss", "dddd h:mm:ss AP", "HH:mm", "h:mm AP",
-      "ddd d MMM HH:mm", "ddd d MMM h:mm AP", "d MMMM 'W'ww yyyy", "yyyy-MM-dd HH:mm"]
-    var choices = ["sunday-24h", "sunday-12h", "sunday-seconds-24h", "sunday-seconds-12h", "time-24h", "time-12h",
-      "date-24h", "date-12h", "week", "iso"]
-    return choices[formats.indexOf(format)] || ""
   }
 
   property FileView barStateFile: FileView {
@@ -97,6 +91,37 @@ Variants {
       id: barBus
       property var activePopout: null
       property var clickTargets: []
+      property var panels: ({})
+      readonly property var panelGroups: [
+        ["clock", "elsewhen", "weather"],
+        ["bluetooth", "network", "audio", "display", "power"]
+      ]
+      function registerPanel(key, item) {
+        if (!panelGroups.some(function(group) { return group.indexOf(key) >= 0 })) return
+        var next = Object.assign({}, panels)
+        next[key] = item
+        panels = next
+      }
+      function unregisterPanel(key, item) {
+        if (panels[key] !== item) return
+        var next = Object.assign({}, panels)
+        delete next[key]
+        panels = next
+      }
+      function switchPanelFrom(owner, direction) {
+        for (var g = 0; g < panelGroups.length; g++) {
+          var candidates = panelGroups[g].map(function(key) { return panels[key] }).filter(function(item) {
+            return item && item.visible && item.enabled && item.width > 0 && item.height > 0
+              && typeof item.open === "function" && typeof item.close === "function"
+          })
+          var index = candidates.indexOf(owner)
+          if (index < 0) continue
+          if (candidates.length < 2) return false
+          candidates[(index + (direction < 0 ? -1 : 1) + candidates.length) % candidates.length].open()
+          return true
+        }
+        return false
+      }
       // Stable Bar.qml card handoff, scoped to the fixed trusted sections.
       property var popoutCard: null
       function notePopoutCard(card, section) {
@@ -132,12 +157,18 @@ Variants {
       readonly property bool foregroundAnimationEnabled: true
       readonly property var activePopout: barBus.activePopout
       readonly property var clickTargets: barBus.clickTargets
+      readonly property string preferenceError: bars.appearance ? bars.appearance.errorText : ""
       readonly property QtObject shell: QtObject {
         readonly property bool persistAppearance: bars.appearance !== null
+        function updateClockSettings(values) {
+          if (bars.appearance) bars.appearance.setClock(values)
+          else bars.clockSettings = Object.assign({}, bars.clockSettings, values)
+        }
         function updateEntryInline(id, entry) {
           if (id !== "omarchy.clock" || !entry) return
-          if (bars.appearance) bars.appearance.set("clock", bars.appearanceClockChoice(entry.format))
-          else bars.clockSettings = entry
+          var values = Object.assign({}, entry)
+          delete values.id
+          updateClockSettings(values)
         }
       }
       function registerClickTarget(target) {
@@ -147,6 +178,7 @@ Variants {
       function unregisterClickTarget(target) {
         barBus.clickTargets = barBus.clickTargets.filter(function(item) { return item !== target })
       }
+      function switchPanelFrom(owner, direction) { return barBus.switchPanelFrom(owner, direction) }
       function requestPopout(key) {
         var previous = barBus.activePopout
         barBus.activePopout = key
@@ -209,48 +241,77 @@ Variants {
       }
       centerContent: Component {
         ClockControlView {
+          id: clockWidget
           bar: clockBar
           settings: bars.clockSettings
+          Component.onCompleted: barBus.registerPanel("clock", clockWidget)
+          Component.onDestruction: if (barBus) barBus.unregisterPanel("clock", clockWidget)
         }
       }
       centerEndContent: Component {
         Row {
           spacing: 0
-          ElsewhenPanel { bar: clockBar }
-          WeatherWidget { bar: clockBar; settings: ({unit: "metric"}) }
+          ElsewhenPanel {
+            id: elsewhenWidget
+            bar: clockBar
+            Component.onCompleted: barBus.registerPanel("elsewhen", elsewhenWidget)
+            Component.onDestruction: if (barBus) barBus.unregisterPanel("elsewhen", elsewhenWidget)
+          }
+          WeatherWidget {
+            id: weatherWidget
+            bar: clockBar
+            settings: ({unit: "metric"})
+            Component.onCompleted: barBus.registerPanel("weather", weatherWidget)
+            Component.onDestruction: if (barBus) barBus.unregisterPanel("weather", weatherWidget)
+          }
         }
       }
       rightContent: Component {
         Row {
           spacing: 0
-          PortTrayHost { id: trayHost; popoutState: barBus; width: implicitWidth; height: implicitHeight }
+          PortTrayHost { id: trayHost; appearanceSettings: bars.appearance; popoutState: barBus; width: implicitWidth; height: implicitHeight }
           KeyboardLayout {
             bar: clockBar
             width: implicitWidth
             height: implicitHeight
           }
           BluetoothControlView {
+            id: bluetoothWidget
+            Component.onCompleted: barBus.registerPanel("bluetooth", bluetoothWidget)
+            Component.onDestruction: if (barBus) barBus.unregisterPanel("bluetooth", bluetoothWidget)
             bar: trayHost.ownerApi
             width: implicitWidth
             height: implicitHeight
           }
           NetworkControlView {
+            id: networkWidget
+            Component.onCompleted: barBus.registerPanel("network", networkWidget)
+            Component.onDestruction: if (barBus) barBus.unregisterPanel("network", networkWidget)
             bar: trayHost.ownerApi
             width: implicitWidth
             height: implicitHeight
           }
           AudioOutputView {
+            id: audioWidget
+            Component.onCompleted: barBus.registerPanel("audio", audioWidget)
+            Component.onDestruction: if (barBus) barBus.unregisterPanel("audio", audioWidget)
             bar: trayHost.ownerApi
             backend: audioProvider
             width: implicitWidth
             height: implicitHeight
           }
           DisplayControlView {
+            id: displayWidget
+            Component.onCompleted: barBus.registerPanel("display", displayWidget)
+            Component.onDestruction: if (barBus) barBus.unregisterPanel("display", displayWidget)
             bar: trayHost.ownerApi
             width: implicitWidth
             height: implicitHeight
           }
           PowerControlView {
+            id: powerWidget
+            Component.onCompleted: barBus.registerPanel("power", powerWidget)
+            Component.onDestruction: if (barBus) barBus.unregisterPanel("power", powerWidget)
             appearanceSettings: bars.appearance
             bar: trayHost.ownerApi
             width: implicitWidth

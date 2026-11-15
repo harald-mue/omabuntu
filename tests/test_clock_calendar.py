@@ -69,8 +69,8 @@ class ClockCalendarTests(unittest.TestCase):
 
     def test_profile_records_the_derivation(self):
         files, meta = preview.verified_sources(ROOT)
-        self.assertEqual(meta["upstream"]["CalendarPanel.qml"]["stage_transform"], "clock-calendar-v1")
-        self.assertEqual(meta["upstream"]["ClockControlView.qml"]["stage_transform"], "clock-calendar-host-v1")
+        self.assertEqual(meta["upstream"]["CalendarPanel.qml"]["stage_transform"], "clock-calendar-v2")
+        self.assertEqual(meta["upstream"]["ClockControlView.qml"]["stage_transform"], "clock-calendar-host-v2")
         self.assertEqual(meta["upstream"]["ClockLabel.qml"]["stage_transform"], "readonly-clock-v1")
         self.assertEqual(files["CalendarPanel.qml"], (ROOT / "config/shell/preview/CalendarPanel.qml").read_bytes())
         self.assertEqual(files["ClockControlView.qml"], (ROOT / "config/shell/preview/ClockControlView.qml").read_bytes())

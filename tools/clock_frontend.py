@@ -50,6 +50,13 @@ def derive_calendar(data):
     function hide() { root.opened = false }
   }
 ''')
+    text = replace(text, '  function persistSettings(values) {\n',
+                   '  function persistSettings(values) {\n'
+                   '    // The shared owner applies field patches; never sever host bindings.\n'
+                   '    if (root.bar && root.bar.shell && typeof root.bar.shell.updateClockSettings === "function") {\n'
+                   '      root.bar.shell.updateClockSettings(values)\n'
+                   '      return\n'
+                   '    }\n')
     for forbidden in ("Process {", "ShellIpc", "Quickshell.Io", "omarchy-", "execDetached", "timedatectl", "sudo"):
         if forbidden in text:
             raise ValueError("Unsafe clock calendar surface: " + forbidden)
@@ -84,6 +91,17 @@ def derive_host(data):
   }
 
 ''', "")
+    text = replace(text, '    var entry = { id: root.moduleName }',
+                   '    // Persist only the changed field, preserving queued calendar edits.\n'
+                   '    if (root.bar && root.bar.shell && typeof root.bar.shell.updateClockSettings === "function") {\n'
+                   '      var patch = {}\n'
+                   '      patch[vertical ? "verticalFormat" : "format"] = next\n'
+                   '      root.bar.shell.updateClockSettings(patch)\n'
+                   '      return\n'
+                   '    }\n\n'
+                   '    var entry = { id: root.moduleName }')
+    text = replace(text, '    tooltipText: I18n.t("clock.toggleFormat")',
+                   '    tooltipText: (root.bar && root.bar.preferenceError) || I18n.t("clock.toggleFormat")')
     # Keep the live shared preference binding until the transactional write succeeds.
     text = replace(text, '    root.settings = entry',
                    '    if (!root.bar || !root.bar.shell || !root.bar.shell.persistAppearance) root.settings = entry')

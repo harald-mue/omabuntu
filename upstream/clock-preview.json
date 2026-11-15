@@ -89,8 +89,8 @@
       "git_blob_sha1": "348db12e9ae9a895aa2208e81399c3b5195f70b1",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "clock-calendar-v1",
-      "staged_sha256": "32235abc6eb85cbf8b32c5f2af83c5936db644f773b204e04ca3fed44400b2d3"
+      "stage_transform": "clock-calendar-v2",
+      "staged_sha256": "afabfcff3884e595173d8856ebcee3b7ad0096b56f3b34e52c93cea8b86b2109"
     },
     "ClockControlView.qml": {
       "path": "shell/plugins/panels/clock/BarWidget.qml",
@@ -101,8 +101,8 @@
       "git_blob_sha1": "b69f2f157c50c1c82a8ef24673089f3aa2386f05",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "clock-calendar-host-v1",
-      "staged_sha256": "cf214b1e417afbe91f594cfa5509cd1820549cf94bc8251854174c3f4e142aca"
+      "stage_transform": "clock-calendar-host-v2",
+      "staged_sha256": "30e204a5e35c8d3f481126226c9210cee62622ee647fb14079c73a992024eba2"
     },
     "Port/Tray.qml": {
       "path": "shell/plugins/bar/widgets/Tray.qml",
@@ -557,8 +557,8 @@
       "git_blob_sha1": "855f82c044e10d809db2e7d0ec35a44e0cc0b9db",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "floating-dock-window-v1",
-      "staged_sha256": "dae4084d027ed987bc04ca2544d1ecdc9fe9fc7c9a77f80ea229bcdce5545595"
+      "stage_transform": "floating-dock-window-v2",
+      "staged_sha256": "05878d9e7fb2c11c52aad64ebd71e34b02ddd0b7ae2942625646f07f91d5b784"
     },
     "Port/BluetoothModel.js": {
       "path": "shell/plugins/panels/bluetooth/Model.js",
@@ -948,7 +948,7 @@
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "766b0770e4cf2238ce0f4a36acf8316ddcd782dc3b7b6e9ffed0232f4884db79"
+      "sha256": "dd484eef5252a404cf29798ae4f53e28ac083c4912b3f44925c7d42cbf41da53"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
@@ -968,7 +968,7 @@
     },
     "PortTrayHost.qml": {
       "path": "config/shell/preview/PortTrayHost.qml",
-      "sha256": "0157ea9630e3a7bf09a4c702856e1371facfeb98f1dc094e3d22aabe8f7a59f2"
+      "sha256": "83166d61c3984f02db7c6f8537ccb91d89901173b26b2955f676b81202269456"
     },
     "NetworkPresentation.js": {
       "path": "config/shell/preview/NetworkPresentation.js",
@@ -996,15 +996,15 @@
     },
     "AudioPanelController.qml": {
       "path": "config/shell/preview/AudioPanelController.qml",
-      "sha256": "2cad43c28ca3609dac3764ffc46ab995421861f0ecc6c552cbfa38d94bc446d9"
+      "sha256": "28fbeb421411ee2835c4a72b69014dc1ad927bc778de6a2833ba35ecdd27b5ad"
     },
     "NetworkPanelController.qml": {
       "path": "config/shell/preview/NetworkPanelController.qml",
-      "sha256": "fd0a0aecec29198a8a88375c3db544f56376f767d07ab1b6b743883ff2238dac"
+      "sha256": "d094b43f9a2ffde19481b99b648fb0dac21838180cf48e15634e5c4ab6b28658"
     },
     "DesktopPanelController.qml": {
       "path": "config/shell/preview/DesktopPanelController.qml",
-      "sha256": "63030f151d6d8876ba089b8a04ce2de75122e9bcdca8e6b20449e5bdb18d7191"
+      "sha256": "95d678d7d7fe6ca5517a01cf91d4b54e45d798c117e4558db42919c8a03f2e89"
     },
     "BluetoothActions.qml": {
       "path": "config/shell/preview/BluetoothActions.qml",
@@ -1012,7 +1012,7 @@
     },
     "DisplayPanelController.qml": {
       "path": "config/shell/preview/DisplayPanelController.qml",
-      "sha256": "74408d6f3cb121dd88a382b9729caebdabd4122b40d1ae3333498fad849d20df"
+      "sha256": "aa4da5c2a9896dc58cd39a4bce4aa1a45fe05ccc8dd9927837645a586ac81422"
     },
     "PowerPanelController.qml": {
       "path": "config/shell/preview/PowerPanelController.qml",
@@ -1036,11 +1036,11 @@
     },
     "AppearanceState.qml": {
       "path": "config/shell/preview/AppearanceState.qml",
-      "sha256": "63ea1dff711601eb8fb705daeea36ffe5c788b996275744ee0e283883d5d22ae"
+      "sha256": "da7c1d07e06bf2d818da6cd6fd73f37e6558a1b583d3095f7bd71f83527f87f1"
     },
     "DockState.qml": {
       "path": "config/shell/preview/DockState.qml",
-      "sha256": "f54ca6e9c2191e314fd4ed130dc4eb7c44b5b1bf14eeb80ddc0ff75e9010537d"
+      "sha256": "bc8b90febde01896ad877a5f20d80bee14630e8abaeff8db714043c8712e5303"
     },
     "CommandMenu.qml": {
       "path": "config/shell/preview/CommandMenu.qml",
@@ -1090,14 +1090,15 @@
     "All six upstream inputs read completely; root MIT applies with no additional file notices. Preserve full notices; public vendor inputs unchanged.",
     "Original clock parent retained unchanged for provenance, never staged runnable. Exact readonly-clock-v1 extraction removes calendar Loader and all calendar forwarding, IPC, refresh, persistence and pointer actions before preparation. Original format/ISO-week/time logic, SystemClock and WidgetButton/OpticalGlyph presentation retained.",
     "WidgetButton and OpticalGlyph unchanged. No registration API; tooltip compatibility callbacks are explicitly inert. Parent/button pointer input disabled; no timezone action or shell.run route.",
-    "Commons has only authored passive Style/Color/I18n, no original singleton, watcher, process, catalog or font asset. Fixed palette and 12px monospace remain diagnostic adaptations. Panel labels and the clock format locale use the pinned English catalog: en-US. This is not full theme or locale-file loading.",
-    "TrialShell defaults denied; exact finite grant before its fixed panel URL; sticky revoke on input change. No arbitrary QML/path/catalog/command. The panel uses pinned Quickshell Variants.model so each connected screen gets one non-focusable bar. A visible Wayland trial stays separately approved; production catalog remains empty.",
-    "Clock calendar is a separate derivation (clock-calendar-v1 and clock-calendar-host-v1) of the pinned Panel.qml and BarWidget.qml. The sealed ClockLabel stays read-only. The live trial opens the original month grid. Shell IPC, the timezone helper, and configuration writes are not admitted; week start, label format, and birth year stay in session memory.",
+    "Commons is a reviewed composition of authored compatibility services and explicitly mapped derived types, not the original full-shell service graph. Palette/font watching and the admitted state adapters have their own boundaries; the pinned English catalog remains en-US rather than full locale-service loading.",
+    "TrialShell defaults denied; explicit approved grant before its fixed panel URL; sticky revoke on input change. No arbitrary QML/path/catalog/command. The panel uses pinned Quickshell Variants.model so each connected screen gets one non-focusable bar. A visible Wayland trial stays separately approved; production catalog remains empty.",
+    "Clock calendar is a separate derivation (clock-calendar-v2 and clock-calendar-host-v2) of the pinned Panel.qml and BarWidget.qml. The sealed ClockLabel stays read-only. The live trial opens the original month grid. Shell IPC, the timezone helper and upstream shell.json writes are not admitted. Plan 114 adds shared transactional calendar/tray preferences to the existing Appearance store; only field patches are written and host bindings remain intact.",
     "Elsewhen is a derived original panel (Jason Fried, MIT) on centerEnd. Cities and preferences persist in shared, backed-up Omabuntu state (plan 111). Weather fetch, GitHub profiles, notifications and system timezone changes are excluded. Offsets use the read-only helper.",
-    "Plan 078: all mapped source parents checked against Omarchy v4.5.0 stable Git blobs. Changed parents and new WallClock reviewed; complete MIT notices unchanged. Original source bytes remain unmodified. The shared Style easing curve comes from stable Commons/Style.qml. Updated transforms retain Ubuntu backend and no-Exclusive-focus boundaries. Weather IP discovery continues through wttr.in, not the new upstream geo endpoint."
+    "Plan 078: all mapped source parents checked against Omarchy v4.5.0 stable Git blobs. Changed parents and new WallClock reviewed; complete MIT notices unchanged. Original source bytes remain unmodified. The shared Style easing curve comes from stable Commons/Style.qml. Updated transforms retain Ubuntu backend and no-Exclusive-focus boundaries. Weather IP discovery continues through wttr.in, not the new upstream geo endpoint.",
+    "Plan 114: calendar field patches and tray choices share the Appearance transaction store; pending projections preserve bindings and newer edits. Dock/display requests are queued with failures surfaced, and keyboard panel switching uses fixed output-local groups. Display cursor functions derive from the pinned monitor source with text size excluded. These repairs are source-only, not deployment or native policy acceptance."
   ],
   "limits": [
-    "Authored frame, not original Bar.qml. The sealed preview label stays read-only. The live trial calendar is the derived original popup without IPC, configuration writes, or the privileged timezone picker.",
+    "Authored frame, not original Bar.qml. The sealed preview label stays read-only. The live trial calendar is the derived original popup without IPC, upstream shell.json writes, or the privileged timezone picker; admitted preferences use the reviewed local transaction store.",
     "Checker uses established Bubblewrap isolation; private software offscreen QtQuick Window only, no host display/compositor/GPU/network/buses.",
     "No real Wayland start, desktop configuration/service replacement, deployment, authentication, lock/idle/suspend, packages, privilege or publication acceptance.",
     "Plan 078 is source-component alignment only, not full-shell, pixel, native or next-login acceptance. Original registry, widget drag persistence, notification/idle/lock services, new external endpoints and provisioning stay excluded. Session-lifetime components do not acquire a timeout; timed diagnostics remain explicit."

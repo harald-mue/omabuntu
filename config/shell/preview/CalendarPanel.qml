@@ -185,6 +185,11 @@ Item {
   // entry when the label format is cycled, so it has to be kept in step or
   // it would write this key straight back out from a stale copy.
   function persistSettings(values) {
+    // The shared owner applies field patches; never sever host bindings.
+    if (root.bar && root.bar.shell && typeof root.bar.shell.updateClockSettings === "function") {
+      root.bar.shell.updateClockSettings(values)
+      return
+    }
     var entry = { id: root.moduleName }
     for (var existing in root.settings) if (existing !== "id") entry[existing] = root.settings[existing]
     for (var key in values) entry[key] = values[key]

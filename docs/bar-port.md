@@ -99,21 +99,26 @@ unit was edited. ~/.config/hypr/hyprland.lua retains its October 22 timestamp.
 
 | Area | Current state | Required before claiming completion |
 | --- | --- | --- |
-| Tray | Original code integrated | User checks drawer, Cloudflare icon and menus; persistent pin/hide storage needs its own reviewed project path |
+| Tray | Original code integrated; shared transactional pin/hide preferences implemented in source (plan 114; deployment pending) | Native drawer/menu, restart and multi-output preference acceptance |
 | Bar frame/theme | Source-derived original horizontal/center section geometry; watched theme palette state with the original 420 ms OutCubic color behaviors, opaque/glassy/none background looks and the bar-off flag | Full original theme/frame/registry, native visual acceptance, reviewed notch/vertical/gesture policies; blur behind a glassy bar stays user-owned (Hyprland 0.56 has no runtime layerrule) |
-| Workspaces | Global 1-6 and native focus call | Original per-monitor blocks of ten and layout glyph, with verified backend |
-| Workspace modes | Not implemented | Port workspace-modes.lua, helpers/paths dependencies, per-workspace restoration, safe window-tag reversal and a separate approved config change |
-| Floating mode/titlebars | Not implemented | Review original plugin requirement; do not install or reload blindly |
-| Network | Native status popup with original glyph model and original UI primitives; not the original full panel | Native click acceptance. No new VPN profiles, certificates, firewall, proxy, or Arch helpers |
-| Audio | Source-derived original output layout, shared cursor/keyboard controls and native volume/mute/preferred-device actions | Native pointer/focus/reopening acceptance; input, streams, profiles, physical-sink resolver and media/OSD remain unported |
-| Bluetooth/monitor/power | Not implemented | Review original panels and existing Ubuntu backend ownership; no idle/suspend/lock activation |
+| Workspaces | Global 1–10 and native focus call; original layout glyphs | Original per-monitor blocks of ten remain a separate policy adaptation |
+| Workspace modes | Saved modes, startup restoration and floating membership/ownership are implemented | Continue native regression acceptance; not complete original helper parity |
+| Floating mode/titlebars | Native integration and floating dock are implemented separately from the widget surfaces | Preserve existing reviewed plugin/profile management; plan 114 makes no native/plugin changes |
+| Network | Original derived connection surface and Ubuntu-native profile/DNS/band adapters, with added Ethernet/VPN rows | Native click acceptance; enterprise creation and upstream Tailscale/helpers remain excluded |
+| Audio | Source-derived original output/input layout, cursor controls, peak meter and native volume/mute/preferred-device actions | Native acceptance; streams, untyped-source fallback, profiles, physical-sink resolver and original helper/OSD parity remain incomplete |
+| Bluetooth/monitor/power | Original derived surfaces mounted with Ubuntu-native controllers | Native acceptance; Bluetooth radio-retention, AC/battery policy and persistent monitor configuration remain separate gates |
 | Keyboard layout | Original widget vendored byte-identically (single reviewed visibility deviation), mounted between tray and Bluetooth; xkb cycling through the allowlisted run | xkbcli briefs need an optional package decision (fallback label is the description's first word); input-method (fcitx) indicator deliberately not ported |
-| Clock/calendar | Derived original calendar on left click; sealed label stays read-only | Native click acceptance. No timezone helper, shell.json writes, IPC, or calendar hotkey |
+| Clock/calendar | Derived original calendar; shared transactional calendar fields and binding repair implemented in source (plan 114; deployment pending); sealed label stays read-only | Native click/restart/multi-output acceptance. No timezone helper, shell.json writes, IPC, or calendar hotkey |
 | Indicators/menu | Menu button at the left edge: original BarIconButton with the extracted U+E900 mark, left click opens the command menu's root route, right click opens a terminal | Native click acceptance; no Arch package or system-management routes
 | Elsewhen | Original panel derived to the right of the clock; Cities and preferences persist in shared, backed-up Omabuntu state (plans 111–112; locally deployed with clean startup) | Native open/click acceptance. No weather fetch, GitHub profiles, notifications, or system timezone change |
 | Weather | Original panel after Elsewhen, Celsius/km/h, 15-minute refresh; original city editor, wttr.in/IP location and Open-Meteo city search/forecast | Location-parity version deployed with clean startup; native editor acceptance pending. Notification actions and IPC remain out |
 | Agents | Not implemented | Dependency, notices and asset decisions |
 | Updates | Arch route excluded | Ubuntu-native, reviewed status/actions if agreed; never pacman or Omarchy migrations |
+
+Plan 114 also implements dock/display request queues, visible failure handling
+and fixed-registry keyboard panel switching in source. See the
+[repair status and remaining deviations](widget-preference-repairs.md).
+No deployment or native policy change is implied by those source repairs.
 
 ### World Clock preference storage (plan 111)
 

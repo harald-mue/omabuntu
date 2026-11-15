@@ -4,7 +4,8 @@
 
 The experimental `TrialShell` mounts source-derived original Omarchy panels,
 not substitute panels and not the original full shell. Source is pinned to
-`omacom/omarchy@03ff1eff3812933f7088484533784d2f63eaf19a` (MIT).
+`omacom/omarchy@ac2690cd7be4f47e4a255f5e2e78d904d436b068`
+(v4.5.0 stable, MIT).
 `upstream/clock-preview.json` records each unchanged vendor parent, hash, blob
 identity and staged transform. `tools/desktop_frontends.py` uses unique splice
 witnesses and refuses residual helper/IPC dependencies. Generated mirrors must
@@ -47,31 +48,39 @@ No original Style, Color, translations service or shell startup is activated.
   entirely. Available profile choices respect performance-profile support.
   Previous profiles are retained in session memory before changing them. Cycles
   and charge-limit readings unavailable through this adapter display a dash.
-  Percentage preference is session-only. No system-stat helper, session menu,
+  Percentage preference persists through the shared Appearance store. No system-stat helper, session menu,
   lock, idle, suspend, shutdown, charge-limit write or management action.
-- **Dock:** it is shown only for workspace IDs successfully set to floating by
-  this trial's mode switcher during the current bar session. An optimistic
-  glyph update, arbitrary floating window, preexisting mode or failed request
-  cannot grant visibility. A successful tiled-mode switch revokes the grant.
-  Restarting the bar clears grants; cycle the workspace mode again to grant it.
-  Installed desktop entries launch via `DesktopEntry.execute()`; native Wayland
-  toplevel handles activate/close windows. Position, autohide, pinning and order
-  are session-local. The existing trial app grid opens from the command menu
-  and the floating dock, not from the top bar. Omarchy helper
-  execution, persistent pins, app-grid drag handoff, launch pulse, custom TUI
-  matching, minimization/restore policy and the screen-remap component are
-  excluded. The context menu closes on selection, workspace change, or an
-  outside click through the upstream `HyprlandFocusGrab`.
+- **Dock:** visibility follows `TrialDesktopState`'s confirmed floating grants
+  and saved-mode restoration, not an arbitrary floating window or optimistic
+  glyph. Installed desktop entries launch via `DesktopEntry.execute()`; native
+  Wayland toplevel handles activate/close windows. Position, autohide, pins and
+  pinned order persist in `~/.config/omabuntu/dock.json`. App-grid drag handoff,
+  launch pulse, TUI entry claiming and native minimize/restore are implemented;
+  see [dock parity](dock-parity.md). The app grid opens from the command menu
+  and floating dock, not the top bar. Upstream management helpers and the
+  screen-remap component remain excluded. The context menu closes on selection,
+  workspace change or an outside click through `HyprlandFocusGrab`. Plan 114
+  adds serialized/coalesced edits and visible request errors in source; that
+  repair is not yet deployed.
 - **Launch notice:** the app grid and the dock share the one-second "Launching …"
   overlay documented in `docs/launch-feedback.md`. It is not a notification
   daemon and not the dock icon pulse. A source change reaches the running bar
   only through a separately approved restart.
 - **Clock:** left click opens the original calendar popup (month grid, ISO
   weeks, year progress, birth-year rail, week-start toggle, keyboard and
-  wheel month stepping). Right click cycles the label format. Both choices
-  stay in session memory. Middle click does not change the system timezone.
+  wheel month stepping). Right click cycles the label format. Label format
+  already persists through Appearance. Plan 114 adds shared transactional
+  calendar fields (week start, birth year, life expectancy and alternate format
+  settings), without replacing the host's shared binding. This repair is in
+  source only, not deployed. Middle click does not change the system timezone.
   There is no shell IPC and no calendar hotkey. The sealed offscreen label
   stays read-only and is not this popup.
+
+Plan 114 also repairs tray pin/hide persistence in the shared Appearance store,
+display request prioritization over polling, original display section navigation
+and fixed-registry Tab/Shift+Tab switching within each output's center/right
+panel group. See [repair status](widget-preference-repairs.md). The registry
+admits only already mounted widgets; it is not arbitrary plugin loading.
 
 ## Version checks, backup and recovery
 

@@ -2,64 +2,89 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Private dock preferences through one reviewed helper (never a shell).
-// Session defaults apply until the stored file has been read.
+// Shared dock preferences. Queue absolute edits and project them over confirmed
+// state so a busy helper or an older response cannot erase the latest choice.
 QtObject {
   id: root
   property string helper: Quickshell.env("OMABUNTU_DOCK_HELPER")
-  property string position: "bottom"
-  property bool autohide: false
-  property var pinned: []
+  property var confirmed: ({position: "bottom", autohide: false, pinned: []})
+  readonly property var projected: project()
+  readonly property string position: projected.position
+  readonly property bool autohide: projected.autohide
+  readonly property var pinned: projected.pinned
   property bool loaded: false
+  property string errorText: ""
+  property var queue: []
+  property var inFlight: []
+  property bool finishing: false
   signal changed()
 
+  function project() {
+    var next = Object.assign({}, confirmed)
+    var requests = [inFlight].concat(queue)
+    for (var i = 0; i < requests.length; i++) {
+      var args = requests[i]
+      if (args[0] === "set-position") next.position = args[1]
+      else if (args[0] === "set-autohide") next.autohide = args[1] === "on"
+      else if (args[0] === "set-pinned") next.pinned = args.slice(1)
+    }
+    return next
+  }
   function request(kind, args) {
-    if (backend.running) return;
-    if (!helper || !helper.endsWith("/dock_state.py") || helper.indexOf(" ") >= 0) return;
-    backend.exec(["python3", helper, kind].concat(args));
+    if (!helper || !helper.endsWith("/dock_state.py") || helper.indexOf(" ") >= 0) {
+      errorText = "Dock settings helper is unavailable."
+      return
+    }
+    // Each verb sets an absolute value; the latest pending value supersedes
+    // only the same verb. Distinct edits and the initial read are preserved.
+    queue = queue.filter(function(item) { return item[0] !== kind }).concat([[kind].concat(args)])
+    pump()
+  }
+  function pump() {
+    if (backend.running || finishing || !queue.length) return
+    inFlight = queue[0]
+    queue = queue.slice(1)
+    backend.exec(["python3", helper].concat(inFlight))
   }
   function applyPreferences(data) {
     if (!data || ["top", "bottom", "left", "right"].indexOf(data.position) < 0
-        || typeof data.autohide !== "boolean" || !Array.isArray(data.pinned)) return
-    position = data.position
-    autohide = data.autohide
-    pinned = data.pinned.filter(function(id) { return typeof id === "string" })
+        || typeof data.autohide !== "boolean" || !Array.isArray(data.pinned)) return false
+    confirmed = {position: data.position, autohide: data.autohide,
+      pinned: data.pinned.filter(function(id) { return typeof id === "string" })}
     if (!loaded) { loaded = true; changed() }
+    return true
   }
   Component.onCompleted: request("get", [])
   function setPosition(value) {
-    if (["top", "bottom", "left", "right"].indexOf(value) < 0 || value === position) return;
-    position = value;
-    request("set-position", [value]);
+    if (["top", "bottom", "left", "right"].indexOf(value) < 0 || value === position) return
+    request("set-position", [value])
   }
   function setAutohide(value) {
-    if (autohide === !!value) return;
-    autohide = !!value;
-    request("set-autohide", [autohide ? "on" : "off"]);
+    if (autohide === !!value) return
+    request("set-autohide", [value ? "on" : "off"])
   }
   function setPinned(ids) {
-    var next = [];
+    var next = []
     for (var i = 0; i < ids.length; i++) {
-      // Quickshell entry ids are desktop-file ids without the .desktop suffix.
-      // Keep the suffix tolerated so stored files stay readable.
-      var id = typeof ids[i] === "string" ? ids[i] : "";
-      if (id.length > 0 && id.indexOf(" ") < 0 && next.indexOf(id) < 0) next.push(id);
+      var id = typeof ids[i] === "string" ? ids[i] : ""
+      if (id.length > 0 && id.indexOf(" ") < 0 && next.indexOf(id) < 0) next.push(id)
     }
-    pinned = next;
-    request("set-pinned", next);
+    request("set-pinned", next)
   }
   property Process backend: Process {
     id: backend
     stdout: StdioCollector { id: output }
     onExited: function(code) {
+      root.finishing = true
+      root.inFlight = []
       try {
-        var data = JSON.parse(output.text);
-        if (code !== 0 || data.error) return;
-        if (["top", "bottom", "left", "right"].indexOf(data.position) >= 0) root.position = data.position;
-        root.autohide = data.autohide === true;
-        if (Array.isArray(data.pinned)) root.pinned = data.pinned.filter(function(id) { return typeof id === "string"; });
-        if (!root.loaded) { root.loaded = true; root.changed(); }
-      } catch (error) {}
+        var data = JSON.parse(output.text)
+        if (code !== 0 || data.error || !root.applyPreferences(data)) root.errorText = "Dock settings request failed."
+        else root.errorText = ""
+      } catch (error) { root.errorText = "Invalid dock settings response." }
+      root.finishing = false
+      if (root.errorText) console.warn("OMABUNTU_DOCK_SETTINGS_FAILED", root.errorText)
+      Qt.callLater(root.pump)
     }
   }
 }

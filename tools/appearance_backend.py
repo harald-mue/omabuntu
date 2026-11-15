@@ -32,6 +32,60 @@ ACTIONS = {'omabuntu-appearance:%s:%s' % (key, value): (key, value)
            for key, values in CHOICES.items() for value in values}
 TOKEN = re.compile(r'[0-9]{8}T[0-9]{12}Z-[0-9a-f]{12}\Z')
 MAX_BYTES = 65536
+WIDGET_KEYS = ('clock-settings', 'tray-settings')
+CLOCK_FIELDS = {'weekStartDay', 'birthYear', 'lifeExpectancy', 'formatAlt',
+                'verticalFormat', 'verticalFormatAlt'}
+WEEKDAYS = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')
+
+
+def widget_values(key, raw):
+    """Validate bounded field patches, never commands or arbitrary widget ids."""
+    if key not in WIDGET_KEYS or not isinstance(raw, str) or len(raw.encode()) > MAX_BYTES:
+        raise ValueError('Invalid widget settings')
+    values = json.loads(raw)
+    if not isinstance(values, dict):
+        raise ValueError('Invalid widget settings')
+    if key == 'clock-settings':
+        if set(values) - (CLOCK_FIELDS | {'format'}):
+            raise ValueError('Unknown clock setting')
+        for name, value in values.items():
+            if name == 'format':
+                if not isinstance(value, str) or value not in CLOCKS.values():
+                    raise ValueError('Invalid clock format')
+            elif name == 'weekStartDay':
+                if not isinstance(value, str) or value not in WEEKDAYS:
+                    raise ValueError('Invalid week start')
+            elif name == 'birthYear':
+                if type(value) is not int or not (value == 0 or 1000 <= value <= 9999):
+                    raise ValueError('Invalid birth year')
+            elif name == 'lifeExpectancy':
+                if type(value) is not int or not 1 <= value <= 150:
+                    raise ValueError('Invalid life expectancy')
+            elif (not isinstance(value, str) or len(value) > 256
+                  or any((ord(c) < 32 and c != '\n') or ord(c) == 127 for c in value)):
+                raise ValueError('Invalid clock format text')
+    else:
+        if set(values) - {'pinned', 'hidden'}:
+            raise ValueError('Unknown tray setting')
+        for items in values.values():
+            if (not isinstance(items, list) or len(items) > 128
+                    or any(not isinstance(item, str) or not item or len(item) > 512
+                           or any(ord(c) < 32 or ord(c) == 127 for c in item) for item in items)
+                    or len(set(items)) != len(items)):
+                raise ValueError('Invalid tray identifiers')
+    return values
+
+
+def valid_choice(key, value):
+    if not isinstance(key, str) or not isinstance(value, str):
+        return False
+    if key in CHOICES:
+        return value in CHOICES[key]
+    try:
+        widget_values(key, value)
+        return True
+    except (ValueError, TypeError, RecursionError):
+        return False
 
 
 def state_root():
@@ -82,7 +136,7 @@ def session_allowed(environ=None):
 def bar_state():
     root = state_root()
     data = json_file(root / 'current/bar.json')
-    result = dict(DEFAULTS)
+    result = dict(DEFAULTS, clock_settings={}, tray_settings={'pinned': [], 'hidden': []})
     flag = root / 'toggles/bar-off'
     safe(flag)
     result['hidden'] = flag.is_file()
@@ -95,6 +149,12 @@ def bar_state():
             or type(result['battery_percentage']) is not bool
             or result['clock_format'] not in CLOCKS.values()):
         raise ValueError('Invalid bar preferences')
+    clock = widget_values('clock-settings', json.dumps(result['clock_settings']))
+    if 'format' in clock:
+        raise ValueError('Clock format must have one authoritative field')
+    widget_values('tray-settings', json.dumps(result['tray_settings']))
+    if set(result['tray_settings']) != {'pinned', 'hidden'}:
+        raise ValueError('Incomplete tray preferences')
     return result
 
 
@@ -166,8 +226,8 @@ def mkdirs(path):
     safe(path)
     for directory in [*reversed(path.parents), path]:
         if not directory.exists():
-            directory.mkdir(mode=0o700)
-        if not directory.is_dir():
+            directory.mkdir(mode=0o700, exist_ok=True)
+        if directory.is_symlink() or not directory.is_dir():
             raise ValueError('Preference parent is not a directory')
 
 
@@ -202,7 +262,7 @@ def transaction_directory():
 
 
 def change(key, value):
-    if key not in CHOICES or value not in CHOICES[key]:
+    if not valid_choice(key, value):
         raise ValueError('Unsupported appearance choice')
     if not session_allowed():
         raise ValueError('Appearance changes require a Hyprland Wayland session')
@@ -222,11 +282,22 @@ def change(key, value):
         else:
             target = safe(state_root() / 'current/bar.json')
             data = bar_state()
-            field = {'hidden': 'hidden', 'background': 'background', 'clock': 'clock_format',
-                     'battery-percentage': 'battery_percentage'}[key]
-            data[field] = CLOCKS[value] if key == 'clock' else (value == 'on' if key in ('hidden', 'battery-percentage') else value)
+            if key in WIDGET_KEYS:
+                patch = widget_values(key, value)
+                if key == 'clock-settings':
+                    if 'format' in patch:
+                        data['clock_format'] = patch.pop('format')
+                    data['clock_settings'] = {**data['clock_settings'], **patch}
+                else:
+                    data['tray_settings'] = {**data['tray_settings'], **patch}
+            else:
+                field = {'hidden': 'hidden', 'background': 'background', 'clock': 'clock_format',
+                         'battery-percentage': 'battery_percentage'}[key]
+                data[field] = CLOCKS[value] if key == 'clock' else (value == 'on' if key in ('hidden', 'battery-percentage') else value)
         before = read_bytes(target)
         after = encode(data)
+        if len(after) > MAX_BYTES:
+            raise ValueError('Preference state exceeds limit')
         if before == after:
             return {'ok': True, 'status': 'unchanged', 'appearance': snapshot()}
         token = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + os.urandom(6).hex()
@@ -272,8 +343,7 @@ def rollback(token):
         before_hash = record.get('before_sha256')
         after_hash = record.get('after_sha256')
         if (type(record.get('schema_version')) is not int or record['schema_version'] != 1
-                or not isinstance(key, str) or key not in CHOICES
-                or record.get('value') not in CHOICES[key]
+                or not valid_choice(key, record.get('value'))
                 or not isinstance(record.get('target'), str)
                 or (before_hash is not None and (not isinstance(before_hash, str)
                     or not re.fullmatch(r'[0-9a-f]{64}', before_hash)))

@@ -61,6 +61,7 @@ Item {
       dragSourceTarget = null;
     }
   }
+  function open() { opened = true; }
   function close() { opened = false; }
   function toggle() { opened = !opened; }
   function setVolume(key, value) {
@@ -196,10 +197,8 @@ Item {
       setDefaultSource(nodeFor(displayAudioSources[selectedIndex]));
     }
   }
-  // Cross-panel registry switching is not present; Tab stays within this panel.
   function switchPanel(direction) {
-    cursorActive = true;
-    focusSection = focusSection === "header" ? "output" : "header";
+    return bar && typeof bar.switchPanelFrom === "function" ? bar.switchPanelFrom(root, direction) : false;
   }
   // Adapted from the original panel's scroll/cursor helpers.
   function resetScroll() {

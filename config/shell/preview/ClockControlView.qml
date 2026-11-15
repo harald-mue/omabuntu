@@ -42,6 +42,14 @@ BarWidget {
     var next = Model.nextClockFormat(formatRing, current)
     if (next === "" || next === current) return
 
+    // Persist only the changed field, preserving queued calendar edits.
+    if (root.bar && root.bar.shell && typeof root.bar.shell.updateClockSettings === "function") {
+      var patch = {}
+      patch[vertical ? "verticalFormat" : "format"] = next
+      root.bar.shell.updateClockSettings(patch)
+      return
+    }
+
     var entry = { id: root.moduleName }
     for (var key in root.settings) if (key !== "id") entry[key] = root.settings[key]
     entry[vertical ? "verticalFormat" : "format"] = next
@@ -145,7 +153,7 @@ BarWidget {
     fixedHeight: root.vertical ? root.verticalLines.length * Style.bar.iconSlot : -1
     horizontalMargin: 8.75
     verticalPadding: 8.75
-    tooltipText: I18n.t("clock.toggleFormat")
+    tooltipText: (root.bar && root.bar.preferenceError) || I18n.t("clock.toggleFormat")
     // The clock is text to read, not an icon to press, so a click never
     // shrinks it; the format it cycles to, or the panel it opens, is feedback.
     pressFeedbackButtons: Qt.NoButton

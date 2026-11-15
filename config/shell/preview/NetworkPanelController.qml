@@ -181,7 +181,9 @@ Item {
 
   function open() { opened = true }
   function close() { opened = false }
-  function switchPanel(direction) {}
+  function switchPanel(direction) {
+    return bar && typeof bar.switchPanelFrom === "function" ? bar.switchPanelFrom(root, direction) : false;
+  }
   function headerDetail() { return info.ip || "" }
   function findDevice(type) {
     var devices = networkDevices || []

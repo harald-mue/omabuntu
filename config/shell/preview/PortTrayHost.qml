@@ -4,13 +4,15 @@ import qs.Commons
 import qs.Commons as Commons
 import "Port" as Port
 
-// Only the original tray is admitted here. Preferences are session-local;
-// this owner has no command runner, paths, service discovery or shell IPC.
+// Original tray; live preferences belong to the shared transactional adapter.
+// Isolated fixtures may omit it. This owner runs no commands or services.
 Item {
   id: root
   implicitWidth: tray.implicitWidth
   implicitHeight: 26
-  property var preferences: ({ pinned: [], hidden: [] })
+  property var appearanceSettings: null
+  property var fixturePreferences: ({ pinned: [], hidden: [] })
+  readonly property var preferences: appearanceSettings ? appearanceSettings.bar.tray_settings : fixturePreferences
   // Null in isolated fixtures. The trial bar sets this so the clock, which
   // lives outside this host, shares one popout and one click-target list.
   property var popoutState: null
@@ -62,8 +64,14 @@ Item {
     readonly property QtObject shell: QtObject {
       function updateEntryInline(id, entry) {
         if (id !== "omarchy.tray" || !Array.isArray(entry.pinned) || !Array.isArray(entry.hidden)) return;
-        root.preferences = { pinned: entry.pinned.slice(), hidden: entry.hidden.slice() };
+        var values = { pinned: entry.pinned.slice(), hidden: entry.hidden.slice() };
+        if (root.appearanceSettings) root.appearanceSettings.setTray(values);
+        else root.fixturePreferences = values;
       }
+    }
+    function switchPanelFrom(owner, direction) {
+      return root.popoutState && typeof root.popoutState.switchPanelFrom === "function"
+        ? root.popoutState.switchPanelFrom(owner, direction) : false;
     }
     function requestPopout(key) {
       var previous = root.popoutState ? root.popoutState.activePopout : _activePopout
@@ -84,7 +92,10 @@ Item {
     function popoutCardFor(owner) {
       return root.popoutState ? root.popoutState.popoutCardFor("right") : null
     }
-    function showTooltip(item, text) { tooltipHost.showTooltip(item, text); }
+    function showTooltip(item, text) {
+      text = (root.appearanceSettings && root.appearanceSettings.errorText) || text;
+      tooltipHost.showTooltip(item, text);
+    }
     function hideTooltip(item) { tooltipHost.hideTooltip(item); }
   }
 
