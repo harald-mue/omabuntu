@@ -10,7 +10,8 @@ import "Weather"
 import "BarRun.js" as BarRun
 
 // One top bar per screen, with source-derived original section geometry.
-// Registry, gestures, theme IO and per-monitor workspace policy are not loaded.
+// Registry, gestures and theme IO are not loaded. Monitor-local workspaces
+// require a separately approved compositor policy and state marker.
 Variants {
   id: bars
   // Left-edge menu button route opener, wired by TrialShell to CommandMenu.
@@ -234,6 +235,7 @@ Variants {
             openMenu: bars.openMenu
           }
           LiveStatus {
+            bar: clockBar
             liveModes: true
             maximumWidth: Math.max(0, frame.centerStart - 16 - menuButton.implicitWidth)
           }

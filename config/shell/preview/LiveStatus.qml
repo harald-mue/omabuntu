@@ -1,13 +1,14 @@
 import QtQuick
 import Quickshell.Hyprland
+import qs.Commons
 
-// Existing global-workspace adapter, sized by the original bar sections.
-// Omarchy's left side is the menu plus workspaces. This row is only the
-// workspace switcher. Per-monitor blocks stay out because this session uses
-// global workspace ids.
+// Select the original monitor-local widget only after an approved coordinated
+// policy deployment. Old installed profiles retain their global adapter.
 Item {
   id: root
   property real maximumWidth: 100000
+  property QtObject bar: null
+  readonly property bool monitorLocal: TrialDesktopState.monitorLocalPolicy
   readonly property int activeId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : -1
   property bool liveModes: false
   implicitWidth: Math.min(row.implicitWidth, Math.max(0, maximumWidth))
@@ -25,8 +26,20 @@ Item {
     id: row
     height: 26
     spacing: 0
+    Loader {
+      sourceComponent: root.monitorLocal ? monitorLocalWidget : globalWidget
+    }
+  }
+  Component {
+    id: monitorLocalWidget
+    MonitorWorkspaces {
+      bar: root.bar
+      liveModes: root.liveModes
+    }
+  }
+  Component {
+    id: globalWidget
     WorkspaceSwitcher {
-      id: workspaces
       activeId: root.activeId
       liveModes: root.liveModes
       onFocusRequested: function(workspaceId) { root.focusWorkspace(workspaceId) }

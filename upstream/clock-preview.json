@@ -437,8 +437,8 @@
       "git_blob_sha1": "fc9ff58b77d67cd5cd500af87c84916e0cba6144",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "network-control-frontend-v1",
-      "staged_sha256": "9a3e39e9623e2dbfd8abe33b5d64a9b6e28503cf047bb173b2ce17f7662e7126"
+      "stage_transform": "network-control-frontend-v2",
+      "staged_sha256": "4c335c31f8781b5e3c000defe3c079b2402a613579df1ab2537b6f7d9c5e28c7"
     },
     "WorkspaceSwitcher.qml": {
       "path": "shell/plugins/bar/widgets/Workspaces.qml",
@@ -919,6 +919,66 @@
       "git_blob_sha1": "da1f87a7f36eae2839d5d92ab0467da147e9180a",
       "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/panels/clock/WallClock.qml",
       "staged_sha256": "369c0c5313a56b9963e6b1853ebf9294b666c3ec9aa9fa819f3becb024a5261d"
+    },
+    "WifiQrView.qml": {
+      "path": "shell/plugins/panels/wifiqr/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/panels/wifiqr/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/wifiqr/Panel.qml",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "network-qr-surface-v1",
+      "bytes": 12962,
+      "sha256": "92da41453df61c4aff27119a15959743ddcc54fe87718c5c086320de97424f7b",
+      "git_blob_sha1": "31bf4c5d3c6e9ff1adcc0bdb1de8145be797fdbd",
+      "staged_sha256": "760ce472c5fe0c92efbc317a87246411a7464c5bbb89217dd0b883ff2e71f862"
+    },
+    "NetworkSpeedView.qml": {
+      "path": "shell/plugins/panels/speedtest/Panel.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/panels/speedtest/Panel.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/panels/speedtest/Panel.qml",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "network-speed-surface-v1",
+      "bytes": 5980,
+      "sha256": "578b78eb6a56ff8932cb92885b20c567f48c551b53fa3ed9fedc4b7b96d849a4",
+      "git_blob_sha1": "91dd9b435ea4641bc53a72d91eced65c9b5c0fd9",
+      "staged_sha256": "5e5b713193230c849dbf9c2576f2528a3243d63741176356c009e7e7fe4dfa2d"
+    },
+    "Ui/OverlayWindow.qml": {
+      "path": "shell/Ui/OverlayWindow.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/Ui/OverlayWindow.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/OverlayWindow.qml",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "network-overlay-ondemand-v1",
+      "bytes": 3734,
+      "sha256": "563753469de1ae53bb595ddfb0b45803615ca7000ecf05d823a50b7dd4da1e9d",
+      "git_blob_sha1": "e0b3c322b12e31ebaa283d16b410efd95d65d6c9",
+      "staged_sha256": "78d4d9975b7baf57780d4808736e8d0564e12bfde92fb8ac601ce2ba187296cb"
+    },
+    "Ui/SpeedTestOverlay.qml": {
+      "path": "shell/Ui/SpeedTestOverlay.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/Ui/SpeedTestOverlay.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/SpeedTestOverlay.qml",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "network-speed-overlay-v1",
+      "bytes": 13992,
+      "sha256": "e0bd6e1307bde6e3e6d5932a488fb40e58c3197f71535f2e6a5ce0d5f4077a37",
+      "git_blob_sha1": "cde269c1d693ce35ccfcc0b45e296657a87c5c01",
+      "staged_sha256": "9bec4d43ac197ad18726f058954e755f9073863804515560b171f18bc942f1fc"
+    },
+    "MonitorWorkspaces.qml": {
+      "path": "shell/plugins/bar/widgets/Workspaces.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/bar/widgets/Workspaces.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/bar/widgets/Workspaces.qml",
+      "bytes": 9944,
+      "sha256": "a320502697738957ad4e04ce68ce06cd9163e8b2fddccac72bc888224778d96d",
+      "git_blob_sha1": "d1892541bca9f74d60371264f1696de2dda31b4e",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "monitor-workspaces-v1",
+      "staged_sha256": "0a05360adad7665487c004b22d093510de1d4d4243f8dc1739921c1026bbf8c4"
     }
   },
   "authored": {
@@ -932,7 +992,7 @@
     },
     "Commons/I18n.qml": {
       "path": "config/shell/preview/I18n.qml",
-      "sha256": "eab73c877a97a3cdc48e4ab2791d24cc6324a7f61e472d6840c4869cba0bf96d"
+      "sha256": "29d36cbd6e35508faf7e4fa2fb976fac88c62b63bd6bcd3c2f5498ec246f3c7d"
     },
     "PreviewContent.qml": {
       "path": "config/shell/preview/PreviewContent.qml",
@@ -948,11 +1008,11 @@
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "dd484eef5252a404cf29798ae4f53e28ac083c4912b3f44925c7d42cbf41da53"
+      "sha256": "4df18544c7d05dd6bb59313bbea649f5ccf962f669c6013037ecb9a4007026e5"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
-      "sha256": "6129c05584d499c366572a5ab5f594fc8158739357901cac1e921a3341f93b52"
+      "sha256": "2ff3724518f3cdeb3e1467b817bee2b53c5c6c9e37bd1d1ea809f6d6a6876b31"
     },
     "AppLauncher.qml": {
       "path": "config/shell/preview/AppLauncher.qml",
@@ -1000,7 +1060,7 @@
     },
     "NetworkPanelController.qml": {
       "path": "config/shell/preview/NetworkPanelController.qml",
-      "sha256": "d094b43f9a2ffde19481b99b648fb0dac21838180cf48e15634e5c4ab6b28658"
+      "sha256": "6560a601d96aaefe84eb659b4d25e4698c7ca4ee51d0fb097c9f1b5a2e4e00e6"
     },
     "DesktopPanelController.qml": {
       "path": "config/shell/preview/DesktopPanelController.qml",
@@ -1024,7 +1084,7 @@
     },
     "Commons/TrialDesktopState.qml": {
       "path": "config/shell/preview/TrialDesktopState.qml",
-      "sha256": "bb06ead0a982f009e2da86280d57c2350147314c2763ab4a8fa24a98324040da"
+      "sha256": "799af7321bc77ac5b421f3586aee6333e23b7f68bfbf0aa57a2e56c5779aa278"
     },
     "Commons/BluetoothDiscovery.qml": {
       "path": "config/shell/preview/BluetoothDiscovery.qml",
@@ -1073,10 +1133,18 @@
     "Commons/ElsewhenSettings.qml": {
       "path": "config/shell/preview/ElsewhenSettings.qml",
       "sha256": "88788231df66d576248a5fe4e3f626b61a01acacd7effed0df3ccb866e583813"
+    },
+    "WifiQrController.qml": {
+      "path": "config/shell/preview/WifiQrController.qml",
+      "sha256": "62001174e6097447128ed704cf3fa678d48e7f96b877e1fc2e3249823eacdb8c"
+    },
+    "NetworkSpeedController.qml": {
+      "path": "config/shell/preview/NetworkSpeedController.qml",
+      "sha256": "db3991af4bcc0c21037fc6e7a0c617e6971fc93073dbccec2aee10edc48dc0ee"
     }
   },
   "module_maps": {
-    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\nPanel 1.0 Panel.qml\nPanelController 1.0 PanelController.qml\n",
+    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\nPanel 1.0 Panel.qml\nPanelController 1.0 PanelController.qml\nOverlayWindow 1.0 OverlayWindow.qml\nSpeedTestOverlay 1.0 SpeedTestOverlay.qml\n",
     "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\nsingleton ElsewhenSettings 1.0 ElsewhenSettings.qml\nsingleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\nsingleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n",
     "Elsewhen/qmldir": "ArcText 1.0 ArcText.qml\nAvatar 1.0 Avatar.qml\nCityMatches 1.0 CityMatches.qml\nCityRow 1.0 CityRow.qml\nCitySearch 1.0 CitySearch.qml\nDaylightStrip 1.0 DaylightStrip.qml\nElsewhenPanel 1.0 ElsewhenPanel.qml\nGlobe 1.0 Globe.qml\nGlobeFooter 1.0 GlobeFooter.qml\nHeroTitle 1.0 HeroTitle.qml\nMiniGlobe 1.0 MiniGlobe.qml\nMoonDot 1.0 MoonDot.qml\n",
     "Weather/qmldir": "WeatherPanel 1.0 WeatherPanel.qml\nWeatherWidget 1.0 WeatherWidget.qml\n",
@@ -1095,7 +1163,9 @@
     "Clock calendar is a separate derivation (clock-calendar-v2 and clock-calendar-host-v2) of the pinned Panel.qml and BarWidget.qml. The sealed ClockLabel stays read-only. The live trial opens the original month grid. Shell IPC, the timezone helper and upstream shell.json writes are not admitted. Plan 114 adds shared transactional calendar/tray preferences to the existing Appearance store; only field patches are written and host bindings remain intact.",
     "Elsewhen is a derived original panel (Jason Fried, MIT) on centerEnd. Cities and preferences persist in shared, backed-up Omabuntu state (plan 111). Weather fetch, GitHub profiles, notifications and system timezone changes are excluded. Offsets use the read-only helper.",
     "Plan 078: all mapped source parents checked against Omarchy v4.5.0 stable Git blobs. Changed parents and new WallClock reviewed; complete MIT notices unchanged. Original source bytes remain unmodified. The shared Style easing curve comes from stable Commons/Style.qml. Updated transforms retain Ubuntu backend and no-Exclusive-focus boundaries. Weather IP discovery continues through wttr.in, not the new upstream geo endpoint.",
-    "Plan 114: calendar field patches and tray choices share the Appearance transaction store; pending projections preserve bindings and newer edits. Dock/display requests are queued with failures surfaced, and keyboard panel switching uses fixed output-local groups. Display cursor functions derive from the pinned monitor source with text size excluded. These repairs are source-only, not deployment or native policy acceptance."
+    "Plan 114: calendar field patches and tray choices share the Appearance transaction store; pending projections preserve bindings and newer edits. Dock/display requests are queued with failures surfaced, and keyboard panel switching uses fixed output-local groups. Display cursor functions derive from the pinned monitor source with text size excluded. These repairs are source-only, not deployment or native policy acceptance.",
+    "Plan 116: restore original Network details/grid/copy targets/phrase transitions and original standalone QR scrim/speed gauge layouts; new parents are unchanged MIT sources at the stable pin. Ubuntu adaptations use OnDemand focus, pinned interface matrix sharing without plaintext password reveal, bounded sequential Cloudflare phases and no ping/loss traffic. Secondary profile controls are collapsed by default. Source-only; no deployment or native acceptance.",
+    "Plan 116 English labels: selected Network/grid/phrase/QR/speed keys are from https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/default/i18n/en/shell.json (MIT), SHA-256 c34e291f8309073442ed9d2cfa971877b04c1bd4eaea9462f2f3906fce758584. The full catalog is not staged; the fixed en-US adapter and authored profile-extension labels remain explicit deviations."
   ],
   "limits": [
     "Authored frame, not original Bar.qml. The sealed preview label stays read-only. The live trial calendar is the derived original popup without IPC, upstream shell.json writes, or the privileged timezone picker; admitted preferences use the reviewed local transaction store.",

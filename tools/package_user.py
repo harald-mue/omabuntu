@@ -10,6 +10,7 @@ import re
 
 import check_clock_preview as preview
 import check_runtime
+import monitor_workspaces
 import user_install
 import release_update
 import build_omasnap
@@ -149,6 +150,7 @@ def managed_snippet(data, *, manager):
 def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None):
     if not isinstance(version, str) or not user_install.VERSION.fullmatch(version):
         raise ValueError('Invalid release version')
+    monitor_policy = monitor_workspaces.verify(ROOT)
     files, profile = preview.verified_sources(ROOT)
     build, runtime, _ = check_runtime.verify_stage(ROOT, candidate)
     screenshot = build_omasnap.verify_stage(ROOT, screenshot_build) if screenshot_build is not None else None
@@ -199,6 +201,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
         # bundles ship no legacy artifact load.
         manager_bundle = plugin_build is None
         for name in ('hypr/omabuntu-managed.lua', 'hypr/hyprpaper.conf', 'hypr/session-template.lua.in', 'hypr/titlebars.lua.in',
+                     'hypr/monitor-workspaces.lua', 'hypr/monitor-workspace-bindings.lua',
                      'systemd/omabuntu-shell.service',
                      'systemd/omabuntu-shell-wait.py'):
             target = temporary / 'config' / name
@@ -243,6 +246,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
         font_pin = desktop_font.stage(ROOT, temporary, font_file) if font_file is not None else None
         (temporary / 'PROVENANCE.json').write_text(json.dumps({
             'omarchy': profile['source'], 'runtime_sources': source_lock,
+            'monitor_workspace_policy': monitor_policy,
             'profile_sha256': hashlib.sha256((ROOT / 'upstream/clock-preview.json').read_bytes()).hexdigest(),
             'runtime_alias_adaptation': 'bin/qs uses a relative quickshell target for relocation',
             'distribution': 'Local private installation only; no remote publication approval.',

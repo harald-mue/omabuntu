@@ -210,11 +210,11 @@ def format_binds(text, lua_rows=None, symbols=None):
         modmask, key = row["modmask"], _lookup_key(row)
         if not key and row["description"]:
             key = key_for_description.get((modmask, row["description"]), "")
-        if row["dispatcher"] == "__lua" and row["description"] and key:
+        if (row["dispatcher"] == "__lua" or row["dispatcher"].startswith("HL.Dispatcher(")) and row["description"] and key:
             found = described.get((modmask, row["description"], key))
             row["dispatcher"] = found["kind"] if found else ""
             row["arg"] = found["arg"] if found else ""
-        if not row["description"] and row["dispatcher"] in ("__lua", ""):
+        if not row["description"] and (row["dispatcher"] in ("__lua", "") or row["dispatcher"].startswith("HL.Dispatcher(")):
             found = by_key.get((modmask, key))
             if not found:
                 continue
@@ -377,6 +377,9 @@ local env = {
   hl = hl, ipairs = ipairs, pairs = pairs, type = type, tostring = tostring, tonumber = tonumber,
   select = select, next = next, pcall = pcall, error = error, assert = assert,
   string = string, table = table, math = math, _VERSION = _VERSION,
+  -- Factories are represented, never executed; no compositor or file IO.
+  omabuntu_workspaces = dsp_proxy("omabuntu_workspaces"),
+  require = function() return noop end,
 }
 env._G = env
 local chunk, load_error = load(user_source, "hyprland.lua", "t", env)
@@ -436,7 +439,28 @@ def load_source(path=None):
     data = selected.read_bytes()
     if len(data) > MAX_SOURCE:
         return ""
-    return data.decode("utf-8", "replace")
+    source = data.decode("utf-8", "replace")
+    # Expand only the reviewed local binding/session modules, never execute the
+    # allocation policy, arbitrary require paths, activation files or dofile.
+    for name in ("omabuntu-session", "omabuntu-workspace-bindings"):
+        pattern = re.compile(r'^([ \t]*)require\("' + re.escape(name) + r'"\)[ \t]*$', re.M)
+        if not pattern.search(source):
+            continue
+        module = selected.parent / (name + '.lua')
+        if module.is_symlink() or not module.is_file() or module.stat().st_size > MAX_SOURCE:
+            continue
+        content = module.read_text()
+        source = pattern.sub(lambda match: 'do\n' + content + '\nend', source)
+        if len(source) > MAX_SOURCE:
+            return ""
+    return source
+
+
+def monitor_expression(arg):
+    """Only the four source-derived monitor factories, with bounded arguments."""
+    return bool(re.fullmatch(
+        r'omabuntu_workspaces\.(?:focus\((?:[1-9]|10)\)|move_window\((?:[1-9]|10)(?:, false)?\)'
+        r'|(?:move_to_monitor|move_window_to_monitor)\("[lrud]"\))', str(arg)))
 
 
 def _accepted(result):
@@ -464,7 +488,7 @@ def issue(dispatcher, arg, run):
             return {"ok": True}
         return {"ok": False, "error": "failed"}
     if dispatcher == "lua":
-        if not str(arg).startswith("hl."):
+        if not str(arg).startswith("hl.") and not monitor_expression(arg):
             return {"ok": False, "error": "refused"}
         return {"ok": True} if _accepted(run(["hyprctl", "dispatch", arg])) else {"ok": False, "error": "failed"}
     if dispatcher == "sendshortcut":
@@ -515,7 +539,7 @@ def live_run(argv, timeout=8):
         raise CommandError("command")
     if argv[1] == "binds" and len(argv) != 2:
         raise CommandError("command")
-    if argv[1] == "dispatch" and (len(argv) == 2 or not (DISPATCHER_NAME.fullmatch(argv[2]) or argv[2].startswith("hl."))):
+    if argv[1] == "dispatch" and (len(argv) == 2 or not (DISPATCHER_NAME.fullmatch(argv[2]) or argv[2].startswith("hl.") or monitor_expression(argv[2]))):
         raise CommandError("command")
     kept = ("HOME", "USER", "XDG_RUNTIME_DIR", "HYPRLAND_INSTANCE_SIGNATURE", "WAYLAND_DISPLAY")
     env = {key: os.environ[key] for key in kept if key in os.environ}

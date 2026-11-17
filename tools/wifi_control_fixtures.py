@@ -37,7 +37,7 @@ QtObject {
   property int type: 1
   property string name: "wlan-fixture"
   property bool connected: false
-  property string address: "192.0.2.20"
+  property string address: "02:00:00:00:00:01"
   property bool scannerEnabled: false
   property var networks: ({ values: [] })
   function disconnect() { throw new Error("device disconnect is not a network action"); }

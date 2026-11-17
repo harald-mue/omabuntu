@@ -27,6 +27,30 @@ System Qt and LayerShellQt remain Ubuntu dependencies, not copied from a
 private home directory. This build path does not authorize public binary
 publication or run an Omarchy installer.
 
+## Monitor-local workspace policy
+
+The unchanged `vendor/omarchy/default/hypr/monitor-workspaces.lua` and
+`bindings/tiling.lua` are from Omarchy v4.5.0 stable commit
+`ac2690cd7be4f47e4a255f5e2e78d904d436b068`, David Heinemeier Hansson, MIT.
+They share the complete notice preserved in `licenses/Omarchy-MIT.txt` and
+`vendor/omarchy/LICENSE`. Source URLs, sizes and byte/Git blob hashes are in
+`upstream/monitor-workspaces.json`. The generated standalone policy and original
+bar-layout adaptation use the existing Ubuntu layout backend and Omabuntu state
+namespace; they import no bootstrap, provisioning or upstream helper PATH.
+See `docs/monitor-local-workspaces.md` for the candidate's deployment boundaries.
+
+## Network destination surfaces
+
+The original Wi-Fi QR and Network speed-test panel parents, plus
+`Ui/OverlayWindow.qml` and `Ui/SpeedTestOverlay.qml`, originate from Omarchy
+v4.5.0 stable commit `ac2690cd7be4f47e4a255f5e2e78d904d436b068` (David
+Heinemeier Hansson, MIT). Their complete root notice matches the preserved
+`licenses/Omarchy-MIT.txt` and `vendor/omarchy/LICENSE`. Exact public URLs,
+unchanged source hashes/Git blob identities and staged derivations are recorded
+in `upstream/clock-preview.json`; see `tools/network_destinations.py` and
+`docs/network-original-surface.md` for the narrow Ubuntu adaptations/exclusions.
+No QR images, credentials or measurement results are bundled.
+
 ## Weather panel
 
 `vendor/omarchy/shell/plugins/panels/weather/` originates from Omarchy commit

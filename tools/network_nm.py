@@ -7,6 +7,7 @@ the passphrase. There is no sudo, no global DNS file, and no Omarchy helper.
 """
 import ipaddress
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -20,7 +21,7 @@ class CommandError(Exception):
         self.token = token
 
 
-TOOLS = {"nmcli", "ip", "iw", "curl"}
+TOOLS = {"nmcli", "ip", "iw", "curl", "wl-copy"}
 UUID = __import__("re").compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 PROVIDERS = {
@@ -309,8 +310,15 @@ def change_profile(run, uuid, up):
     return {"ok": True}
 
 
-def qr(run):
+def qr(run, requested_iface=""):
     device = connected_wifi(run)
+    if requested_iface:
+        if not valid_iface(requested_iface):
+            raise CommandError("interface")
+        # Never share a different interface under the caller's title.
+        text = optional(run, ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device", "status"])
+        device = requested_iface if any(parse_terse(line)[:3] == [requested_iface, "wifi", "connected"]
+                                        for line in text.splitlines()) else ""
     uuid = device_uuid(run, device)
     if not UUID.match(uuid or ""):
         raise CommandError("no-wifi")
@@ -325,7 +333,16 @@ def qr(run):
         if not psk:
             raise CommandError("no-secret")
     try:
-        return matrix_for(wifi_payload(ssid, mgmt, psk))
+        matrix = matrix_for(wifi_payload(ssid, mgmt, psk))
+        # The original white QR canvas expects a four-module quiet zone.
+        size, modules = matrix['size'], matrix['modules']
+        blank = '0' * (size + 8)
+        rows = [blank] * 4 + ['0000' + modules[i * size:(i + 1) * size] + '0000'
+                              for i in range(size)] + [blank] * 4
+        result = {'ok': True, 'size': size + 8, 'modules': ''.join(rows)}
+        if requested_iface:
+            result.update(iface=device, ssid=ssid, secured=bool(psk))
+        return result
     except CommandError:
         raise
     except Exception:
@@ -337,7 +354,7 @@ def megabits(value):
         rate = float(str(value).strip() or "nan")
     except ValueError:
         raise CommandError("unavailable") from None
-    if rate < 0 or rate != rate:
+    if rate < 0 or not math.isfinite(rate):
         raise CommandError("unavailable")
     return round(rate * 8 / 1_000_000, 1)
 
@@ -381,6 +398,97 @@ def active_ap_signal(run):
     return {"ok": True, "iface": device, "signal": strength}
 
 
+def valid_iface(value):
+    return isinstance(value, str) and bool(__import__('re').fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_.:-]{0,14}', value))
+
+
+def read_link_speed(iface):
+    # Linux exposes the negotiated Ethernet speed in Mbps. No write or ethtool.
+    if not valid_iface(iface):
+        return ''
+    try:
+        with (Path('/sys/class/net') / iface / 'speed').open() as stream:
+            value = int(stream.read(64).strip())
+        return value if 0 < value <= 1_000_000_000 else ''
+    except (OSError, ValueError):
+        return ''
+
+
+def read_link_counters(iface):
+    result = {}
+    if not valid_iface(iface):
+        return result
+    for name in ('rx_bytes', 'tx_bytes'):
+        try:
+            with (Path('/sys/class/net') / iface / 'statistics' / name).open() as stream:
+                value = int(stream.read(64).strip())
+            if 0 <= value < 2 ** 64:
+                result[name] = value
+        except (OSError, ValueError):
+            pass
+    return result
+
+
+def details(run, iface, speed_reader=read_link_speed, counter_reader=read_link_counters):
+    """Read one explicitly named interface; no probes, scans or route mutation."""
+    if not valid_iface(iface):
+        raise CommandError('interface')
+    raw = capture(run, ['ip', '-j', '-s', 'address', 'show', 'dev', iface], 5)
+    if len(raw.encode()) > 1_048_576:
+        raise CommandError('details')
+    try:
+        rows = json.loads(raw)
+        if not isinstance(rows, list) or len(rows) != 1 or rows[0].get('ifname') != iface:
+            raise ValueError()
+        row = rows[0]
+        addresses = row.get('addr_info', [])
+        candidates = [a for a in addresses if a.get('scope') == 'global']
+        candidates.sort(key=lambda a: a.get('family') != 'inet')
+        address = str(ipaddress.ip_address(candidates[0]['local'])) if candidates else ''
+        result = {'iface': iface, 'ip': address}
+        stats = row.get('stats64', row.get('stats', {}))
+        for direction, name in [('rx', 'rx_bytes'), ('tx', 'tx_bytes')]:
+            value = stats.get(direction, {}).get('bytes')
+            if type(value) is int and 0 <= value < 2 ** 64:
+                result[name] = value
+    except (ValueError, TypeError, KeyError, AttributeError):
+        raise CommandError('details') from None
+    if 'rx_bytes' not in result or 'tx_bytes' not in result:
+        # Some iproute2 versions omit link statistics from address output.
+        for key, value in counter_reader(iface).items():
+            if key in ('rx_bytes', 'tx_bytes') and key not in result and type(value) is int and 0 <= value < 2 ** 64:
+                result[key] = value
+    gateway = optional(run, ['nmcli', '-g', 'IP4.GATEWAY,IP6.GATEWAY', 'device', 'show', iface], 5)
+    result['gateway'] = ''
+    for line in gateway.splitlines():
+        try:
+            result['gateway'] = str(ipaddress.ip_address(line.strip().replace(r'\:', ':')))
+            break
+        except ValueError:
+            continue
+    speed = speed_reader(iface)
+    if type(speed) is int and speed > 0:
+        result['speed'] = speed
+    missing = [key for key in ('ip', 'gateway', 'rx_bytes', 'tx_bytes', 'speed') if key not in result or result[key] == '']
+    return {'ok': True, 'details': result, 'missing': missing}
+
+
+def speed_phase(run, phase):
+    if phase not in ('down', 'up'):
+        raise CommandError('usage')
+    if phase == 'down':
+        raw = capture(run, ['curl', '-fsS', '--proto', '=https', '--max-time', '8',
+                           '-o', '/dev/null', '-w', '%{speed_download}', DOWN_URL], 12)
+    else:
+        with tempfile.NamedTemporaryFile(prefix='omabuntu-speed-') as body:
+            body.write(bytes(512 * 1024))
+            body.flush()
+            raw = capture(run, ['curl', '-fsS', '--proto', '=https', '--max-time', '8',
+                               '-o', '/dev/null', '-w', '%{speed_upload}', '-X', 'POST',
+                               '--data-binary', '@' + body.name, UP_URL], 12)
+    return {'ok': True, 'phase': phase, 'value': megabits(raw)}
+
+
 def status(run):
     uuid = active_uuid(run)
     band = band_status(run)
@@ -392,7 +500,18 @@ def status(run):
 def dispatch(argv, run):
     command = argv[1] if len(argv) > 1 else ""
     try:
-        if command == "signal" and len(argv) == 2:
+        if command == "copy-address" and len(argv) == 3:
+            try:
+                address = str(ipaddress.ip_address(argv[2]))
+            except ValueError:
+                raise CommandError('address') from None
+            capture(run, ['wl-copy', '--', address], 5)
+            result = {'ok': True}
+        elif command == "details" and len(argv) == 3:
+            result = details(run, argv[2])
+        elif command == "speed-phase" and len(argv) == 3:
+            result = speed_phase(run, argv[2])
+        elif command == "signal" and len(argv) == 2:
             result = active_ap_signal(run)
         elif command == "status" and len(argv) == 2:
             result = status(run)
@@ -406,8 +525,8 @@ def dispatch(argv, run):
             result = change_profile(run, argv[2], True)
         elif command == "disconnect" and len(argv) == 3:
             result = change_profile(run, argv[2], False)
-        elif command == "qr" and len(argv) == 2:
-            result = qr(run)
+        elif command == "qr" and len(argv) in (2, 3):
+            result = qr(run, argv[2] if len(argv) == 3 else '')
         elif command == "speed" and len(argv) == 2:
             result = speed(run)
         else:
@@ -433,8 +552,71 @@ def live_run(argv, timeout):
     return completed.returncode, completed.stdout
 
 
+def measurement_runner():
+    """A dismissed speed overlay must stop its owned curl, not orphan traffic."""
+    import ctypes
+    import signal
+    launching = [False]
+    interrupted = [0]
+
+    def stop(signum, frame):
+        interrupted[0] = signum
+        if launching[0]:
+            return  # Finish recording child ownership before unwinding.
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        raise SystemExit(128 + signum)
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+    parent_pid = os.getpid()
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.prctl.argtypes = [ctypes.c_int, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong]
+
+    def die_with_parent():
+        # This helper is a standalone single-threaded Linux process, not Qt.
+        # Quickshell kills Process objects on teardown; curl must die then too.
+        if libc.prctl(1, int(signal.SIGKILL), 0, 0, 0) != 0:  # PR_SET_PDEATHSIG
+            os._exit(125)
+        if os.getppid() != parent_pid:
+            os._exit(143)
+
+    def run(argv, timeout):
+        binary = shutil.which('curl')
+        if not argv or argv[0] != 'curl' or not binary:
+            raise CommandError('missing')
+        child = None
+        try:
+            launching[0] = True
+            try:
+                child = subprocess.Popen([binary, *argv[1:]], stdout=subprocess.PIPE,
+                                         stderr=subprocess.DEVNULL, text=True,
+                                         start_new_session=True, preexec_fn=die_with_parent)
+            except OSError:
+                raise CommandError('missing') from None
+            finally:
+                launching[0] = False
+            if interrupted[0]:
+                stop(interrupted[0], None)
+            out, _ = child.communicate(timeout=timeout)
+            return child.returncode, out
+        except subprocess.TimeoutExpired:
+            raise CommandError('timeout') from None
+        finally:
+            launching[0] = False
+            if child is not None:
+                if child.poll() is None:
+                    try:
+                        os.killpg(child.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                child.wait(timeout=2)
+    return run
+
+
 def main(argv):
-    result = dispatch(argv, live_run)
+    runner = measurement_runner() if len(argv) > 1 and argv[1] == 'speed-phase' else live_run
+    result = dispatch(argv, runner)
     print(json.dumps(result), flush=True)
     return 0 if result.get("ok") else 1
 

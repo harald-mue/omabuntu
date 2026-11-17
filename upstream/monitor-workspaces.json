@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/omacom/omarchy",
+  "commit": "ac2690cd7be4f47e4a255f5e2e78d904d436b068",
+  "license": "MIT",
+  "sources": {
+    "vendor/omarchy/default/hypr/monitor-workspaces.lua": {
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/default/hypr/monitor-workspaces.lua",
+      "sha256": "fb5cab7ce9d60bc844e4d6675cf760cc709fc54d4981c1ffea1860e95d132ce0",
+      "git_blob_sha1": "75c8a4f24884895fecd1d19e9982e58f2ead6062",
+      "bytes": 22314
+    },
+    "vendor/omarchy/shell/plugins/bar/widgets/Workspaces.qml": {
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/bar/widgets/Workspaces.qml",
+      "sha256": "a320502697738957ad4e04ce68ce06cd9163e8b2fddccac72bc888224778d96d",
+      "git_blob_sha1": "d1892541bca9f74d60371264f1696de2dda31b4e",
+      "bytes": 9944
+    },
+    "vendor/omarchy/LICENSE": {
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/LICENSE",
+      "sha256": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+      "git_blob_sha1": "f12cfa766c55541c9d8e008e310c95a721e70a97",
+      "bytes": 1063
+    },
+    "vendor/omarchy/default/hypr/bindings/tiling.lua": {
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/default/hypr/bindings/tiling.lua",
+      "sha256": "fc8af843f3bee2a074ec3e5ccf2ef4f02775a0d485fe7473ed93523ca13ea5a6",
+      "git_blob_sha1": "5b13991acb8c82694358bdf6a7a3520c747afe9d",
+      "bytes": 8052
+    }
+  },
+  "adaptations": [
+    "Standalone Ubuntu namespace; no original bootstrap or helper PATH",
+    "Omabuntu state directory and saved-layout/minimized-tag renumber adapter",
+    "Atomic state-file replacement with explicit failures instead of truncation or silent write failure",
+    "Original bar presentation with existing Ubuntu layout backend and direct Lua IPC",
+    "Separate explicit deployment marker; no activation from import"
+  ]
+}

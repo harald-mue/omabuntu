@@ -72,7 +72,9 @@ No original Style, Color, translations service or shell startup is activated.
   already persists through Appearance. Plan 114 adds shared transactional
   calendar fields (week start, birth year, life expectancy and alternate format
   settings), without replacing the host's shared binding. This repair is in
-  source only, not deployed. Middle click does not change the system timezone.
+  the local installation following plan 117's backed-up bar-only restart;
+  native interactive persistence acceptance remains pending. Middle click does
+  not change the system timezone.
   There is no shell IPC and no calendar hotkey. The sealed offscreen label
   stays read-only and is not this popup.
 

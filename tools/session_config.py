@@ -72,7 +72,17 @@ def locations(home=None):
     return home, app, paths
 
 
-def render(root, app, keyboard, manual_lock, paths=None):
+GLOBAL_BINDINGS = '''for workspace = 1, 10 do
+  local key = "code:" .. tostring(workspace + 9)
+  bind("SUPER + " .. key, "Focus workspace " .. workspace, hl.dsp.focus({ workspace = workspace }))
+  bind("SUPER + SHIFT + " .. key, "Move to workspace " .. workspace,
+       hl.dsp.window.move({ workspace = workspace }))
+  bind("SUPER + SHIFT + ALT + " .. key, "Move silently to workspace " .. workspace,
+       hl.dsp.window.move({ workspace = workspace, follow = false }))
+end'''
+
+
+def render(root, app, keyboard, manual_lock, paths=None, monitor_local=False):
     path = root / 'config/hypr/session-template.lua.in'
     user_install.safe_parents(path.parent)
     if path.is_symlink() or not path.is_file() or path.stat().st_size > 32768:
@@ -88,6 +98,8 @@ def render(root, app, keyboard, manual_lock, paths=None):
                            str(current / 'helpers/omabuntu_hyprland_window_minimize.py')])
     lock_command = shlex.join([str(app.launcher), 'lock', '--apply'])
     replacements = {
+        '@WORKSPACE_BINDINGS@': (1, 'require("omabuntu-monitor-workspaces")\nrequire("omabuntu-workspace-bindings")'
+                                 if monitor_local else GLOBAL_BINDINGS),
         '@KEYBOARD_LAYOUT@': (1, json.dumps(keyboard, ensure_ascii=False)),
         '@SCREENSHOT_COMMAND@': (2, json.dumps(capture, ensure_ascii=False)),
         '@MINIMIZE_COMMAND@': (1, json.dumps(minimize, ensure_ascii=False)),
@@ -127,7 +139,8 @@ def adoptable(entry_text, managed_path, template):
     return sum(line.strip() == MANAGED_INCLUDE for line in lines) == 1 and all(line.strip() in allowed for line in lines)
 
 
-def plan(root=ROOT, home=None, keyboard=None, manual_lock=None, native=None, known_layouts=None, adopt_managed=False):
+def plan(root=ROOT, home=None, keyboard=None, manual_lock=None, native=None, known_layouts=None, adopt_managed=False,
+         monitor_local=None):
     bootstrap_sources.host_check()
     home, app, paths = locations(home)
     before = {name: state(path) for name, path in paths.items()}
@@ -198,11 +211,47 @@ def plan(root=ROOT, home=None, keyboard=None, manual_lock=None, native=None, kno
             if (name not in meta['files'] or not (release / name).is_file()
                     or (name == 'runtime/bin/omasnap' and not os.access(release / name, os.X_OK))):
                 blockers.append('Release lacks session helper/artifact: ' + name)
-    module = render(root, app, keyboard, manual_lock, paths)
+    monitor_local = (previous or {}).get('monitor_local', False) if monitor_local is None else monitor_local
+    if type(monitor_local) is not bool:
+        raise ValueError('Monitor-local workspace choice must be boolean')
+    if (previous or {}).get('monitor_local') and not monitor_local:
+        blockers.append('Disabling monitor-local policy needs an explicit saved-state/configuration migration')
+    extra_payload = {}
+    workspace_state = {}
+    if monitor_local:
+        for name in ('current/workspace-layouts.txt', 'monitor-workspaces', 'monitor-workspaces-merged'):
+            path = app.state / name
+            workspace_state[name] = state(path)
+            if (workspace_state[name]['existed'] and path.read_bytes().strip()
+                    and not (previous or {}).get('monitor_local')):
+                blockers.append('Existing workspace state requires explicit migration, not fresh-session opt-in')
+        required_workspace = ('config/hypr/monitor-workspaces.lua', 'config/hypr/monitor-workspace-bindings.lua',
+                              'shell/MonitorWorkspaces.qml')
+        if selected is None or any(name not in meta['files'] for name in required_workspace):
+            blockers.append('Release lacks the original monitor-local workspace artifacts')
+        else:
+            for name, filename, source in (
+                    ('workspace_policy', 'omabuntu-monitor-workspaces.lua', required_workspace[0]),
+                    ('workspace_bindings', 'omabuntu-workspace-bindings.lua', required_workspace[1])):
+                paths[name] = paths['entry'].with_name(filename)
+                before[name] = state(paths[name])
+                extra_payload[name] = (release / source).read_text()
+                owned = (previous or {}).get('workspace_sha256', {}).get(name)
+                if before[name]['existed'] and before[name]['sha256'] != owned:
+                    blockers.append('Workspace module is unowned or edited; preserving user configuration')
+            paths['workspace_marker'] = app.state / 'monitor-workspaces-policy'
+            before['workspace_marker'] = state(paths['workspace_marker'])
+            extra_payload['workspace_marker'] = 'monitor-local-v1\n'
+            if before['workspace_marker']['existed'] and (not (previous or {}).get('monitor_local')
+                    or before['workspace_marker']['sha256'] != hashlib.sha256(b'monitor-local-v1\n').hexdigest()):
+                blockers.append('An existing or edited workspace marker requires migration review')
+    module = render(root, app, keyboard, manual_lock, paths, monitor_local=monitor_local)
     receipt = {'schema_version': 1, 'helper_contract': 1, 'entry_path': str(paths['entry']), 'module_path': str(paths['module']),
                'module_sha256': hashlib.sha256(module.encode()).hexdigest(),
-               'keyboard_layout': keyboard, 'manual_lock': manual_lock}
-    payload = {'module': module, 'receipt': json.dumps(receipt, indent=2) + '\n'}
+               'keyboard_layout': keyboard, 'manual_lock': manual_lock, 'monitor_local': monitor_local,
+               'workspace_sha256': {name: hashlib.sha256(data.encode()).hexdigest()
+                                    for name, data in extra_payload.items() if name != 'workspace_marker'}}
+    payload = {'module': module, 'receipt': json.dumps(receipt, indent=2) + '\n', **extra_payload}
     if not before['entry']['existed'] or adopt:
         payload['entry'] = ENTRY
     changes = [name for name, data in payload.items()
@@ -211,7 +260,8 @@ def plan(root=ROOT, home=None, keyboard=None, manual_lock=None, native=None, kno
             'home': str(home), 'paths': {name: str(path) for name, path in paths.items()},
             'before': before, 'payload': payload, 'changes': changes, 'selected': selected,
             'release_digest': release_digest, 'native': native, 'keyboard_layout': keyboard,
-            'manual_lock': manual_lock, 'adopt_managed': bool(adopt_managed and adopt),
+            'manual_lock': manual_lock, 'monitor_local': monitor_local, 'workspace_state': workspace_state,
+            'adopt_managed': bool(adopt_managed and adopt),
             'blockers': blockers, 'status': 'blocked' if blockers else 'review-required'}
 
 
@@ -255,7 +305,7 @@ def apply(reviewed, approval, check_stopped=require_stopped):
     with os.fdopen(fd, 'w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fresh = plan(root, home, reviewed['keyboard_layout'], reviewed['manual_lock'],
-                     adopt_managed=reviewed.get('adopt_managed', False))
+                     adopt_managed=reviewed.get('adopt_managed', False), monitor_local=reviewed.get('monitor_local'))
         if fresh != reviewed:
             raise ValueError('Session inputs/configuration changed; review again')
         if not reviewed['changes']:

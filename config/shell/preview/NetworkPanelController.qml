@@ -30,13 +30,13 @@ Item {
   property string passwordText: ""
   property string identityText: ""
   property string dnsProvider: "DHCP"
-  property string pendingDnsProvider: ""
+  readonly property string pendingDnsProvider: pendingChoice("dns-set")
   readonly property string dnsEffective: pendingDnsProvider !== "" ? pendingDnsProvider : dnsProvider
   property bool customDnsOpen: false
   property string bandCurrent: ""
   property string bandSelected: "auto"
   property var bandAvailable: []
-  property string pendingBand: ""
+  readonly property string pendingBand: pendingChoice("band-set")
   property int bandIndex: 0
   property bool bandAutoFocused: true
   property int dnsIndex: 0
@@ -44,16 +44,26 @@ Item {
   property var vpnProfiles: []
   property int profileIndex: 0
   property int portalRequest: 0
-  property bool qrOpen: false
-  property int qrSize: 0
-  property string qrModules: ""
-  property bool speedOpen: false
-  property bool speedRunning: false
-  property string speedDown: ""
-  property string speedUp: ""
+  property bool profilesOpen: false
   property string serviceNote: ""
-  property string queuedKind: ""
-  property var queuedArgs: []
+  property var queue: []
+  property var inFlight: null
+  property bool finishing: false
+  property var connectionDetails: ({})
+  property var detailsMissing: []
+  property real prevRxBytes: 0
+  property real prevTxBytes: 0
+  property real prevSampleTime: 0
+  property string prevIface: ""
+  property real downloadRate: 0
+  property real uploadRate: 0
+  readonly property bool hasTransferStats: info.rx_bytes !== undefined && info.tx_bytes !== undefined
+  // External probes are not admitted: preserve the original unavailable cells.
+  readonly property bool hasInternetPing: false
+  readonly property real internetPingLatency: -1
+  readonly property int internetPingPacketLoss: 0
+  signal shareRequested(string iface, string ssid)
+  signal speedRequested(string connection)
 
   readonly property bool networkManagerAvailable: Networking.backend === NetworkBackendType.NetworkManager
   readonly property bool checksEnabled: Networking.canCheckConnectivity && Networking.connectivityCheckEnabled
@@ -80,21 +90,32 @@ Item {
   readonly property bool restricted: hasCaptivePortal || connectivity === "limited"
   readonly property string icon: networkManagerAvailable
     ? Model.connectionIcon(kind, signalStrength, connectivity) : "?"
+  readonly property string nativeIface: {
+    var device = kind === "ethernet" ? wiredDevice : (kind === "wifi" ? wifiDevice : null)
+    return device ? String(device.name || "") : ""
+  }
   readonly property var info: {
-    var device = wiredDevice && wiredDevice.connected ? wiredDevice
-      : (wifiDevice && wifiDevice.connected ? wifiDevice : null)
-    return {
-      type: kind === "ethernet" ? "ethernet" : (kind === "wifi" ? "wifi" : ""),
-      ssid: connectedWifiNetwork ? (connectedWifiNetwork.name || "") : "",
-      iface: device ? (device.name || "") : "",
-      ip: device && device.address ? String(device.address) : ""
-    }
+    if (pendingBand !== "" && nativeIface === "" && connectionDetails.iface) return connectionDetails
+    var values = connectionDetails.iface === nativeIface ? connectionDetails : {}
+    return Object.assign({}, values, {type: kind, iface: nativeIface,
+      ssid: connectedWifiNetwork ? String(connectedWifiNetwork.name || "") : ""})
+  }
+  onNativeIfaceChanged: Qt.callLater(root.resetDetails)
+  function resetDetails() {
+    if (pendingBand !== "" && nativeIface === "") return
+    connectionDetails = ({})
+    prevIface = ""
+    prevSampleTime = 0
+    downloadRate = 0
+    uploadRate = 0
+    resetActiveApSignal()
+    if (opened && nativeIface !== "") requestNm("details", [nativeIface])
   }
   readonly property bool canDisconnect: !!connectedWifiNetwork
   readonly property bool canShareWifi: kind === "wifi" && !!connectedWifiNetwork
     && !isEnterprise(connectedWifiNetwork.security)
   readonly property bool canRunSpeedTest: info.iface !== ""
-  readonly property bool canToggleWifi: networkManagerAvailable && Networking.wifiHardwareEnabled !== false
+  readonly property bool canToggleWifi: networkManagerAvailable && wifiStationAvailable
   readonly property int qrHeaderIndex: canShareWifi ? 0 : -1
   readonly property int speedHeaderIndex: canRunSpeedTest ? (canShareWifi ? 1 : 0) : -1
   readonly property int toggleHeaderIndex: canToggleWifi ? (canShareWifi ? 1 : 0) + (canRunSpeedTest ? 1 : 0) : -1
@@ -103,7 +124,11 @@ Item {
   readonly property bool speedHeaderHasCursor: speedHeaderIndex >= 0 && cursorActive && focusSection === "header" && headerIndex === speedHeaderIndex
   readonly property bool toggleHeaderHasCursor: toggleHeaderIndex >= 0 && cursorActive && focusSection === "header" && headerIndex === toggleHeaderIndex
   readonly property string toggleHint: I18n.t(Networking.wifiEnabled ? "network.turnWifiOff" : "network.turnWifiOn")
-  readonly property string connectionPhrase: I18n.t("network.connectedPhrase")
+  property int connectionPhraseIndex: 0
+  readonly property var connectionPhrases: [I18n.t("network.phrase1"), I18n.t("network.phrase2"),
+    I18n.t("network.phrase3"), I18n.t("network.phrase4"), I18n.t("network.phrase5"),
+    I18n.t("network.phrase6"), I18n.t("network.phrase7")]
+  readonly property string connectionPhrase: connectionPhrases[connectionPhraseIndex % connectionPhrases.length]
   readonly property bool busy: actionKind !== ""
   readonly property var dnsProviders: ["DHCP", "Cloudflare", "Google", "Custom"]
   readonly property string bandEffective: pendingBand !== "" ? pendingBand : bandSelected
@@ -138,6 +163,9 @@ Item {
     if (selectedIndex < 0 || selectedIndex >= wifiNetworks.length || !canForgetNetwork(wifiNetworks[selectedIndex]))
       wifiActionFocused = false
   }
+  onFocusSectionChanged: syncProfileCursor()
+  onEthernetProfilesChanged: syncProfileCursor()
+  onVpnProfilesChanged: syncProfileCursor()
   onDnsProviderChanged: syncDnsIndex()
   onBandSelectedChanged: syncBandIndex()
   onHasCaptivePortalChanged: {
@@ -168,12 +196,13 @@ Item {
       scanning = false
       cancelPasswordPrompt()
       setScannerEnabled(false)
-      qrOpen = false
-      qrModules = ""
-      qrSize = 0
-      speedOpen = false
+      profilesOpen = false
       customDnsOpen = false
       serviceNote = ""
+      prevSampleTime = 0
+      prevIface = ""
+      downloadRate = 0
+      uploadRate = 0
     }
   }
   Component.onCompleted: syncWifiNetworks()
@@ -184,7 +213,38 @@ Item {
   function switchPanel(direction) {
     return bar && typeof bar.switchPanelFrom === "function" ? bar.switchPanelFrom(root, direction) : false;
   }
-  function headerDetail() { return info.ip || "" }
+  function headerDetail() { return Model.headerDetail(info, I18n.formatNumber) }
+  function copyToClipboard(value) { if (value) requestNm("copy-address", [String(value)]) }
+  function formatBytes(value) { return Model.formatBytes(value, I18n.formatNumber) }
+  function formatRate(value) { return Model.formatRate(value, I18n.formatNumber) }
+  function formatPingLatency(value) { return Model.formatPingLatency(value, hasInternetPing, I18n.t, I18n.formatNumber) }
+  function formatPacketLoss(value) { return Model.formatPacketLoss(value, hasInternetPing, I18n.formatNumber) }
+  function applyDetails(payload) {
+    var next = payload.details
+    if (!next || next.iface !== nativeIface) return
+    connectionDetails = Object.assign({}, next, {type: kind, ssid: info.ssid || ""})
+    detailsMissing = payload.missing || []
+    if (typeof next.rx_bytes !== "number" || typeof next.tx_bytes !== "number") {
+      prevIface = ""
+      prevSampleTime = 0
+      downloadRate = 0
+      uploadRate = 0
+      return
+    }
+    var state = Model.throughputState({prevIface: prevIface, prevRxBytes: prevRxBytes,
+      prevTxBytes: prevTxBytes, prevSampleTime: prevSampleTime, downloadRate: downloadRate,
+      uploadRate: uploadRate}, next, Date.now() / 1000)
+    prevIface = state.prevIface
+    prevRxBytes = state.prevRxBytes
+    prevTxBytes = state.prevTxBytes
+    prevSampleTime = state.prevSampleTime
+    downloadRate = state.downloadRate
+    uploadRate = state.uploadRate
+  }
+  function toggleProfiles() {
+    profilesOpen = !profilesOpen
+    if (!profilesOpen && (focusSection === "ethernet" || focusSection === "vpn")) focusSection = "dns"
+  }
   function findDevice(type) {
     var devices = networkDevices || []
     var fallback = null
@@ -261,7 +321,10 @@ Item {
     }
     syncWifiNetworks()
     if (scanWifi && opened && wifiDevice) scanning = true
-    if (opened) requestNm("status", [])
+    if (opened) {
+      requestNm("status", [])
+      if (nativeIface !== "") requestNm("details", [nativeIface])
+    }
   }
   function networkHelper() {
     var value = Quickshell.env("OMABUNTU_NETWORK_HELPER")
@@ -270,73 +333,68 @@ Item {
     if (text.indexOf("/network_nm.py") !== text.length - 14 || text.indexOf(" ") !== -1) return ""
     return text
   }
+  function pendingChoice(kind) {
+    var value = ""
+    var requests = (inFlight ? [inFlight] : []).concat(queue || [])
+    for (var i = 0; i < requests.length; i++)
+      if (requests[i].kind === kind) value = requests[i].args[0]
+    return value
+  }
   function requestNm(kind, args) {
-    var helper = networkHelper()
-    if (helper === "") return false
-    if (nmProc.running) {
-      if (kind !== "status" && kind !== "signal") { queuedKind = kind; queuedArgs = args || [] }
-      return false
-    }
-    var command = ["python3", helper, kind]
-    var extra = args || []
-    for (var i = 0; i < extra.length; i++) command.push(String(extra[i]))
-    nmProc.requestKind = kind
-    nmProc.signalGeneration = signalGeneration
-    nmProc.exec(command)
+    if (["status", "signal", "details", "dns-set", "band-set", "connect", "disconnect", "copy-address"].indexOf(kind) < 0) return false
+    if (networkHelper() === "") { serviceNote = I18n.t("network.helperUnavailable"); return false }
+    var read = kind === "status" || kind === "signal" || kind === "details"
+    var next = queue.filter(function(item) {
+      if (item.kind !== kind) return true
+      // Read refreshes and absolute DNS/band edits coalesce; profile actions do not.
+      return !read && kind !== "dns-set" && kind !== "band-set"
+    })
+    if (next.length >= 64) { serviceNote = I18n.t("network.actionFailed"); return false }
+    var item = {kind: kind, args: (args || []).slice(), generation: signalGeneration}
+    if (read) queue = next.concat([item])
+    else queue = next.filter(function(old) { return ["status", "signal", "details"].indexOf(old.kind) < 0 })
+      .concat([item], next.filter(function(old) { return ["status", "signal", "details"].indexOf(old.kind) >= 0 }))
+    pumpNm()
     return true
   }
+  function pumpNm() {
+    if (finishing || nmProc.running || !queue.length) return
+    inFlight = queue[0]
+    queue = queue.slice(1)
+    nmProc.requestKind = inFlight.kind
+    nmProc.signalGeneration = inFlight.generation
+    nmProc.exec(["python3", networkHelper(), inFlight.kind].concat(inFlight.args))
+  }
   function finishNm(kind, code, text) {
+    finishing = true
+    var item = inFlight
     var payload = null
-    try { payload = JSON.parse(String(text || "").trim()) } catch (error) { payload = null }
-    var accepted = payload && payload.ok === true
-    if (kind === "signal" && accepted) {
-      applyActiveApSignal(payload, nmProc.signalGeneration)
-    } else if (kind === "status" && accepted) {
-      if (pendingDnsProvider === "") dnsProvider = String(payload.dns || "DHCP")
-      if (pendingBand === "") {
+    try { payload = JSON.parse(String(text || "").trim()) } catch (error) {}
+    var accepted = code === 0 && payload && payload.ok === true
+    if (item && item.kind === kind) {
+      if (kind === "signal" && accepted) applyActiveApSignal(payload, item.generation)
+      else if (kind === "details" && accepted) {
+        if (item.generation === signalGeneration && item.args[0] === nativeIface) applyDetails(payload)
+      } else if (kind === "status" && accepted) {
+        dnsProvider = String(payload.dns || "DHCP")
         bandCurrent = String(payload.band || "")
         bandSelected = String(payload.selected || "auto")
         bandAvailable = payload.available || []
+        ethernetProfiles = payload.ethernet || []
+        vpnProfiles = payload.vpn || []
+      } else if (kind === "dns-set" && accepted) dnsProvider = item.args[0]
+      else if (kind === "band-set" && accepted) bandSelected = item.args[0]
+      if (!accepted) {
+        serviceNote = I18n.t("network.actionFailed")
+        console.warn("OMABUNTU_NETWORK_REQUEST_FAILED", kind)
       }
-      ethernetProfiles = payload.ethernet || []
-      vpnProfiles = payload.vpn || []
-    } else if (kind === "dns-set") {
-      if (accepted && pendingDnsProvider !== "") dnsProvider = pendingDnsProvider
-      else if (!accepted) serviceNote = I18n.t("network.actionFailed")
-      pendingDnsProvider = ""
-    } else if (kind === "band-set") {
-      if (accepted) bandSelected = pendingBand
-      else serviceNote = I18n.t("network.actionFailed")
-      pendingBand = ""
-    } else if (kind === "qr") {
-      var modules = accepted ? String(payload.modules || "") : ""
-      var size = accepted ? Number(payload.size || 0) : 0
-      if (accepted && size >= 21 && size <= 80 && modules.length === size * size && /^[01]+$/.test(modules)) {
-        qrSize = size
-        qrModules = modules
-      } else {
-        qrOpen = false
-        qrModules = ""
-        qrSize = 0
-        serviceNote = I18n.t("network.qrFailed")
-      }
-    } else if (kind === "speed") {
-      speedRunning = false
-      if (accepted && speedOpen) {
-        speedDown = String(payload.down)
-        speedUp = String(payload.up)
-      } else if (speedOpen) serviceNote = I18n.t("network.speedFailed")
-    } else if ((kind === "connect" || kind === "disconnect") && !accepted) {
-      serviceNote = I18n.t("network.actionFailed")
     }
-    if (kind !== "status" && kind !== "signal" && kind !== "qr" && kind !== "speed" && opened) requestNm("status", [])
-    if (queuedKind !== "" && !nmProc.running) {
-      var next = queuedKind
-      var nextArgs = queuedArgs
-      queuedKind = ""
-      queuedArgs = []
-      requestNm(next, nextArgs)
-    }
+    inFlight = null
+    // Never launch a poll reentrantly before a waiting user mutation.
+    if (item && ["dns-set", "band-set", "connect", "disconnect"].indexOf(kind) >= 0 && opened)
+      requestNm("status", [])
+    finishing = false
+    Qt.callLater(root.pumpNm)
   }
   function requiresCredentials(security) {
     return Model.requiresCredentials(security, WifiSecurityType.Open, WifiSecurityType.Owe)
@@ -397,6 +455,30 @@ Item {
     if (bandCurrent === "") return
     setBand(bandCurrent)
   }
+  function syncProfileCursor() {
+    if (focusSection !== "ethernet" && focusSection !== "vpn") return
+    var rows = (focusSection === "vpn" ? vpnProfiles : ethernetProfiles) || []
+    if (!profilesOpen || !rows.length) { focusSection = "dns"; profileIndex = 0; return }
+    profileIndex = Math.max(0, Math.min(rows.length - 1, profileIndex))
+  }
+  function moveProfileCursor(delta) {
+    if (!profilesOpen) { focusSection = "dns"; return }
+    var rows = focusSection === "vpn" ? vpnProfiles : ethernetProfiles
+    var next = profileIndex + delta
+    if (next >= 0 && next < rows.length) { profileIndex = next; return }
+    if (delta < 0) {
+      if (focusSection === "vpn" && ethernetProfiles.length) {
+        focusSection = "ethernet"
+        profileIndex = ethernetProfiles.length - 1
+      } else focusSection = "dns"
+    } else if (focusSection === "ethernet" && vpnProfiles.length) {
+      focusSection = "vpn"
+      profileIndex = 0
+    } else if (wifiNetworks.length) {
+      focusSection = "wifi"
+      selectedIndex = 0
+    }
+  }
   function selectProfileByDelta(delta) {
     var rows = focusSection === "vpn" ? vpnProfiles : ethernetProfiles
     if (!rows || rows.length === 0) return
@@ -424,55 +506,35 @@ Item {
     portalRequest += 1
   }
   function summonWifiQr() {
-    if (!canShareWifi) return
-    qrOpen = true
-    speedOpen = false
-    serviceNote = ""
-    if (networkHelper() === "") { serviceNote = I18n.t("network.helperUnavailable"); return }
-    requestNm("qr", [])
+    if (!canShareWifi || !nativeIface) return
+    var iface = nativeIface
+    var ssid = info.ssid || "Wi-Fi"
+    close()
+    shareRequested(iface, ssid)
   }
   function summonSpeedTest() {
-    if (!canRunSpeedTest || speedRunning) return
-    speedOpen = true
-    qrOpen = false
-    qrModules = ""
-    speedDown = ""
-    speedUp = ""
-    serviceNote = ""
-    if (networkHelper() === "") { serviceNote = I18n.t("network.helperUnavailable"); return }
-    speedRunning = true
-    requestNm("speed", [])
+    if (!canRunSpeedTest) return
+    var name = kind === "wifi" ? info.ssid : I18n.t("network.ethernet")
+    close()
+    speedRequested(name)
   }
   function setBand(band) {
     if (band !== "auto" && band !== "2.4" && band !== "5" && band !== "6") return
-    pendingBand = band
     serviceNote = ""
-    if (networkHelper() === "") { pendingBand = ""; serviceNote = I18n.t("network.helperUnavailable"); return }
     requestNm("band-set", [band])
   }
   function setDns(provider) {
     if (provider === "Custom") { customDnsOpen = true; focusSection = "dns"; return }
     if (provider !== "DHCP" && provider !== "Cloudflare" && provider !== "Google") return
     customDnsOpen = false
-    pendingDnsProvider = provider
     serviceNote = ""
-    if (networkHelper() === "") {
-      pendingDnsProvider = ""
-      serviceNote = I18n.t("network.helperUnavailable")
-      return
-    }
     requestNm("dns-set", [provider])
-    close()
   }
   function applyCustomDns(text) {
     var value = String(text || "").replace(/\s+/g, "").trim()
     if (!/^[0-9a-fA-F:.,]+$/.test(value)) { serviceNote = I18n.t("network.actionFailed"); return }
-    pendingDnsProvider = "Custom"
     serviceNote = ""
-    if (networkHelper() === "" || !requestNm("dns-set", ["Custom", value])) {
-      if (networkHelper() === "") pendingDnsProvider = ""
-      return
-    }
+    if (!requestNm("dns-set", ["Custom", value])) return
     customDnsOpen = false
   }
   function openPasswordPrompt(ssid) {
@@ -573,7 +635,7 @@ Item {
     id: nmProc
     property string requestKind: ""
     property int signalGeneration: -1
-    stdout: StdioCollector { id: nmOut }
+    stdout: StdioCollector { id: nmOut; waitForEnd: true }
     onExited: function(code) { root.finishNm(requestKind, code, nmOut.text) }
   }
   Timer {
@@ -621,6 +683,12 @@ Item {
   Timer {
     id: detailsPoll
     interval: 1500
+    repeat: true
+    running: root.opened
+    onTriggered: if (root.nativeIface !== "") root.requestNm("details", [root.nativeIface])
+  }
+  Timer {
+    interval: 10000
     repeat: true
     running: root.opened
     onTriggered: root.requestNm("status", [])

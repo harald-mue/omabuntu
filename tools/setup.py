@@ -225,7 +225,7 @@ def local_release(args, parser):
 
 def session_stage(args):
     reviewed = session_config.plan(ROOT, keyboard=args.keyboard_layout, manual_lock=args.manual_lock,
-                                  adopt_managed=args.adopt_managed)
+                                  adopt_managed=args.adopt_managed, monitor_local=args.monitor_local_workspaces)
     digest = guided.digest(reviewed)
     if args.json:
         if not args.apply:
@@ -788,6 +788,8 @@ def main(argv=None):
     mode.add_argument('--packages', action='store_true', help='Plan bootstrap packages using local APT policy; --apply explicitly installs the additive-only transaction')
     parser.add_argument('--keyboard-layout', help='With --session-config: XKB layout list; default keeps the receipt choice or starts with us')
     parser.add_argument('--adopt-managed', action='store_true', help='With --session-config: replace only an untouched omabuntu-managed snippet')
+    parser.add_argument('--monitor-local-workspaces', action='store_true', default=None,
+                        help='With --session-config: opt into original Omarchy monitor-local workspaces')
     lock_choice = parser.add_mutually_exclusive_group()
     lock_choice.add_argument('--enable-manual-lock', dest='manual_lock', action='store_true', default=None,
                              help='With --session-config: opt into the manual lock chord only after verifying authentication/recovery')
@@ -823,7 +825,8 @@ def main(argv=None):
     system = args.ppa or args.packages
     if args.migrate_native and (not args.update or args.bundle is None or args.allow_legacy_state):
         parser.error('--migrate-native requires --update --bundle and cannot adopt legacy/unversioned state')
-    if (args.keyboard_layout is not None or args.manual_lock is not None or args.adopt_managed) and not args.session_config:
+    if (args.keyboard_layout is not None or args.manual_lock is not None or args.adopt_managed
+            or args.monitor_local_workspaces is not None) and not args.session_config:
         parser.error('Keyboard/lock/adopt options require --session-config')
     if (args.enable_plugin_login or args.disable_plugin_login) and not args.session_activate:
         parser.error('Plugin login choices require --session-activate')

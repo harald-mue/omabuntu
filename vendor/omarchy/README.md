@@ -19,16 +19,29 @@ source/deployment boundary, dependency review and retained exclusions.
 - shell/Ui/WidgetButton.qml and shell/Ui/OpticalGlyph.qml: original presentation.
 - shell/plugins/bar/widgets/Spacer.qml: original geometry leaf.
 - shell/plugins/bar/widgets/Workspaces.qml: original workspace widget. The
-  staged switcher keeps its glyphs and click-to-cycle rule. The Omarchy layout
-  scripts are not staged.
+  legacy staged switcher keeps its glyphs and click-to-cycle rule; the opt-in
+  monitor-local candidate retains the original grid, slots and guest layout.
+  The Omarchy layout scripts are not staged.
+- default/hypr/monitor-workspaces.lua and bindings/tiling.lua: unchanged original
+  monitor allocation/reconciliation policy and binding reference. A standalone
+  Ubuntu candidate is derived with namespace/state adapters, not auto-loaded.
+  Provenance: `upstream/monitor-workspaces.json`; boundaries and pending migration:
+  `docs/monitor-local-workspaces.md`.
 - bin/omarchy-hyprland-workspace-layout-toggle: reference for the cycle order
   only. It is not executable from the bar and is not staged.
 - shell/plugins/bar/widgets/Tray.qml and TrayModel.js: complete original tray.
 - shell/plugins/panels/network/Model.js: unchanged network presentation model;
   its dormant command strings and portal URL are not used by this port.
 - shell/plugins/panels/network/Panel.qml: unchanged parent for the generated
-  connection frontend. DNS, band, helpers, QR, speed tests and new 802.1X
-  profile creation are not staged.
+  connection frontend, including the original details grid and phrase animation.
+  DNS/band/profile actions use a narrow Ubuntu backend; original helper commands
+  and new 802.1X profile creation remain excluded.
+- shell/plugins/panels/{wifiqr,speedtest}/Panel.qml and
+  shell/Ui/{OverlayWindow,SpeedTestOverlay}.qml: original standalone QR scrim and
+  speed gauge-cluster parents. Plan 116 derives OnDemand-focus surfaces and
+  Ubuntu matrix/measurement adapters, without plaintext password reveal or
+  original helper execution. These files' complete MIT root notice was compared
+  before import; URLs, Git blobs and hashes are in `upstream/clock-preview.json`.
 - shell/Ui/PanelActionButton.qml and shell/Ui/TextField.qml: original row
   action and passphrase field used by that frontend.
 - shell/Ui/PopupCard.qml, BarIconButton.qml, BarIconContent.qml,
@@ -62,6 +75,7 @@ are removed. Offsets use the read-only tools/elsewhen_probe.py.
 
 The deterministic derivations are recorded in upstream/clock-preview.json and
 implemented in tools/audio_frontend.py, tools/network_frontend.py,
+tools/network_destinations.py,
 tools/desktop_frontends.py, tools/workspace_modes.py and tools/elsewhen_frontend.py. See
 [desktop panel boundaries](../../docs/desktop-panels.md) for backend adaptations
 and excluded features. A generated mirror is not an independently

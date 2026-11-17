@@ -1,4 +1,4 @@
-"""Original-panel navigation plus the Ubuntu profile, QR and speed sections."""
+"""Original-panel navigation and explicitly expanded Ubuntu profile controls."""
 
 
 def navigation(text):
@@ -29,22 +29,13 @@ def navigation(text):
         "              if (root.selectedIndex < 0) root.selectedIndex = 0\n"
         "            }\n"
         "          } else if (root.focusSection === \"ethernet\" || root.focusSection === \"vpn\") {\n"
-        "            if (dy < 0) {\n"
-        "              if (root.focusSection === \"vpn\" && root.ethernetProfiles.length > 0) root.focusSection = \"ethernet\"\n"
-        "              else root.focusSection = \"dns\"\n"
-        "            } else if (root.focusSection === \"ethernet\" && root.vpnProfiles.length > 0) {\n"
-        "              root.focusSection = \"vpn\"\n"
-        "              root.profileIndex = 0\n"
-        "            } else if (root.wifiNetworks.length > 0) {\n"
-        "              root.focusSection = \"wifi\"\n"
-        "              if (root.selectedIndex < 0) root.selectedIndex = 0\n"
-        "            }\n"
+        "            root.moveProfileCursor(dy)\n"
         "          } else {  // wifi\n"
         "            // k from the top row escapes back up to the DNS row rather than\n"
         "            // wrapping around to the bottom of the list.\n"
         "            if (dy < 0 && root.selectedIndex <= 0) {\n"
-        "              if (root.vpnProfiles.length > 0) root.focusSection = \"vpn\"\n"
-        "              else if (root.ethernetProfiles.length > 0) root.focusSection = \"ethernet\"\n"
+        "              if (root.vpnProfiles.length > 0) { root.focusSection = \"vpn\"; root.profileIndex = root.vpnProfiles.length - 1 }\n"
+        "              else if (root.ethernetProfiles.length > 0) { root.focusSection = \"ethernet\"; root.profileIndex = root.ethernetProfiles.length - 1 }\n"
         "              else root.focusSection = \"dns\"\n"
         "              root.wifiActionFocused = false\n"
         "            }\n"
@@ -55,6 +46,10 @@ def navigation(text):
         "          else if (root.focusSection === \"wifi\") root.selectWifiActionByDelta(dx)\n",
         "          else if (root.focusSection === \"ethernet\" || root.focusSection === \"vpn\") root.selectProfileByDelta(dx)\n"
         "          else if (root.focusSection === \"wifi\") root.selectWifiActionByDelta(dx)\n")
+    keys = keys.replace("root.ethernetProfiles.length > 0", "(root.profilesOpen && root.ethernetProfiles.length > 0)")
+    keys = keys.replace("root.vpnProfiles.length > 0", "(root.profilesOpen && root.vpnProfiles.length > 0)")
+    keys = replace(keys, 'else if (t === "w" || t === "W") root.toggleNetwork()',
+                   'else if (t === "w" || t === "W") root.toggleNetwork()\n        else if (t === "p" || t === "P") root.toggleProfiles()')
     return replace(
         keys,
         "          else root.activateSelected()\n",
@@ -64,129 +59,92 @@ def navigation(text):
 
 
 def profile_section(kind, title_key, empty_key):
-    return (
-        "      Column {\n"
-        "        width: parent.width\n"
-        "        spacing: Style.space(6)\n"
-        "        PanelSectionHeader {\n"
-        "          text: Commons.I18n.t(\"%s\")\n"
-        "          foreground: root.bar.foreground\n"
-        "          fontFamily: root.bar.fontFamily\n"
-        "        }\n"
-        "        Repeater {\n"
-        "          model: root.%sProfiles\n"
-        "          delegate: Button {\n"
-        "            required property var modelData\n"
-        "            required property int index\n"
-        "            width: parent.width\n"
-        "            text: modelData.name\n"
-        "            foreground: root.bar.foreground\n"
-        "            fontFamily: root.bar.fontFamily\n"
-        "            bordered: true\n"
-        "            active: !!modelData.active\n"
-        "            hasCursor: root.cursorActive && root.focusSection === \"%s\" && root.profileIndex === index\n"
-        "            onHovered: function(on) {\n"
-        "              if (!on) return\n"
-        "              root.cursorActive = true\n"
-        "              root.focusSection = \"%s\"\n"
-        "              root.profileIndex = index\n"
-        "            }\n"
-        "            onClicked: root.toggleProfile(modelData.uuid, !!modelData.active)\n"
-        "          }\n"
-        "        }\n"
-        "        Text {\n"
-        "          visible: root.%sProfiles.length === 0\n"
-        "          width: parent.width\n"
-        "          text: Commons.I18n.t(\"%s\")\n"
-        "          textFormat: Text.PlainText\n"
-        "          color: root.bar.foreground\n"
-        "          opacity: 0.7\n"
-        "          font.family: root.bar.fontFamily\n"
-        "          font.pixelSize: Style.font.bodySmall\n"
-        "        }\n"
-        "      }\n"
-    ) % (title_key, kind, kind, kind, kind, empty_key)
+    # This is a secondary Ubuntu extension, never an original-panel replacement.
+    return '''
+      Column {
+        visible: root.profilesOpen && root.__KIND__Profiles.length > 0
+        width: parent.width
+        spacing: Style.space(6)
+        PanelSectionHeader {
+          text: Commons.I18n.t("__TITLE__")
+          foreground: root.bar.foreground
+          fontFamily: root.bar.fontFamily
+        }
+        ListView {
+          id: __KIND__ProfilesList
+          width: parent.width
+          height: Math.min(contentHeight, Style.space(144))
+          model: root.__KIND__Profiles
+          clip: true
+          boundsBehavior: Flickable.StopAtBounds
+          currentIndex: root.focusSection === "__KIND__" ? root.profileIndex : -1
+          onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
+          delegate: Button {
+            required property var modelData
+            required property int index
+            width: ListView.view.width
+            text: modelData.name
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+            bordered: true
+            active: !!modelData.active
+            hasCursor: root.cursorActive && root.focusSection === "__KIND__" && root.profileIndex === index
+            onHovered: function(on) {
+              if (!on) return
+              root.cursorActive = true
+              root.focusSection = "__KIND__"
+              root.profileIndex = index
+            }
+            onClicked: root.toggleProfile(modelData.uuid, !!modelData.active)
+          }
+        }
+      }
+'''.replace("__KIND__", kind).replace("__TITLE__", title_key)
 
 
 def local_sections():
-    return (
-        "      Column {\n"
-        "        visible: root.customDnsOpen\n"
-        "        width: parent.width\n"
-        "        spacing: Style.space(6)\n"
-        "        TextField {\n"
-        "          id: customDnsField\n"
-        "          width: parent.width\n"
-        "          placeholderText: Commons.I18n.t(\"network.customDnsPlaceholder\")\n"
-        "          foreground: root.bar.foreground\n"
-        "          font.family: root.bar.fontFamily\n"
-        "          onAccepted: root.applyCustomDns(text)\n"
-        "        }\n"
-        "        Button {\n"
-        "          width: parent.width\n"
-        "          text: Commons.I18n.t(\"network.setCustomDns\")\n"
-        "          foreground: root.bar.foreground\n"
-        "          fontFamily: root.bar.fontFamily\n"
-        "          bordered: true\n"
-        "          onClicked: root.applyCustomDns(customDnsField.text)\n"
-        "        }\n"
-        "      }\n"
-        + profile_section("ethernet", "network.ethernetProfiles", "network.noEthernetProfiles")
-        + profile_section("vpn", "network.vpnProfiles", "network.noVpnProfiles")
-        + "      Column {\n"
-        "        visible: root.qrOpen && root.qrSize > 0\n"
-        "        width: parent.width\n"
-        "        spacing: Style.space(6)\n"
-        "        PanelSectionHeader {\n"
-        "          text: Commons.I18n.t(\"network.showQrCode\")\n"
-        "          foreground: root.bar.foreground\n"
-        "          fontFamily: root.bar.fontFamily\n"
-        "        }\n"
-        "        Grid {\n"
-        "          columns: root.qrSize\n"
-        "          Repeater {\n"
-        "            model: root.qrModules.length\n"
-        "            delegate: Rectangle {\n"
-        "              required property int index\n"
-        "              width: 4\n"
-        "              height: 4\n"
-        "              color: root.qrModules.charAt(index) === \"1\" ? root.bar.foreground : \"transparent\"\n"
-        "            }\n"
-        "          }\n"
-        "        }\n"
-        "      }\n"
-        "      Column {\n"
-        "        visible: root.speedOpen\n"
-        "        width: parent.width\n"
-        "        spacing: Style.space(6)\n"
-        "        PanelSectionHeader {\n"
-        "          text: Commons.I18n.t(\"network.runSpeedTest\")\n"
-        "          foreground: root.bar.foreground\n"
-        "          fontFamily: root.bar.fontFamily\n"
-        "        }\n"
-        "        Text {\n"
-        "          text: Commons.I18n.t(\"network.speedDown\") + \" \" + (root.speedDown || \"--\")\n"
-        "          textFormat: Text.PlainText\n"
-        "          color: root.bar.foreground\n"
-        "          font.family: root.bar.fontFamily\n"
-        "          font.pixelSize: Style.font.bodySmall\n"
-        "        }\n"
-        "        Text {\n"
-        "          text: Commons.I18n.t(\"network.speedUp\") + \" \" + (root.speedUp || \"--\")\n"
-        "          textFormat: Text.PlainText\n"
-        "          color: root.bar.foreground\n"
-        "          font.family: root.bar.fontFamily\n"
-        "          font.pixelSize: Style.font.bodySmall\n"
-        "        }\n"
-        "      }\n"
-        "      Text {\n"
-        "        visible: root.serviceNote !== \"\"\n"
-        "        width: parent.width\n"
-        "        text: root.serviceNote\n"
-        "        textFormat: Text.PlainText\n"
-        "        wrapMode: Text.WordWrap\n"
-        "        color: root.bar.foreground\n"
-        "        font.family: root.bar.fontFamily\n"
-        "        font.pixelSize: Style.font.bodySmall\n"
-        "      }\n"
-    )
+    return '''
+      Column {
+        visible: root.customDnsOpen
+        width: parent.width
+        spacing: Style.space(6)
+        TextField {
+          id: customDnsField
+          width: parent.width
+          placeholderText: Commons.I18n.t("network.customDnsPlaceholder")
+          foreground: root.bar.foreground
+          font.family: root.bar.fontFamily
+          onAccepted: root.applyCustomDns(text)
+          Keys.onEscapePressed: function(event) { root.customDnsOpen = false; event.accepted = true }
+        }
+        Button {
+          width: parent.width
+          text: Commons.I18n.t("network.setCustomDns")
+          foreground: root.bar.foreground
+          fontFamily: root.bar.fontFamily
+          bordered: true
+          onClicked: root.applyCustomDns(customDnsField.text)
+        }
+      }
+      Button {
+        visible: root.ethernetProfiles.length + root.vpnProfiles.length > 0
+        width: parent.width
+        text: Commons.I18n.t("network.savedProfiles") + (root.profilesOpen ? " −" : " +")
+        tooltipText: Commons.I18n.t("network.savedProfilesHint")
+        foreground: root.bar.foreground
+        fontFamily: root.bar.fontFamily
+        bordered: true
+        onClicked: root.toggleProfiles()
+      }
+''' + profile_section("ethernet", "network.ethernetProfiles", "network.noEthernetProfiles") + profile_section("vpn", "network.vpnProfiles", "network.noVpnProfiles") + '''
+      Text {
+        visible: root.serviceNote !== ""
+        width: parent.width
+        text: root.serviceNote
+        textFormat: Text.PlainText
+        wrapMode: Text.WordWrap
+        color: root.bar.foreground
+        font.family: root.bar.fontFamily
+        font.pixelSize: Style.font.bodySmall
+      }
+'''

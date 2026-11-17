@@ -33,6 +33,33 @@ def contract():
     return {'user_state_schema': 1, 'native_target': dict(spec['target'])}
 
 
+def workspace_contract(installation, meta):
+    """Do not replace an active local-workspace bar with a global-only release."""
+    marker = installation.state / 'monitor-workspaces-policy'
+    user_install.safe_parents(marker.parent)
+    marker_hash = None
+    if marker.exists() or marker.is_symlink():
+        if (marker.is_symlink() or not marker.is_file() or marker.stat().st_size > 128
+                or marker.read_text().strip() != 'monitor-local-v1'):
+            raise UpdateError('Workspace policy marker requires manual review')
+        required = ('config/hypr/monitor-workspaces.lua', 'config/hypr/monitor-workspace-bindings.lua',
+                    'shell/MonitorWorkspaces.qml', 'shell/LiveStatus.qml', 'shell/Commons/TrialDesktopState.qml')
+        if any(name not in meta['files'] for name in required):
+            raise UpdateError('Active monitor-local workspaces require a compatible release; roll back the workspace migration first')
+        marker_hash = hashlib.sha256(marker.read_bytes()).hexdigest()
+    parent = installation.state / 'workspace-transactions'
+    user_install.safe_parents(parent)
+    receipts = {}
+    for path in sorted(parent.glob('*/transaction.json')):
+        user_install.safe_parents(path.parent)
+        journal = user_install.read_json(path)
+        if (not isinstance(journal, dict) or journal.get('schema_version') != 1
+                or journal.get('status') not in ('completed', 'restored')):
+            raise UpdateError('An interrupted workspace migration requires recovery before a release switch')
+        receipts[path.parent.name] = guided.digest(journal)
+    return {'marker_sha256': marker_hash, 'journals': receipts}
+
+
 def validate_contract(meta):
     value = meta.get('update_contract')
     if (not isinstance(value, dict) or set(value) != {'user_state_schema', 'native_target'}
@@ -206,6 +233,7 @@ def review(installation, bundle=None, mode='install', restart=False, allow_legac
     bundle = user_install.safe_parents(Path(bundle).absolute())
     meta = user_install.verify_bundle(bundle)
     incoming = validate_contract(meta)
+    workspace_guard = workspace_contract(installation, meta)
     native_plugin = candidate_plugin(bundle)
     activation = installation.state / 'session-activation.json'
     if (native_plugin and native_plugin.get('manager') == 'hyprpm'
@@ -282,6 +310,7 @@ def review(installation, bundle=None, mode='install', restart=False, allow_legac
             'locations': {'root': str(installation.root), 'state': str(installation.state),
                           'launcher': str(installation.launcher)},
             'user_state_schema': incoming['user_state_schema'], 'schema_decision': schema,
+            'workspace_contract': workspace_guard,
             'session_config_digest': session_digest,
             'native_plugin': native_plugin, 'migrate_native': migrate_native, 'native_transition': transition,
             'scope': 'local-application-release-only'}

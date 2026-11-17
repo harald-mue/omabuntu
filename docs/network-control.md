@@ -2,6 +2,17 @@
 
 ## Scope
 
+**Current source status:** plan 116 restores the original connection grid,
+hero semantics, phrase transitions and standalone QR/speed destination layouts,
+with Ubuntu adapters and queue repairs. See [original-surface implementation](network-original-surface.md).
+These changes are locally deployed under plan 117 with a verified bar-only
+restart; native interactive acceptance remains pending.
+
+The [Network parity analysis](network-widget-parity-analysis.md) records the
+plan-115 baseline. The implementation record below predates those repairs:
+the details grid and original QR/speed destinations were absent then. Its
+historical pin/test counts and exclusions are not a current parity claim.
+
 The live network button is no longer the read-only status popup. It stages the
 original Omarchy connection surface: icon button, connection hero, station
 header and Wi-Fi list, including the original network row and inline passphrase

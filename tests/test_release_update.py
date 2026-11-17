@@ -64,6 +64,33 @@ class ReleaseUpdateTests(unittest.TestCase):
         self.assertFalse(self.app.state.exists())
         self.assertEqual(plan['scope'], 'local-application-release-only')
 
+    def test_active_monitor_policy_refuses_global_only_release(self):
+        self.app.state.mkdir(parents=True)
+        (self.app.state / 'monitor-workspaces-policy').write_text('monitor-local-v1\n')
+        with self.assertRaisesRegex(update.UpdateError, 'compatible release'):
+            self.review()
+        for name in ('config/hypr/monitor-workspaces.lua', 'config/hypr/monitor-workspace-bindings.lua',
+                     'shell/MonitorWorkspaces.qml', 'shell/LiveStatus.qml', 'shell/Commons/TrialDesktopState.qml'):
+            path = self.b / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('fixture compatible artifact')
+        meta = json.loads((self.b / 'release.json').read_text())
+        meta['files'] = user_install.file_manifest(self.b)
+        (self.b / 'release.json').write_text(json.dumps(meta))
+        self.assertIsNotNone(self.review()['workspace_contract']['marker_sha256'])
+        self.assertEqual(self.events, [])
+
+    def test_incomplete_workspace_transaction_blocks_release_switch(self):
+        parent = self.app.state / 'workspace-transactions/fixture'
+        parent.mkdir(parents=True)
+        record = parent / 'transaction.json'
+        record.write_text(json.dumps({'schema_version': 1, 'status': 'recovery-required'}))
+        with self.assertRaisesRegex(update.UpdateError, 'workspace migration requires recovery'):
+            self.review()
+        record.write_text(json.dumps({'schema_version': 1, 'status': 'restored'}))
+        self.assertIn('fixture', self.review()['workspace_contract']['journals'])
+        self.assertEqual(self.events, [])
+
     def test_bundled_activation_requires_explicit_hyprpm_migration(self):
         self.app.state.mkdir(parents=True)
         (self.app.state / 'session-activation.json').write_text(json.dumps({'library': '/immutable/old/hyprbars.so'}))

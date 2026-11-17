@@ -25,8 +25,11 @@ This is an implementation plan, not a functional acceptance record.
 | Updates/provisioning | Arch-specific management | Not a project capability | Do not expose these routes in menus or PATH | Excluded |
 
 Plan 114 adds calendar/tray shared persistence, dock/display queues and fixed
-keyboard panel navigation in source only. See [repair status](widget-preference-repairs.md)
-for tests, deployment boundaries and remaining native-policy deviations.
+keyboard panel navigation; plan 117 locally deployed these and the original
+Network surfaces with a backed-up, verified bar-only restart. See
+[repair status](widget-preference-repairs.md) and the
+[deployment record](network-original-surface.md#approved-local-deployment-plan-117)
+for tests and remaining native interactive/policy acceptance boundaries.
 
 Before applying any configuration: verify target backups, record path-by-path
 changes and rollback, and obtain application approval. Matching version/commit

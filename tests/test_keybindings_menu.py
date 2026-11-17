@@ -261,6 +261,35 @@ hl.bind("SUPER + 1", hl.dsp.focus({ workspace = 1 }))
             link.symlink_to(source)
             self.assertEqual(menu.load_source(link), "")
 
+    def test_monitor_local_includes_are_scanned_without_running_policy(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'work') as directory:
+            base = Path(directory)
+            source = base / 'hyprland.lua'
+            source.write_text('require("omabuntu-monitor-workspaces")\nrequire("omabuntu-workspace-bindings")\n')
+            (base / 'omabuntu-monitor-workspaces.lua').write_text('error("Policy must not execute in scanner")')
+            (base / 'omabuntu-workspace-bindings.lua').write_bytes((ROOT / 'config/hypr/monitor-workspace-bindings.lua').read_bytes())
+            rows = menu.scan_lua_source(menu.load_source(source))
+            self.assertEqual(len(rows), 45)
+            target = next(row for row in rows if row['description'] == 'Switch to workspace 3')
+            self.assertEqual(target['arg'], 'omabuntu_workspaces.focus(3)')
+            actual = bind(64, '', 'Switch to workspace 3', 'HL.Dispatcher(callback)', 'opaque', keycode='12')
+            output = menu.format_binds(actual, rows)
+            self.assertEqual(output[0]['dispatcher'], 'lua')
+            self.assertEqual(output[0]['arg'], target['arg'])
+            runner = Runner(actual)
+            self.assertTrue(menu.perform(['dispatch', 'lua', target['arg']], runner, menu.load_source(source))['ok'])
+            self.assertEqual(runner.calls[-1], ['hyprctl', 'dispatch', target['arg']])
+
+    def test_monitor_factory_dispatch_refuses_injection_and_unbounded_slots(self):
+        for expression in ('omabuntu_workspaces.focus(3)', 'omabuntu_workspaces.move_window(10, false)',
+                           'omabuntu_workspaces.move_to_monitor("l")'):
+            self.assertTrue(menu.monitor_expression(expression))
+        for expression in ('omabuntu_workspaces.focus(11)', 'omabuntu_workspaces.focus(0)',
+                           'omabuntu_workspaces.focus(3); os.execute("bad")',
+                           'omabuntu_workspaces.reconcile()', 'omabuntu_workspaces.focus(3, "DP-1")'):
+            self.assertFalse(menu.monitor_expression(expression))
+            self.assertEqual(menu.issue('lua', expression, lambda args: (0, 'ok'))['error'], 'refused')
+
     def test_surface_is_a_fixed_selector_without_a_closing_timer(self):
         text = (ROOT / "config/shell/preview/KeybindingsMenu.qml").read_text()
         shell = (ROOT / "config/shell/preview/TrialShell.qml").read_text()

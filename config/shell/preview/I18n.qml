@@ -3,13 +3,12 @@ import QtQml
 
 // Staged panel labels and the clock format locale follow the pinned Omarchy
 // English catalog. formatLocale is en-US, the English entry in locales.json.
-// No catalog file, watcher, or persistence. network.connectedPhrase is not a
-// catalog key: the original hero cycles network.phrase1 through phrase7, and
-// this slice keeps one static English label instead.
+// No catalog file, watcher, or persistence. Network uses the original seven
+// phrase keys; connectedPhrase remains only as a legacy fixture label.
 QtObject {
   readonly property string formatLocale: "en-US"
   readonly property bool rightToLeft: false
-  function formatNumber(value) { return String(value); }
+  function formatNumber(value, decimals) { return decimals === undefined ? String(value) : Number(value).toFixed(decimals); }
   function t(key, fallback) {
     var labels = {"weather.feels": "FEELS", "weather.humid": "HUMIDITY",
                   "weather.wind": "WIND", "weather.fetching": "Fetching weather…",
@@ -115,6 +114,36 @@ QtObject {
                   "audio.level.crankedUp": "Cranked up", "audio.level.steadyGroove": "Steady groove",
                   "audio.level.easyListening": "Easy listening", "audio.level.murmur": "Murmur",
                   "audio.level.whisper": "Whisper",
+                  "network.copyGateway": "Copy gateway",
+                  "network.copyIp": "Copy IP",
+                  "network.copyToClipboard": "Copy to clipboard",
+                  "network.downloaded": "Downloaded",
+                  "network.gateway": "Gateway",
+                  "network.ipAddress": "IP Address",
+                  "network.packetLoss": "Packet Loss",
+                  "network.phrase1": "Wiring bits",
+                  "network.phrase2": "Handling packets",
+                  "network.phrase3": "Sorting frames",
+                  "network.phrase4": "Hauling bytes",
+                  "network.phrase5": "Routing crumbs",
+                  "network.phrase6": "Counting collisions",
+                  "network.phrase7": "Bending light",
+                  "network.ping": "Ping",
+                  "network.receiving": "Receiving",
+                  "network.sending": "Sending",
+                  "network.timeout": "Timeout",
+                  "network.uploaded": "Uploaded",
+                  "speedtest.download": "DOWNLOAD",
+                  "speedtest.failed": "Speed test failed",
+                  "speedtest.measureAgain": "Measure again",
+                  "speedtest.measureAgainVia": "Measure again via %1",
+                  "speedtest.runAgain": "Run Again",
+                  "speedtest.upload": "UPLOAD",
+                  "wifiqr.generateFailed": "Could not generate the Wi-Fi QR code",
+                  "wifiqr.generating": "Generating QR code\u2026",
+                  "wifiqr.passwordFailed": "Could not read the Wi-Fi password",
+                  "wifiqr.scanToJoin": "Scan to join this network",
+                  "wifiqr.showPassword": "Show password",
                   "network.signInToNetwork": "Sign in to this network",
                   "network.limitedAccess": "Limited internet access",
                   "network.showQrCode": "Show QR code", "network.runSpeedTest": "Run a speed test",
@@ -154,6 +183,8 @@ QtObject {
                   "network.setDnsTo": "Set DNS to %1",
                   "network.setCustomDns": "Set custom DNS servers",
                   "network.customDnsPlaceholder": "1.1.1.1, 1.0.0.1",
+                  "network.savedProfiles": "Saved Ethernet / VPN profiles",
+                  "network.savedProfilesHint": "Show or hide saved profiles (P)",
                   "network.ethernetProfiles": "ETHERNET",
                   "network.vpnProfiles": "VPN",
                   "network.noEthernetProfiles": "No saved Ethernet profiles",

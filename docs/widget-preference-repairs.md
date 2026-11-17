@@ -9,6 +9,12 @@ The source baseline remains Omarchy v4.5.0 stable,
 `ac2690cd7be4f47e4a255f5e2e78d904d436b068`. Original vendor parents are unchanged;
 clock/dock derivations and authored-source seals are updated reproducibly.
 
+Plan 117 subsequently installed these repairs alongside the Network adaptation
+and restarted only the owned bar. Startup passed, prior releases/prestates are
+preserved, and existing preference files remained unchanged. This is local
+deployment, not native interactive acceptance; see the
+[deployment record](network-original-surface.md#approved-local-deployment-plan-117).
+
 ## Implemented
 
 ### Calendar and tray: one shared transactional owner

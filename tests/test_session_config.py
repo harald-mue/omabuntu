@@ -120,6 +120,51 @@ class SessionConfigTests(unittest.TestCase):
         self.assertIn('kb_layout = "de"', backup.read_text())
         self.assertIn('kb_layout = "gb"', self.paths['module'].read_text())
 
+    def workspace_release(self):
+        release = self.app.root / self.app.selected()
+        for name in ('config/hypr/monitor-workspaces.lua', 'config/hypr/monitor-workspace-bindings.lua',
+                     'shell/MonitorWorkspaces.qml'):
+            path = release / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            source = ROOT / (name if name.startswith('config/') else 'config/shell/preview/MonitorWorkspaces.qml')
+            path.write_bytes(source.read_bytes())
+        meta = json.loads((release / 'release.json').read_text())
+        meta['files'] = user_install.file_manifest(release)
+        (release / 'release.json').write_text(json.dumps(meta))
+
+    def test_monitor_local_optin_records_owned_modules_and_marker_without_reload(self):
+        self.workspace_release()
+        reviewed = self.plan(monitor_local=True)
+        self.assertFalse(reviewed['blockers'])
+        self.assertIn('require("omabuntu-monitor-workspaces")', reviewed['payload']['module'])
+        self.assertNotIn('for workspace = 1, 10', reviewed['payload']['module'])
+        with patch.object(session.subprocess, 'run') as run:
+            result = self.apply(reviewed)
+        run.assert_not_called()
+        self.assertFalse(result['reloaded'])
+        self.assertEqual((self.app.state / 'monitor-workspaces-policy').read_text(), 'monitor-local-v1\n')
+        self.assertTrue(self.plan()['monitor_local'])
+        self.assertFalse(self.plan()['changes'])
+        module = Path(reviewed['paths']['workspace_policy'])
+        module.write_text('-- user customization\n')
+        self.assertTrue(self.plan()['blockers'])
+        self.assertEqual(module.read_text(), '-- user customization\n')
+
+    def test_existing_global_saved_modes_cannot_be_silently_adopted_offline(self):
+        self.workspace_release()
+        path = self.app.state / 'current/workspace-layouts.txt'
+        path.parent.mkdir(parents=True)
+        path.write_text('2 scrolling\n')
+        self.assertTrue(self.plan(monitor_local=True)['blockers'])
+        self.assertFalse(self.plan()['blockers'])
+        self.assertEqual(path.read_text(), '2 scrolling\n')
+
+    def test_missing_monitor_artifacts_blocks_optin_and_policy_disable_needs_rollback(self):
+        self.assertTrue(self.plan(monitor_local=True)['blockers'])
+        self.workspace_release()
+        self.apply(self.plan(monitor_local=True))
+        self.assertTrue(self.plan(monitor_local=False)['blockers'])
+
     def test_untouched_managed_snippet_can_be_adopted_without_touching_user_code(self):
         directory = self.paths['entry'].parent
         directory.mkdir(parents=True)

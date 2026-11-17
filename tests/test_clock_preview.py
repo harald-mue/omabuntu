@@ -30,6 +30,7 @@ class ClockPreviewTests(unittest.TestCase):
                  "config/shell/preview/AudioOutputView.qml",
                  "config/shell/preview/NetworkControlView.qml",
                  "config/shell/preview/WorkspaceSwitcher.qml",
+                 "config/shell/preview/MonitorWorkspaces.qml",
                  "config/shell/preview/KeyboardLayout.qml",
                  "config/shell/preview/CalendarPanel.qml",
                  "config/shell/preview/ClockControlView.qml",
@@ -37,6 +38,7 @@ class ClockPreviewTests(unittest.TestCase):
                  *("config/shell/preview/" + name for name in checker.ELSEWHEN_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.WEATHER_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.DESKTOP_TRANSFORMS),
+                 *("config/shell/preview/" + name for name in checker.NETWORK_TRANSFORMS),
                  *("vendor/omarchy/" + source for source in checker.UPSTREAM.values())]
         for name in names:
             path = self.root / name
@@ -154,7 +156,7 @@ class ClockPreviewTests(unittest.TestCase):
                 for forbidden in ("Process", "execDetached", "ShellIpc", "hyprctl"):
                     self.assertNotIn(forbidden, text)
                 continue
-            if name.endswith("NetworkPanelController.qml"):
+            if name.endswith(("NetworkPanelController.qml", "WifiQrController.qml", "NetworkSpeedController.qml")):
                 self.assertEqual(text.count("Process {"), 1)
                 self.assertIn("OMABUNTU_NETWORK_HELPER", text)
                 self.assertNotIn("execDetached", text)
@@ -214,10 +216,11 @@ class ClockPreviewTests(unittest.TestCase):
                     self.assertNotIn(forbidden, text)
                 continue
             if name.endswith("TrialDesktopState.qml"):
-                # Plan 020: the singleton watches exactly the saved-layout file
-                # to restore floating modes at login; it runs no commands.
-                self.assertEqual(text.count("property FileView"), 1)
+                # Saved layouts and the separately approved monitor policy marker
+                # are read-only state inputs; the singleton runs no commands.
+                self.assertEqual(text.count("property FileView"), 2)
                 self.assertIn("workspace-layouts.txt", text)
+                self.assertIn("monitor-workspaces-policy", text)
                 self.assertIn("watchChanges: true", text)
                 for forbidden in ("Process", "execDetached", "ShellIpc", "hyprctl", "omarchy-"):
                     self.assertNotIn(forbidden, text)

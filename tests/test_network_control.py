@@ -17,7 +17,7 @@ class NetworkControlTests(unittest.TestCase):
         self.assertEqual(output, (ROOT / "config/shell/preview/NetworkControlView.qml").read_text())
         files, meta = preview.verified_sources(ROOT)
         self.assertEqual(files["NetworkControlView.qml"].decode(), output)
-        self.assertEqual(meta["upstream"]["NetworkControlView.qml"]["stage_transform"], "network-control-frontend-v1")
+        self.assertEqual(meta["upstream"]["NetworkControlView.qml"]["stage_transform"], "network-control-frontend-v2")
         self.assertEqual(meta["upstream"]["Ui/PanelActionButton.qml"]["stage_transform"], "none")
         hero_start, hero_end = "      // ---------- Hero:", "      Button {\n        id: portalAction\n"
         hero = network_frontend.between(source.decode(), hero_start, hero_end)
@@ -43,8 +43,9 @@ class NetworkControlTests(unittest.TestCase):
         self.assertIn("OMABUNTU_NETWORK_HELPER", text)
         self.assertIn('requestNm("dns-set"', text)
         self.assertIn('requestNm("band-set"', text)
-        self.assertIn('requestNm("qr"', text)
-        self.assertIn('requestNm("speed"', text)
+        self.assertIn('shareRequested(iface, ssid)', text)
+        self.assertIn('speedRequested(name)', text)
+        self.assertIn('requestNm("copy-address"', text)
         for forbidden in ("execDetached", "nmcli", "captivePortalUrl", "omarchy-", "nmSettings",
                           "connectivityCheckEnabled =", "ping.archlinux", "sudo"):
             self.assertNotIn(forbidden, text)

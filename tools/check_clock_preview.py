@@ -21,8 +21,10 @@ import tooltip_port
 import bar_frame
 import network_frontend
 import workspace_modes
+import monitor_workspaces
 import desktop_frontends
 import clock_frontend
+import network_destinations
 import elsewhen_frontend
 import weather_frontend
 
@@ -68,6 +70,7 @@ UPSTREAM = {
     "Ui/TextField.qml": "shell/Ui/TextField.qml",
     "NetworkControlView.qml": "shell/plugins/panels/network/Panel.qml",
     "WorkspaceSwitcher.qml": "shell/plugins/bar/widgets/Workspaces.qml",
+    "MonitorWorkspaces.qml": "shell/plugins/bar/widgets/Workspaces.qml",
     "KeyboardLayout.qml": "shell/plugins/bar/widgets/KeyboardLayout.qml",
     "KeyboardLayoutModel.js": "shell/plugins/bar/widgets/KeyboardLayoutModel.js",
     "Commons/Util.qml": "shell/Commons/Util.qml",
@@ -75,6 +78,18 @@ UPSTREAM = {
     "Ui/Panel.qml": "shell/Ui/Panel.qml",
     "Ui/PanelController.qml": "shell/Ui/PanelController.qml",
 }
+NETWORK_TRANSFORMS = {
+    "WifiQrView.qml": ("network-qr-surface-v1", network_destinations.derive_qr),
+    "NetworkSpeedView.qml": ("network-speed-surface-v1", network_destinations.derive_speed),
+    "Ui/OverlayWindow.qml": ("network-overlay-ondemand-v1", network_destinations.derive_overlay),
+    "Ui/SpeedTestOverlay.qml": ("network-speed-overlay-v1", network_destinations.derive_speed_overlay),
+}
+UPSTREAM.update({
+    "WifiQrView.qml": "shell/plugins/panels/wifiqr/Panel.qml",
+    "NetworkSpeedView.qml": "shell/plugins/panels/speedtest/Panel.qml",
+    "Ui/OverlayWindow.qml": "shell/Ui/OverlayWindow.qml",
+    "Ui/SpeedTestOverlay.qml": "shell/Ui/SpeedTestOverlay.qml",
+})
 ELSEWHEN_PLAIN = (
     "Arc.js", "ArcText.qml", "Avatar.qml", "CityMatches.qml", "CityRow.qml", "CitySearch.qml",
     "DaylightStrip.qml", "GlobeFooter.qml", "GlobeModel.js", "Greetings.js", "HeroTitle.qml",
@@ -140,6 +155,8 @@ AUTHORED["Commons/ElsewhenSettings.qml"] = "config/shell/preview/ElsewhenSetting
 AUTHORED["Commons/TrialDesktopState.qml"] = "config/shell/preview/TrialDesktopState.qml"
 AUTHORED["Commons/BluetoothDiscovery.qml"] = "config/shell/preview/BluetoothDiscovery.qml"
 AUTHORED["Commons/InputMethodState.qml"] = "config/shell/preview/InputMethodState.qml"
+AUTHORED["WifiQrController.qml"] = "config/shell/preview/WifiQrController.qml"
+AUTHORED["NetworkSpeedController.qml"] = "config/shell/preview/NetworkSpeedController.qml"
 AUTHORED["DockState.qml"] = "config/shell/preview/DockState.qml"
 AUTHORED["AppearanceState.qml"] = "config/shell/preview/AppearanceState.qml"
 AUTHORED["CommandMenu.qml"] = "config/shell/preview/CommandMenu.qml"
@@ -154,7 +171,7 @@ MAPS = {"Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.
         "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\n"}
 MAPS["Ui/qmldir"] += "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "PopupCard", "BarIconButton", "BarIconContent", "IconContentBounds", "Button", "BorderSurface", "BorderOverlay", "PanelSlider", "KeyboardPanel", "PanelKeyCatcher",
-    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField", "Panel", "PanelController"))
+    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField", "Panel", "PanelController", "OverlayWindow", "SpeedTestOverlay"))
 MAPS["Elsewhen/qmldir"] = "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "ArcText", "Avatar", "CityMatches", "CityRow", "CitySearch", "DaylightStrip",
     "ElsewhenPanel", "Globe", "GlobeFooter", "HeroTitle", "MiniGlobe", "MoonDot"))
@@ -226,8 +243,11 @@ def verified_sources(root):
                      "Ui/KeyboardPanel.qml": "ondemand-keyboard-panel-v1",
                      "BarTooltip.qml": "bar-tooltip-window-v1", "BarTooltipHost.qml": "bar-tooltip-host-v1",
                      "BarFrame.qml": "fixed-horizontal-sections-v1",
-                     "NetworkControlView.qml": "network-control-frontend-v1",
-                     "WorkspaceSwitcher.qml": "workspace-switcher-v1"}.get(target, "none")
+                     "NetworkControlView.qml": "network-control-frontend-v2",
+                     "WorkspaceSwitcher.qml": "workspace-switcher-v1",
+                     "MonitorWorkspaces.qml": "monitor-workspaces-v1"}.get(target, "none")
+        if target in NETWORK_TRANSFORMS:
+            transform = NETWORK_TRANSFORMS[target][0]
         if target in DESKTOP_TRANSFORMS:
             transform = DESKTOP_TRANSFORMS[target][0]
         if target in ELSEWHEN_TRANSFORMS:
@@ -249,20 +269,26 @@ def verified_sources(root):
                       "ondemand-keyboard-panel-v1": audio_frontend.derive_keyboard,
                       "bar-tooltip-window-v1": tooltip_port.derive_window, "bar-tooltip-host-v1": tooltip_port.derive_host,
                       "fixed-horizontal-sections-v1": bar_frame.derive_frame,
-                      "network-control-frontend-v1": network_frontend.derive_network,
+                      "network-control-frontend-v2": network_frontend.derive_network,
                       "workspace-switcher-v1": workspace_modes.derive_workspaces,
+                      "monitor-workspaces-v1": monitor_workspaces.derive_widget,
                       "clock-calendar-v2": clock_frontend.derive_calendar,
                       "clock-calendar-host-v2": clock_frontend.derive_host}
+        transforms.update({key: fn for key, fn in NETWORK_TRANSFORMS.values()})
         transforms.update({key: fn for key, fn in DESKTOP_TRANSFORMS.values()})
         transforms.update({key: fn for key, fn in ELSEWHEN_TRANSFORMS.values()})
         transforms.update({key: fn for key, fn in WEATHER_TRANSFORMS.values()})
         files[target] = transforms[transform](data) if transform != "none" else data
+        if target in NETWORK_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
+            raise builder.BuildError("Generated network destination mirror differs")
         if target in DESKTOP_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
             raise builder.BuildError("Generated desktop frontend mirror differs")
         if target == "AudioOutputView.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/AudioOutputView.qml", 65536):
             raise builder.BuildError("Generated audio frontend mirror differs")
         if target == "NetworkControlView.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/NetworkControlView.qml", 65536):
             raise builder.BuildError("Generated network frontend mirror differs")
+        if target == "MonitorWorkspaces.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/MonitorWorkspaces.qml", 65536):
+            raise builder.BuildError("Generated monitor workspace mirror differs")
         if target == "WorkspaceSwitcher.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/WorkspaceSwitcher.qml", 65536):
             raise builder.BuildError("Generated workspace switcher mirror differs")
         if target == "KeyboardLayout.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/KeyboardLayout.qml", 65536):

@@ -1,9 +1,9 @@
 """Reviewed extraction of Omarchy's network connection surface.
 
 The vendor panel stays byte-identical. The staged view keeps the original
-icon, hero, captive-portal prompt, band row, DNS row, Wi-Fi list and network
-row. Ethernet and VPN profile rows are added because that panel does not have
-them. Helper processes and the Arch portal URL stay out.
+icon, hero, connection grid, captive-portal prompt, band/DNS and Wi-Fi rows.
+Ubuntu profiles are secondary, and QR/speed use source-derived destinations.
+Helper processes and upstream portal/provider commands stay out.
 """
 
 
@@ -83,12 +83,15 @@ def derive_network(data):
     band = between(text, "      // Wi-Fi band selection.", "      // DNS provider selection.\n")
     dns = between(text, "      // DNS provider selection.\n",
                   "      // Wi-Fi networks (only if a Wi-Fi station is available).\n")
+    details = between(text, "      // Connection details:", "      // Wi-Fi band selection.")
+    info_components = text[text.index("  component DetailValue: InfoValue {\n"):text.rfind("}\n")]
+    phrases = between(text, "  Timer {\n    id: connectionPhraseTimer\n", "  Timer {\n    id: actionTimeout\n")
     pills = between(text, "  component BandPill: Button {\n", "  component NetworkRow: CursorSurface {\n")
     keys = navigation(text)
     extra = local_sections()
     output = (
         "// Derived from Omarchy network/Panel.qml; upstream MIT notice is in LICENSE.\n"
-        "// Original hero, captive-portal prompt, band row, DNS row, Wi-Fi list and row.\n"
+        "// Original hero, connection grid, phrase transitions, band/DNS and Wi-Fi rows.\n"
         "// Ethernet and VPN profile rows are Ubuntu additions. The portal opens\n"
         "// Ubuntu's connectivity check. Two Text height bindings are omitted.\n"
         "import QtQuick\n"
@@ -118,9 +121,10 @@ def derive_network(data):
         "    content: PanelKeyCatcher {\n"
         "      id: keyCatcher\n"
         "      property alias heroMeta: heroMeta\n"
+        "      property alias customDnsField: customDnsField\n"
         "      implicitHeight: column.implicitHeight\n"
         "      anchors.fill: parent\n"
-        "      blocked: root.passwordSsid !== \"\"\n"
+        "      blocked: root.passwordSsid !== \"\" || root.customDnsOpen\n"
         "\n"
         + keys
         + "      Column {\n"
@@ -130,7 +134,7 @@ def derive_network(data):
         "        anchors.top: parent.top\n"
         "        spacing: Style.space(12)\n"
         "\n"
-        + hero + portal + band + dns + extra + station + listing + "\n"
+        + hero + portal + details + band + dns + extra + station + listing + "\n"
         "      }\n"
         "    }\n"
         "  }\n"
@@ -143,6 +147,21 @@ def derive_network(data):
         "        Qt.callLater(function() { if (panel.loadedContent) panel.loadedContent.forceActiveFocus() })\n"
         "      }\n"
         "    }\n"
+        "    function onCustomDnsOpenChanged() {\n"
+        "      Qt.callLater(function() {\n"
+        "        if (!root.opened || !panel.loadedContent) return\n"
+        "        if (root.customDnsOpen) panel.loadedContent.customDnsField.forceActiveFocus()\n"
+        "        else panel.loadedContent.forceActiveFocus()\n"
+        "      })\n"
+        "    }\n"
+        "    function onShareRequested(iface, ssid) {\n"
+        "      wifiQr.active = true\n"
+        "      if (wifiQr.item) wifiQr.item.open(iface, ssid, root.QsWindow.window ? root.QsWindow.window.screen : null)\n"
+        "    }\n"
+        "    function onSpeedRequested(connection) {\n"
+        "      speedTest.active = true\n"
+        "      if (speedTest.item) speedTest.item.open(connection, root.QsWindow.window ? root.QsWindow.window.screen : null)\n"
+        "    }\n"
         "    function onPortalRequestChanged() {\n"
         "      if (root.portalRequest === 0 || !root.hasCaptivePortal) return\n"
         "      Quickshell.execDetached([\"xdg-open\", \"http://connectivity-check.ubuntu.com/\"])\n"
@@ -150,7 +169,10 @@ def derive_network(data):
         "    }\n"
         "  }\n"
         "\n"
-        + pills + row + "}\n"
+        + phrases
+        + "  Loader { id: wifiQr; active: false; source: \"WifiQrView.qml\"; onStatusChanged: if (status === Loader.Error) console.warn(\"OMABUNTU_NETWORK_QR_LOAD_FAILED\") }\n"
+        + "  Loader { id: speedTest; active: false; source: \"NetworkSpeedView.qml\"; onStatusChanged: if (status === Loader.Error) console.warn(\"OMABUNTU_NETWORK_SPEED_LOAD_FAILED\") }\n"
+        + pills + row + info_components + "}\n"
     )
     launch = 'Quickshell.execDetached(["xdg-open", "http://connectivity-check.ubuntu.com/"])'
     if output.count(launch) != 1:

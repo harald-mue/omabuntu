@@ -1,5 +1,5 @@
 // Derived from Omarchy network/Panel.qml; upstream MIT notice is in LICENSE.
-// Original hero, captive-portal prompt, band row, DNS row, Wi-Fi list and row.
+// Original hero, connection grid, phrase transitions, band/DNS and Wi-Fi rows.
 // Ethernet and VPN profile rows are Ubuntu additions. The portal opens
 // Ubuntu's connectivity check. Two Text height bindings are omitted.
 import QtQuick
@@ -47,9 +47,10 @@ NetworkPanelController {
     content: PanelKeyCatcher {
       id: keyCatcher
       property alias heroMeta: heroMeta
+      property alias customDnsField: customDnsField
       implicitHeight: column.implicitHeight
       anchors.fill: parent
-      blocked: root.passwordSsid !== ""
+      blocked: root.passwordSsid !== "" || root.customDnsOpen
 
       onMoveRequested: function(dx, dy) {
         if (!root.cursorActive) {
@@ -108,10 +109,10 @@ NetworkPanelController {
                 root.focusSection = "header"
                 root.headerIndex = 0
               }
-            } else if (root.ethernetProfiles.length > 0) {
+            } else if ((root.profilesOpen && root.ethernetProfiles.length > 0)) {
               root.focusSection = "ethernet"
               root.profileIndex = 0
-            } else if (root.vpnProfiles.length > 0) {
+            } else if ((root.profilesOpen && root.vpnProfiles.length > 0)) {
               root.focusSection = "vpn"
               root.profileIndex = 0
             } else if (root.wifiNetworks.length > 0) {
@@ -119,22 +120,13 @@ NetworkPanelController {
               if (root.selectedIndex < 0) root.selectedIndex = 0
             }
           } else if (root.focusSection === "ethernet" || root.focusSection === "vpn") {
-            if (dy < 0) {
-              if (root.focusSection === "vpn" && root.ethernetProfiles.length > 0) root.focusSection = "ethernet"
-              else root.focusSection = "dns"
-            } else if (root.focusSection === "ethernet" && root.vpnProfiles.length > 0) {
-              root.focusSection = "vpn"
-              root.profileIndex = 0
-            } else if (root.wifiNetworks.length > 0) {
-              root.focusSection = "wifi"
-              if (root.selectedIndex < 0) root.selectedIndex = 0
-            }
+            root.moveProfileCursor(dy)
           } else {  // wifi
             // k from the top row escapes back up to the DNS row rather than
             // wrapping around to the bottom of the list.
             if (dy < 0 && root.selectedIndex <= 0) {
-              if (root.vpnProfiles.length > 0) root.focusSection = "vpn"
-              else if (root.ethernetProfiles.length > 0) root.focusSection = "ethernet"
+              if ((root.profilesOpen && root.vpnProfiles.length > 0)) { root.focusSection = "vpn"; root.profileIndex = root.vpnProfiles.length - 1 }
+              else if ((root.profilesOpen && root.ethernetProfiles.length > 0)) { root.focusSection = "ethernet"; root.profileIndex = root.ethernetProfiles.length - 1 }
               else root.focusSection = "dns"
               root.wifiActionFocused = false
             }
@@ -165,6 +157,7 @@ NetworkPanelController {
       onTextKey: function(t) {
         if (t === "r" || t === "R") root.refresh()
         else if (t === "w" || t === "W") root.toggleNetwork()
+        else if (t === "p" || t === "P") root.toggleProfiles()
       }
 
       Column {
@@ -328,6 +321,58 @@ NetworkPanelController {
           root.focusSection = "portal"
         }
         onClicked: root.openCaptivePortal()
+      }
+
+      // Connection details: transfer metrics first, then IP/Gateway.
+      Column {
+        visible: !!root.info.iface
+        width: parent.width
+        spacing: Style.spacing.labelGap
+
+        GridLayout {
+          width: parent.width
+          columns: 4
+          columnSpacing: Style.space(20)
+          rowSpacing: Style.spacing.labelGap
+
+          // Always mounted: these two used to appear a beat after the panel
+          // opened, once the first probe returned, shoving everything below
+          // them down. They now hold their place and read "--" until there is
+          // a sample, and while the internet is out of reach.
+          InfoLabel { text: Commons.I18n.t("network.ping") }
+          DetailValue {
+            text: root.formatPingLatency(root.internetPingLatency)
+            color: root.hasInternetPing && root.internetPingPacketLoss > 0 ? root.bar.urgent : root.bar.foreground
+          }
+          InfoLabel { text: Commons.I18n.t("network.packetLoss") }
+          DetailValue {
+            text: root.formatPacketLoss(root.internetPingPacketLoss)
+            color: root.hasInternetPing && root.internetPingPacketLoss > 0 ? root.bar.urgent : root.bar.foreground
+          }
+
+          InfoLabel { text: Commons.I18n.t("network.receiving") }
+          DetailValue { text: root.hasTransferStats ? root.formatRate(root.downloadRate) : "--" }
+          InfoLabel { text: Commons.I18n.t("network.sending") }
+          DetailValue { text: root.hasTransferStats ? root.formatRate(root.uploadRate) : "--" }
+
+          InfoLabel { text: Commons.I18n.t("network.downloaded") }
+          DetailValue { text: root.hasTransferStats ? root.formatBytes(parseFloat(root.info.rx_bytes || "0")) : "--" }
+          InfoLabel { text: Commons.I18n.t("network.uploaded") }
+          DetailValue { text: root.hasTransferStats ? root.formatBytes(parseFloat(root.info.tx_bytes || "0")) : "--" }
+
+          InfoLabel { text: Commons.I18n.t("network.ipAddress") }
+          DetailValue {
+            text: root.info.ip || "--"
+            copyable: !!root.info.ip
+            tooltipText: Commons.I18n.t("network.copyIp")
+          }
+          InfoLabel { text: Commons.I18n.t("network.gateway") }
+          DetailValue {
+            text: root.info.gateway || "--"
+            copyable: !!root.info.gateway
+            tooltipText: Commons.I18n.t("network.copyGateway")
+          }
+        }
       }
 
       // Wi-Fi band selection. Only on Wi-Fi, and only when the network answers
@@ -519,6 +564,7 @@ NetworkPanelController {
       }
 
 
+
       Column {
         visible: root.customDnsOpen
         width: parent.width
@@ -530,6 +576,7 @@ NetworkPanelController {
           foreground: root.bar.foreground
           font.family: root.bar.fontFamily
           onAccepted: root.applyCustomDns(text)
+          Keys.onEscapePressed: function(event) { root.customDnsOpen = false; event.accepted = true }
         }
         Button {
           width: parent.width
@@ -540,7 +587,19 @@ NetworkPanelController {
           onClicked: root.applyCustomDns(customDnsField.text)
         }
       }
+      Button {
+        visible: root.ethernetProfiles.length + root.vpnProfiles.length > 0
+        width: parent.width
+        text: Commons.I18n.t("network.savedProfiles") + (root.profilesOpen ? " −" : " +")
+        tooltipText: Commons.I18n.t("network.savedProfilesHint")
+        foreground: root.bar.foreground
+        fontFamily: root.bar.fontFamily
+        bordered: true
+        onClicked: root.toggleProfiles()
+      }
+
       Column {
+        visible: root.profilesOpen && root.ethernetProfiles.length > 0
         width: parent.width
         spacing: Style.space(6)
         PanelSectionHeader {
@@ -548,12 +607,19 @@ NetworkPanelController {
           foreground: root.bar.foreground
           fontFamily: root.bar.fontFamily
         }
-        Repeater {
+        ListView {
+          id: ethernetProfilesList
+          width: parent.width
+          height: Math.min(contentHeight, Style.space(144))
           model: root.ethernetProfiles
+          clip: true
+          boundsBehavior: Flickable.StopAtBounds
+          currentIndex: root.focusSection === "ethernet" ? root.profileIndex : -1
+          onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
           delegate: Button {
             required property var modelData
             required property int index
-            width: parent.width
+            width: ListView.view.width
             text: modelData.name
             foreground: root.bar.foreground
             fontFamily: root.bar.fontFamily
@@ -569,18 +635,10 @@ NetworkPanelController {
             onClicked: root.toggleProfile(modelData.uuid, !!modelData.active)
           }
         }
-        Text {
-          visible: root.ethernetProfiles.length === 0
-          width: parent.width
-          text: Commons.I18n.t("network.noEthernetProfiles")
-          textFormat: Text.PlainText
-          color: root.bar.foreground
-          opacity: 0.7
-          font.family: root.bar.fontFamily
-          font.pixelSize: Style.font.bodySmall
-        }
       }
+
       Column {
+        visible: root.profilesOpen && root.vpnProfiles.length > 0
         width: parent.width
         spacing: Style.space(6)
         PanelSectionHeader {
@@ -588,12 +646,19 @@ NetworkPanelController {
           foreground: root.bar.foreground
           fontFamily: root.bar.fontFamily
         }
-        Repeater {
+        ListView {
+          id: vpnProfilesList
+          width: parent.width
+          height: Math.min(contentHeight, Style.space(144))
           model: root.vpnProfiles
+          clip: true
+          boundsBehavior: Flickable.StopAtBounds
+          currentIndex: root.focusSection === "vpn" ? root.profileIndex : -1
+          onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
           delegate: Button {
             required property var modelData
             required property int index
-            width: parent.width
+            width: ListView.view.width
             text: modelData.name
             foreground: root.bar.foreground
             fontFamily: root.bar.fontFamily
@@ -609,63 +674,8 @@ NetworkPanelController {
             onClicked: root.toggleProfile(modelData.uuid, !!modelData.active)
           }
         }
-        Text {
-          visible: root.vpnProfiles.length === 0
-          width: parent.width
-          text: Commons.I18n.t("network.noVpnProfiles")
-          textFormat: Text.PlainText
-          color: root.bar.foreground
-          opacity: 0.7
-          font.family: root.bar.fontFamily
-          font.pixelSize: Style.font.bodySmall
-        }
       }
-      Column {
-        visible: root.qrOpen && root.qrSize > 0
-        width: parent.width
-        spacing: Style.space(6)
-        PanelSectionHeader {
-          text: Commons.I18n.t("network.showQrCode")
-          foreground: root.bar.foreground
-          fontFamily: root.bar.fontFamily
-        }
-        Grid {
-          columns: root.qrSize
-          Repeater {
-            model: root.qrModules.length
-            delegate: Rectangle {
-              required property int index
-              width: 4
-              height: 4
-              color: root.qrModules.charAt(index) === "1" ? root.bar.foreground : "transparent"
-            }
-          }
-        }
-      }
-      Column {
-        visible: root.speedOpen
-        width: parent.width
-        spacing: Style.space(6)
-        PanelSectionHeader {
-          text: Commons.I18n.t("network.runSpeedTest")
-          foreground: root.bar.foreground
-          fontFamily: root.bar.fontFamily
-        }
-        Text {
-          text: Commons.I18n.t("network.speedDown") + " " + (root.speedDown || "--")
-          textFormat: Text.PlainText
-          color: root.bar.foreground
-          font.family: root.bar.fontFamily
-          font.pixelSize: Style.font.bodySmall
-        }
-        Text {
-          text: Commons.I18n.t("network.speedUp") + " " + (root.speedUp || "--")
-          textFormat: Text.PlainText
-          color: root.bar.foreground
-          font.family: root.bar.fontFamily
-          font.pixelSize: Style.font.bodySmall
-        }
-      }
+
       Text {
         visible: root.serviceNote !== ""
         width: parent.width
@@ -753,6 +763,21 @@ NetworkPanelController {
         Qt.callLater(function() { if (panel.loadedContent) panel.loadedContent.forceActiveFocus() })
       }
     }
+    function onCustomDnsOpenChanged() {
+      Qt.callLater(function() {
+        if (!root.opened || !panel.loadedContent) return
+        if (root.customDnsOpen) panel.loadedContent.customDnsField.forceActiveFocus()
+        else panel.loadedContent.forceActiveFocus()
+      })
+    }
+    function onShareRequested(iface, ssid) {
+      wifiQr.active = true
+      if (wifiQr.item) wifiQr.item.open(iface, ssid, root.QsWindow.window ? root.QsWindow.window.screen : null)
+    }
+    function onSpeedRequested(connection) {
+      speedTest.active = true
+      if (speedTest.item) speedTest.item.open(connection, root.QsWindow.window ? root.QsWindow.window.screen : null)
+    }
     function onPortalRequestChanged() {
       if (root.portalRequest === 0 || !root.hasCaptivePortal) return
       Quickshell.execDetached(["xdg-open", "http://connectivity-check.ubuntu.com/"])
@@ -760,6 +785,41 @@ NetworkPanelController {
     }
   }
 
+  Timer {
+    id: connectionPhraseTimer
+    interval: 2800
+    running: root.opened && !root.restricted && (root.info.type === "ethernet" || (root.info.type === "wifi" && root.canDisconnect))
+    repeat: true
+    onTriggered: connectionPhraseSwap.restart()
+  }
+
+  SequentialAnimation {
+    id: connectionPhraseSwap
+    PropertyAnimation {
+      target: panel.loadedContent ? panel.loadedContent.heroMeta : null; property: "opacity"
+      to: 0.0; duration: Style.duration(150); easing.type: Easing.OutCubic
+    }
+    ScriptAction {
+      script: root.connectionPhraseIndex = (root.connectionPhraseIndex + 1) % root.connectionPhrases.length
+    }
+    PropertyAnimation {
+      target: panel.loadedContent ? panel.loadedContent.heroMeta : null; property: "opacity"
+      to: 1.0; duration: Style.duration(200); easing.type: Easing.OutCubic
+    }
+  }
+
+  Connections {
+    target: root
+    function onInfoChanged() {
+      if (!(root.info.type === "ethernet" || (root.info.type === "wifi" && root.canDisconnect))) {
+        connectionPhraseSwap.stop()
+        if (panel.loadedContent) panel.loadedContent.heroMeta.opacity = 1.0
+      }
+    }
+  }
+
+  Loader { id: wifiQr; active: false; source: "WifiQrView.qml"; onStatusChanged: if (status === Loader.Error) console.warn("OMABUNTU_NETWORK_QR_LOAD_FAILED") }
+  Loader { id: speedTest; active: false; source: "NetworkSpeedView.qml"; onStatusChanged: if (status === Loader.Error) console.warn("OMABUNTU_NETWORK_SPEED_LOAD_FAILED") }
   component BandPill: Button {
     id: pill
     required property string band
@@ -1171,4 +1231,41 @@ NetworkPanelController {
   }
 
 
+  component DetailValue: InfoValue {
+    property bool copyable: false
+    property string tooltipText: Commons.I18n.t("network.copyToClipboard")
+
+    Layout.fillWidth: true
+    horizontalAlignment: Text.AlignRight
+
+    MouseArea {
+      id: valueMouse
+      anchors.fill: parent
+      enabled: copyable && parent.text !== ""
+      hoverEnabled: enabled
+      cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+      onClicked: root.copyToClipboard(parent.text)
+    }
+
+    PanelToolTip {
+      visible: valueMouse.enabled && valueMouse.containsMouse
+      text: tooltipText
+      fontFamily: root.bar.fontFamily
+    }
+  }
+
+  component InfoLabel: Text {
+    textFormat: Text.PlainText
+    color: root.bar.foreground
+    opacity: 0.6
+    font.family: root.bar.fontFamily
+    font.pixelSize: Style.font.bodySmall
+  }
+
+  component InfoValue: Text {
+    textFormat: Text.PlainText
+    color: root.bar.foreground
+    font.family: root.bar.fontFamily
+    font.pixelSize: Style.font.bodySmall
+  }
 }

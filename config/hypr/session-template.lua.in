@@ -56,14 +56,7 @@ for _, item in ipairs({
   bind("SUPER + " .. item.key, "Focus " .. item.direction, hl.dsp.focus({ direction = item.direction }))
   bind("SUPER + SHIFT + " .. item.key, "Swap " .. item.direction, hl.dsp.window.swap({ direction = item.direction }))
 end
-for workspace = 1, 10 do
-  local key = "code:" .. tostring(workspace + 9)
-  bind("SUPER + " .. key, "Focus workspace " .. workspace, hl.dsp.focus({ workspace = workspace }))
-  bind("SUPER + SHIFT + " .. key, "Move to workspace " .. workspace,
-       hl.dsp.window.move({ workspace = workspace }))
-  bind("SUPER + SHIFT + ALT + " .. key, "Move silently to workspace " .. workspace,
-       hl.dsp.window.move({ workspace = workspace, follow = false }))
-end
+@WORKSPACE_BINDINGS@
 bind("SUPER + mouse:272", "Move window", hl.dsp.window.drag(), { mouse = true })
 bind("SUPER + mouse:273", "Resize window", hl.dsp.window.resize(), { mouse = true })
 bind("SUPER + S", "Toggle scratchpad", hl.dsp.workspace.toggle_special("scratchpad"))

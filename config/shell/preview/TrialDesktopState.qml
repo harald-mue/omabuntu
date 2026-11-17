@@ -10,6 +10,17 @@ import Quickshell.Io
 // is watched: a switch to the default removes it and clears the saved modes.
 QtObject {
   id: root
+  property bool monitorLocalPolicy: false
+  property FileView policyFile: FileView {
+    path: (Quickshell.env("OMABUNTU_STATE_HOME") ||
+      ((Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/omabuntu"))
+      + "/monitor-workspaces-policy"
+    watchChanges: true
+    printErrors: false
+    onLoaded: root.monitorLocalPolicy = text().trim() === "monitor-local-v1"
+    onLoadFailed: root.monitorLocalPolicy = false
+    onFileChanged: reload()
+  }
   property var floatingWorkspaces: ({})
   property var savedModes: ({})
   function applied(id, mode) {
