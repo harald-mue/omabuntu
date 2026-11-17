@@ -2,21 +2,24 @@
 
 ## Status
 
-The current published release is **[v0.2.3](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.3)**,
-published on 2026-11-07 at 22:11:52 UTC from commit
-`87d517f53ce8767135c7fac031c0bad32722f57a`. It is public, not a draft or
-prerelease. All four expected assets are present: the Ubuntu 26.04 x86_64
-archive, `release.json`, `SHA256SUMS` and `SHA256SUMS.sig`. Retained artifact
-hashes match GitHub's asset digests; publisher-signature, source-export,
-bundle-integrity and artwork-exclusion checks pass. Publication does not
-establish fresh-machine or native/security acceptance.
+The current published release is **[v0.2.4](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.4)**,
+published on 2026-11-17 at 23:48:09 UTC from commit
+`7fa27607f65f6c2ee54998756a8531e805056123`. It is GitHub's latest release,
+public and neither a draft nor prerelease. All four expected assets are present:
+the Ubuntu 26.04 x86_64 archive, `release.json`, `SHA256SUMS` and
+`SHA256SUMS.sig`. Retained publication artifacts match GitHub's asset sizes and
+digests; publisher-signature, source-export, bundle-integrity and
+artwork-exclusion checks pass. The separately prepared local build is not the
+published archive. Publication does not establish fresh-machine or
+native/security acceptance.
 
 After explicit approval and verified private backups, GitHub release objects and
 attached assets for v0.1.8, v0.1.9, v0.2.0, v0.2.1 and v0.2.2 were deleted.
-Only v0.2.3 remains a GitHub release. All six Git tags and peeled commits are
-unchanged; old source tags remain available, but their release download URLs no
-longer work. The historical scope/verification records below describe artifacts
-at publication or in retained private backups, not current download availability.
+Both v0.2.4 and v0.2.3 are currently published GitHub releases. The six tags
+present at the earlier retirement checkpoint were retained unchanged; old source
+tags remain available, but retired releases' download URLs no longer work. The
+historical scope/verification records below describe artifacts at publication or
+in retained private backups, not current download availability.
 Existing installed rollback copies were not touched.
 
 Historically, the signed v0.1.0 release was published, but its stock-VM installation failed.
@@ -242,9 +245,67 @@ installation change is part of publication. Public artifacts remain artwork-free
 The user separately confirmed retirement of the five old release objects/assets
 listed in Status, preserving Git tags. Metadata and all twenty attached files
 were downloaded privately and checked against GitHub digests and signed checksums
-before deletion. The release list now contains only v0.2.3; every old tag/peeled
-commit still matches the pre-retirement snapshot. Evidence remains under ignored
-`work/release-023-preparation/`; no private backup was committed.
+before deletion. At that retirement checkpoint the release list contained only
+v0.2.3; every old tag/peeled commit matched the pre-retirement snapshot. Evidence
+remains under ignored `work/release-023-preparation/`; no private backup was
+committed.
+
+### v0.2.4 release scope
+
+Version **[0.2.4](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.4)**
+identifies source commit `7fa27607f65f6c2ee54998756a8531e805056123`.
+The maintainer published it through `make release VERSION=0.2.4`, which rebuilt
+from the committed export, signed checksums and pushed the release tag. All four
+public assets match the retained publication artifact sizes and GitHub digests.
+Signature verification against the tracked Ed25519 publisher key, exact source
+export/packaged-source comparison, safe archive extraction, bundle manifest and
+artwork-exclusion checks pass. The published archive is **8,563,292 bytes** with
+SHA256:
+
+```text
+82e707825913621e96f8391a19eaa4113a6139d7eea6c0efd67de357251b31d5
+```
+
+A separately built/signed local candidate from the same source commit has a
+different archive digest. Only the publication artifacts identify the download
+above; post-release documentation does not replace or re-sign those assets.
+
+Changes since v0.2.3:
+
+- Persist World Clock cities, ordering, labels, home selection and preferences
+  through the shared state owner; retain calendar bindings and transactional
+  calendar/tray field patches across outputs.
+- Serialize/coalesce widget requests, preserve request/result attribution and
+  expose write errors; repair dock/display queues and keyboard panel navigation.
+- Restore original Network grid, connection phrases, hero formatting, copy
+  targets and standalone QR/speed layouts. Use bounded Ubuntu IP/gateway/link
+  data, rate calculations and explicit on-demand actions; keep saved
+  Ethernet/VPN profiles in a secondary expansion. Ping/loss probes, plaintext
+  password reveal, enterprise creation and upstream helpers stay excluded.
+- Add original monitor-local workspace allocation, slots 1–10 per monitor,
+  monitor-local highlighting and directional window/whole-workspace movement.
+  Preserve real global IDs for backend modes and minimized restoration.
+- Ship explicit fresh-session opt-in and an existing-user migration with stale
+  state/binding checks, private backups, inverse-ID journal and conservative
+  recovery. Protect active policies from incompatible release switches.
+
+The complete suite passes **1,279 tests**. Original-source/generated mirrors,
+isolated widget behavior and deployment failure/recovery fixtures verify.
+A separately approved local deployment preserved existing window membership,
+monitor geometry and layouts; all 45 workspace binding chords were registered
+exactly once. The user reported the tried workspace/window/monitor operations
+working. Physical docking/hotplug, fresh login, broader Network interactions,
+stock-machine installation and comprehensive native/security acceptance remain
+unverified. Earlier VM wallpaper/native logout limits are not claimed resolved.
+
+Application installation alone does not convert existing bindings or enable
+monitor-local policy. Follow [monitor-local opt-in and migration](monitor-local-workspaces.md)
+for that separate configuration/reload approval; consult
+[Network boundaries](network-original-surface.md) and
+[widget repairs](widget-preference-repairs.md) for detailed limits.
+No native package, service, plugin, autostart, locking or private-profile change
+is implied by publication. Public releases remain artwork-free; v0.2.3 and
+existing immutable tags/artifacts were not retired by this publication.
 
 ## One-time publisher setup
 

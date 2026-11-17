@@ -26,7 +26,7 @@ configuration — install and update it without building anything yourself.
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-The latest release is **[v0.2.3](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.3)**;
+The latest release is **[v0.2.4](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.4)**;
 fresh-machine installation is not yet
 accepted. The installer downloads it, verifies the publisher signature and
 archive checksums before extraction, and asks before installing missing
@@ -94,6 +94,12 @@ the application does not undo APT package changes.
 - The Quickshell bar with application launcher, command menu, calendar and
   desktop panels.
 - Per-workspace tiling, scrolling and floating, with layout persistence.
+- Optional original monitor-local workspace slots 1–10, per-monitor bar
+  highlighting and directional window/workspace moves. Enable through the
+  [reviewed opt-in or migration](docs/monitor-local-workspaces.md), not by
+  automatically replacing your existing bindings.
+- Source-derived Network details, Wi-Fi QR and speed-test surfaces with bounded
+  Ubuntu backends; see [supported behavior and exclusions](docs/network-original-surface.md).
 - Floating-workspace titlebars (close, maximize, minimize) through hyprbars,
   loaded automatically at login once granted.
 - Versioned installation, signature-verified updates and rollback.
@@ -123,17 +129,19 @@ make guide                    # review local installation stages
 make test                     # unit suite
 ```
 
-Version **[v0.2.3](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.3)** is
-published with normal session-action defaults, validated logout and wallpaper
-failure/readiness/diagnostic repairs, retaining the scoped native compatibility
-policy. VM wallpaper rendering and native logout remain unverified. See the
-[0.2.3 scope and acceptance limits](docs/releases.md#v023-release-scope).
+Version **[v0.2.4](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.4)** is
+published with World Clock/calendar/tray persistence repairs, serialized widget
+requests, original Network surfaces and opt-in monitor-local workspaces with a
+backed-up migration/recovery path. Workspace navigation and cross-monitor moves
+received positive user feedback; physical docking, fresh login and comprehensive
+native/security acceptance remain unverified. See the
+[0.2.4 scope and acceptance limits](docs/releases.md#v024-release-scope).
 
 Maintainers publish a signed release after setting up the publisher key and
 GitHub access. Choose an unused version; for example, for a future release:
 
 ```bash
-make release VERSION=0.2.4
+make release VERSION=0.2.5
 ```
 
 This asks before committing, builds the committed source without theme
@@ -153,7 +161,8 @@ working material, not release content.
 - [Releases, signing and verification](docs/releases.md)
 - [Plugin management](docs/plugin-management.md) and [titlebars](docs/hyprbars.md)
 - [Capabilities](docs/capability-matrix.md) and [compatibility](docs/compatibility.md)
-- [Architecture](docs/architecture.md) and [workspace modes](docs/workspace-modes.md)
+- [Architecture](docs/architecture.md), [workspace modes](docs/workspace-modes.md)
+  and [monitor-local workspaces](docs/monitor-local-workspaces.md)
 - [Upstream provenance](upstream/README.md) and [third-party notices](THIRD_PARTY_NOTICES.md)
 
 Original Omabuntu code and documentation use the [MIT License](LICENSE).

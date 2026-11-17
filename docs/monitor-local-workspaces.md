@@ -2,11 +2,19 @@
 
 ## Status and provenance
 
-The repository implementation includes original allocation and presentation,
-fresh-session opt-in, sealed release artifacts, keybinding-menu replay and a
-reviewed existing-user migration/rollback path. Implementation is not activation:
-a running installation still uses its previous model until a coordinated,
-explicitly approved release/configuration deployment completes.
+Published in [v0.2.4](releases.md#v024-release-scope), the implementation includes
+original allocation and presentation, fresh-session opt-in, sealed release
+artifacts, keybinding-menu replay and a reviewed existing-user migration/rollback
+path. Publication or application installation is not policy activation: an
+existing profile retains its previous model until a coordinated, explicitly
+approved configuration deployment completes.
+
+That separate deployment completed on the development session, preserving window
+membership, monitor geometry and layouts. All 45 original workspace binding
+chords were registered exactly once; the user reported the tried navigation and
+cross-monitor window operations working. Physical docking/hotplug and a fresh
+login have not been independently verified. This is scoped interactive feedback,
+not a claim of complete visual, native or security acceptance.
 
 The original Omarchy v4.5.0 policy, binding reference and workspace widget are
 pinned to `ac2690cd7be4f47e4a255f5e2e78d904d436b068`. Source bytes are unchanged

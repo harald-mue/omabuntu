@@ -7,7 +7,9 @@ The complete Omarchy bar is **not finished**. A complete bar means usable
 panels and their real backend semantics, not decorative status symbols. The
 current experimental entry is still TrialShell, not the original shell.qml.
 Workspace slots cycle tiling, scrolling and floating with the original glyphs.
-See [workspace modes](workspace-modes.md).
+See [workspace modes](workspace-modes.md) and the optional
+[monitor-local policy](monitor-local-workspaces.md), published in
+[v0.2.4](releases.md#v024-release-scope).
 
 ## Fidelity correction after user feedback
 
@@ -21,8 +23,9 @@ successful unit tests do not establish visual quality.
 The first correction is the [source-derived audio output frontend](audio-output-port.md):
 original hero/output/device markup, cursor surfaces, switch, typography, lazy
 keyboard panel and scroll behavior replace the authored output popup. This is
-still output-only and not complete audio or shell parity. Network remains the
-restricted authored status view until its original panel is properly ported.
+still output-only and not complete audio or shell parity. That initial Network
+status-only checkpoint was superseded by the original-source Network adaptation
+in plans 116–117, included in v0.2.4; native interaction acceptance remains open.
 
 ## Original tray, now integrated
 
@@ -101,10 +104,10 @@ unit was edited. ~/.config/hypr/hyprland.lua retains its October 22 timestamp.
 | --- | --- | --- |
 | Tray | Original code integrated; shared transactional pin/hide preferences implemented in source (plan 114; locally deployed by plan 117) | Native drawer/menu, restart and multi-output preference acceptance |
 | Bar frame/theme | Source-derived original horizontal/center section geometry; watched theme palette state with the original 420 ms OutCubic color behaviors, opaque/glassy/none background looks and the bar-off flag | Full original theme/frame/registry, native visual acceptance, reviewed notch/vertical/gesture policies; blur behind a glassy bar stays user-owned (Hyprland 0.56 has no runtime layerrule) |
-| Workspaces | Global 1–10 and native focus call; original layout glyphs | Original per-monitor blocks of ten remain a separate policy adaptation |
+| Workspaces | Original monitor-local blocks/slots, widget and bindings are implemented, opt-in and locally deployed under plan 120; user reports tried navigation/cross-monitor operations working | Physical docking/hotplug and fresh-login acceptance; legacy global mode remains the default until explicit opt-in/migration |
 | Workspace modes | Saved modes, startup restoration and floating membership/ownership are implemented | Continue native regression acceptance; not complete original helper parity |
 | Floating mode/titlebars | Native integration and floating dock are implemented separately from the widget surfaces | Preserve existing reviewed plugin/profile management; plan 114 makes no native/plugin changes |
-| Network | Original grid/hero/phrase transitions and standalone QR/speed layouts restored in source (plan 116); bounded Ubuntu details/actions, queued requests and secondary profile expansion | Deployment/native acceptance pending; ping/loss probes, plaintext password reveal, enterprise creation and original helper execution remain excluded; see [implementation](network-original-surface.md) |
+| Network | Original grid/hero/phrase transitions and standalone QR/speed layouts restored (plan 116), locally deployed (plan 117) and published in v0.2.4; bounded Ubuntu details/actions, queued requests and secondary profile expansion | Native acceptance pending; ping/loss probes, plaintext password reveal, enterprise creation and original helper execution remain excluded; see [implementation](network-original-surface.md) |
 | Audio | Source-derived original output/input layout, cursor controls, peak meter and native volume/mute/preferred-device actions | Native acceptance; streams, untyped-source fallback, profiles, physical-sink resolver and original helper/OSD parity remain incomplete |
 | Bluetooth/monitor/power | Original derived surfaces mounted with Ubuntu-native controllers | Native acceptance; Bluetooth radio-retention, AC/battery policy and persistent monitor configuration remain separate gates |
 | Keyboard layout | Original widget vendored byte-identically (single reviewed visibility deviation), mounted between tray and Bluetooth; xkb cycling through the allowlisted run | xkbcli briefs need an optional package decision (fallback label is the description's first word); input-method (fcitx) indicator deliberately not ported |

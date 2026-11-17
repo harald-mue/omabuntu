@@ -60,8 +60,10 @@ No original Style, Color, translations service or shell startup is activated.
   and floating dock, not the top bar. Upstream management helpers and the
   screen-remap component remain excluded. The context menu closes on selection,
   workspace change or an outside click through `HyprlandFocusGrab`. Plan 114
-  adds serialized/coalesced edits and visible request errors in source; that
-  repair is not yet deployed.
+  adds serialized/coalesced edits and visible request errors. That repair was
+  locally deployed under plan 117 and is included in published
+  [v0.2.4](releases.md#v024-release-scope); native pointer/persistence acceptance
+  is still separate.
 - **Launch notice:** the app grid and the dock share the one-second "Launching …"
   overlay documented in `docs/launch-feedback.md`. It is not a notification
   daemon and not the dock icon pulse. A source change reaches the running bar

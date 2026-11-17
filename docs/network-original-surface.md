@@ -5,7 +5,9 @@
 Plan 116 repairs the source-level gaps established by the
 [Network parity analysis](network-widget-parity-analysis.md). **Locally installed
 and bar restarted under plan 117; startup verified, native interactive acceptance
-still pending.** The comparison/source pin
+still pending.** The implementation is included in published
+[v0.2.4](releases.md#v024-release-scope); publication does not establish native
+Network or credential/measurement acceptance. The comparison/source pin
 remains Omarchy v4.5.0 stable,
 `ac2690cd7be4f47e4a255f5e2e78d904d436b068`.
 

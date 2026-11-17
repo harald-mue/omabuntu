@@ -6,7 +6,8 @@
 hero semantics, phrase transitions and standalone QR/speed destination layouts,
 with Ubuntu adapters and queue repairs. See [original-surface implementation](network-original-surface.md).
 These changes are locally deployed under plan 117 with a verified bar-only
-restart; native interactive acceptance remains pending.
+restart and included in published [v0.2.4](releases.md#v024-release-scope);
+native interactive acceptance remains pending.
 
 The [Network parity analysis](network-widget-parity-analysis.md) records the
 plan-115 baseline. The implementation record below predates those repairs:

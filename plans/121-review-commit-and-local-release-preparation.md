@@ -3,8 +3,8 @@
 ## Goal and evidence
 
 Review and commit the pending network-widget and monitor-local workspace changes
-under the user's explicit commit approval, without pushing. Then determine the
-next local release build inputs and version without publishing. Compare the
+under the user's initial commit approval, without pushing at that checkpoint.
+Then determine the next local release build inputs and version without publishing. Compare the
 working tree to HEAD, plans 115-120, original-source provenance and generated
 mirrors, the test suite, and the existing release/build entry points. Omarchy
 behavior remains pinned to v4.5.0 commit
@@ -22,20 +22,22 @@ route; agree on a numeric release version before creating versioned artifacts.
 
 ## Safety and exclusions
 
-The user explicitly approves committing and explicitly forbids pushing. Do not
-push, publish, create a remote release, change licensing, install packages, alter
-Git configuration or hooks, or modify/restart the live desktop. Keep private
-reports, source diffs, logs, backups, local artifacts and machine data under ignored
-work/. `make release` is excluded because it also tags and publishes. Existing
-private installed releases must not be repacked as distributable artifacts.
+The initial approval covered committing and forbade pushing. The user later
+explicitly authorized a normal main push, then handled publication in their own
+shell. Those later permissions do not authorize force-push, license/package,
+Git-configuration/hook or live-desktop changes. Keep private reports, source
+diffs, logs, backups, local artifacts and machine data under ignored work/.
+`make release` was excluded during the agent's local-only build because it also
+tags and publishes. Existing private installed releases must not be repacked as
+distributable artifacts.
 
 ## Tasks
 
 - [x] Review all pending paths and original-source/generated provenance.
 - [x] Record interactive feedback and historical-plan handoff accurately.
 - [x] Check sensitive-data candidates, whitespace and the complete test suite.
-- [ ] Create the explicitly approved commit without pushing.
-- [ ] Confirm the desired release version and build only through a local route.
+- [x] Create the initially approved commit without pushing.
+- [x] Confirm the desired release version and build only through a local route.
 
 ## Pre-commit checkpoint
 
@@ -46,7 +48,24 @@ The sensitive-data candidate review found only synthetic test/sandbox home paths
 not real user-home paths, credential material or private inventory dumps. This
 bounded review is not a guarantee that pattern matching can detect every secret.
 
-The latest local release tag is v0.2.3. The existing source-build route supports
+At the pre-commit checkpoint the latest local release tag was v0.2.3. The existing
+source-build route supports
 `--build-release --release-version <version> --skip-artwork --apply` without
-publication or desktop deployment. A numbered release build awaits version
-confirmation; no publisher, signing-key operation, tag or push is authorized.
+publication or desktop deployment. A numbered release build awaited version
+confirmation at that point; no publisher, signing-key operation, tag or push
+was authorized then.
+
+## Completed follow-up
+
+Commit `7fa2760` recorded the reviewed feature changes; all 1,279 tests passed
+and the checkout was clean. The user confirmed local v0.2.4 preparation and
+subsequently authorized a normal main push. A fresh isolated committed-source
+build, archive/source/bundle validation and local signature verification
+completed without desktop deployment. Main was pushed and checked against the
+built commit, without creating a release tag in that local-only operation.
+
+The maintainer subsequently ran `make release VERSION=0.2.4` in their own shell,
+performing a fresh publication build rather than resuming the separate local
+candidate. Plan 122 verifies and documents the resulting public release. Its
+published archive digest, not the separate local candidate's digest, identifies
+the downloadable release.
