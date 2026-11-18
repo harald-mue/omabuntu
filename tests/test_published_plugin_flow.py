@@ -169,6 +169,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
         old = {'update_contract': {'native_target': published.native_transition.FROM}}
         with patch.object(sys, 'argv', ['published', '--bundle', '/fixture']), \
              patch.object(published.user_install, 'verify_bundle', side_effect=[incoming, old, incoming]), \
+             patch.object(published.focus_policy, 'ensure', return_value={'status': 'current'}) as focus, \
              patch.object(published.plugin_manager, 'bundle_policy', return_value=None), \
              patch.object(published.setup_guide, 'ppa_stage', return_value={'status': 'done'}), \
              patch.object(published.setup_guide, 'packages_stage', return_value={'status': 'done'}), \
@@ -186,6 +187,7 @@ class PublishedPluginFlowTests(unittest.TestCase):
         self.assertEqual(ask.call_count, 1)
         self.assertIn('--migrate-native', apply.call_args.args[0])
         self.assertNotIn('--restart-bar', apply.call_args.args[0])
+        focus.assert_called_once()
 
     def test_single_entry_installs_and_offers_profile_after_package_deferral(self):
         with patch.object(sys, 'argv', ['published', '--bundle', '/fixture']), \

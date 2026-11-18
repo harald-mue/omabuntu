@@ -198,6 +198,18 @@ Rollback restores the previous application release. It does not undo packages.
 `--recover-update` restores one interrupted update to its recorded prestate and
 does not resume the new release.
 
+Source bundles after v0.2.4 also ship the original application activation-focus
+policy. Fresh generic profiles enable it by default. After a successful normal
+install/update, a separately confirmed focus-only stage adds a backed-up managed
+module/include to existing profiles and reloads only the current supported
+Hyprland session, or stages it while stopped. Already-current reruns also check
+it; current owned settings need no repeat prompt/write/reload. Edited files are
+preserved for review, and noninteractive app approval alone defers this desktop
+stage. A deferred/failed policy stage leaves the successful app switch intact;
+app rollback does not undo this independent configuration. See
+[browser activation focus](browser-launch-focus-parity.md#installation-and-update-integration-plan-125)
+for scope, private journals and recovery. Immutable v0.2.4 bundles are unchanged.
+
 ### Theme artwork on published releases
 
 Public release archives ship **artwork-free**: the Omarchy stills/previews are

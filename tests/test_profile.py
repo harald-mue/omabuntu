@@ -106,7 +106,8 @@ class ProfileTests(unittest.TestCase):
 
     def test_profile_disables_the_hyprland_logo_by_default(self):
         profile = (ROOT / "config" / "hypr" / "minimal.lua").read_text()
-        self.assertRegex(profile, r"misc\s*=\s*\{\s*disable_hyprland_logo\s*=\s*true\s*,?\s*\}")
+        self.assertRegex(profile, r"misc\s*=\s*\{[^}]*\bdisable_hyprland_logo\s*=\s*true\s*,?\s*\}")
+        self.assertRegex(profile, r"misc\s*=\s*\{[^}]*\bfocus_on_activate\s*=\s*true")
 
     def test_prototype_has_no_autostart_or_external_reference_loading(self):
         profile = (ROOT / "config" / "hypr" / "minimal.lua").read_text()

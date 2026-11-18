@@ -201,7 +201,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
         # bundles ship no legacy artifact load.
         manager_bundle = plugin_build is None
         for name in ('hypr/omabuntu-managed.lua', 'hypr/hyprpaper.conf', 'hypr/session-template.lua.in', 'hypr/titlebars.lua.in',
-                     'hypr/monitor-workspaces.lua', 'hypr/monitor-workspace-bindings.lua',
+                     'hypr/monitor-workspaces.lua', 'hypr/monitor-workspace-bindings.lua', 'hypr/focus-policy.lua',
                      'systemd/omabuntu-shell.service',
                      'systemd/omabuntu-shell-wait.py'):
             target = temporary / 'config' / name

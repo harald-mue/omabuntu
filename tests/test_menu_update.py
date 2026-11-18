@@ -218,9 +218,26 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(prefs.read_text(), '{"keep": true}')
         self.assertEqual(events, ['stop', 'start-releases/release-0.3.0'])
 
+    def test_policy_is_a_separate_followup_after_successful_application_switch(self):
+        with patch.object(runner.focus_policy,'ensure',return_value={'status':'deferred-by-user'}) as focus:
+            result, _ = self.transaction()
+        focus.assert_called_once_with(self.app,self.confirm,self.emit)
+        self.assertEqual(result['activation_focus']['status'],'deferred-by-user')
+        self.assertEqual(result['status'],'updated-and-started')
+        self.assertEqual(self.app.selected(),'releases/release-0.3.0')
+
+    def test_current_public_version_still_reconciles_focus_without_downloading(self):
+        self.discover.return_value = {'version':'0.2.0'}
+        with patch.object(runner.focus_policy,'ensure',return_value={'status':'current'}) as focus:
+            result = self.run_review()
+        focus.assert_called_once_with(self.app,self.confirm,self.emit)
+        self.assertEqual(result['activation_focus']['status'],'current')
+        self.download.assert_not_called()
+
     def test_start_failure_restores_previous_selection_without_wallpaper(self):
-        with self.assertRaises(release_update.UpdateError):
+        with patch.object(runner.focus_policy,'ensure') as focus, self.assertRaises(release_update.UpdateError):
             self.transaction(fail_start=True)
+        focus.assert_not_called()
         self.assertEqual(self.app.selected(), 'releases/release-0.2.0')
         self.assertEqual(self.live['release'], 'releases/release-0.2.0')
 

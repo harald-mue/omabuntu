@@ -11,6 +11,7 @@ import sys
 import install as guided
 import published_release
 import release_update
+import focus_policy
 import user_install
 
 
@@ -55,6 +56,8 @@ def review_update(installation, resources, directory, confirm, emit=print,
         emit({'local-release-blocked': 'Local/adapted release: automatic replacement is blocked to preserve unpublished changes.',
               'downgrade-blocked': 'The public release is older; downgrade blocked.',
               'current': 'Public version matches; no deployment (archive byte identity was not compared).'}[status])
+        if status == 'current':
+            result['activation_focus'] = focus_policy.ensure(installation, confirm, emit)
         return result
     if not confirm('Download and verify the candidate application bundle?'):
         return {'status': 'cancelled-before-download'}
@@ -81,6 +84,9 @@ def review_update(installation, resources, directory, confirm, emit=print,
             emit(guided.preflight_failure(report, path))
         return report
     result = apply(installation, plan, release_update.approve_digest(plan), check=preflight)
+    # The application transaction remains app-only. A separate, disclosed and
+    # backed-up focus policy stage handles existing personal Hyprland profiles.
+    result['activation_focus'] = focus_policy.ensure(installation, confirm, emit)
     user_install.atomic_json(directory / 'result.json', result)
     return result
 

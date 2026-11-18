@@ -14,6 +14,7 @@ hl.config({
   -- SDR-stable fullscreen default; automatic HDR is opt-in (plan 076).
   render = { cm_auto_hdr = 0 },
   misc = {
+    focus_on_activate = true,
     disable_hyprland_logo = true,
   },
   general = {

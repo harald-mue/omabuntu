@@ -135,7 +135,16 @@ def adoptable(entry_text, managed_path, template):
     if managed_path.is_symlink() or not managed_path.is_file() or managed_path.read_bytes() != template:
         return False
     allowed = {'', MANAGED_MARKER, MANAGED_INCLUDE}
+    # The independent focus-only rollout must not prevent later explicit
+    # adoption of an otherwise untouched legacy managed profile.
+    import focus_policy
     lines = entry_text.splitlines()
+    if focus_policy.INCLUDE in lines:
+        focus_module = managed_path.with_name(focus_policy.NAME)
+        if (lines.count(focus_policy.INCLUDE) != 1 or focus_module.is_symlink()
+                or not focus_module.is_file() or focus_module.read_bytes() != focus_policy.PAYLOAD.encode()):
+            return False
+        allowed.update((focus_policy.MARKER, focus_policy.INCLUDE))
     return sum(line.strip() == MANAGED_INCLUDE for line in lines) == 1 and all(line.strip() in allowed for line in lines)
 
 

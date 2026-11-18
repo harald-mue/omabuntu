@@ -33,6 +33,7 @@ import bootstrap_build
 import desktop_font
 import session_config
 import session_activation
+import focus_policy
 import plugin_login
 import setup_guide
 import source_update
@@ -219,6 +220,10 @@ def local_release(args, parser):
             result = release_update.apply(installation, plan, approval)
     else:
         result = release_update.apply(installation, plan, approval)
+    if chosen != 'rollback':
+        result['activation_focus'] = focus_policy.ensure(
+            installation, (lambda message: False) if args.json or not sys.stdin.isatty() else setup_ui.confirm,
+            emit=(lambda message: None) if args.json else print)
     print(json.dumps(result, indent=2) if args.json else '\n  Release result: ' + result['status'])
     return 0
 
@@ -318,6 +323,7 @@ def install_ready_release(command):
     plan = release_update.review(installation, bundle, mode, restart, False)
     result = release_update.apply(installation, plan, release_update.approve_digest(plan))
     print('  Result: ' + result['status'] + ' (' + plan['version'] + ')')
+    focus_policy.ensure(installation, setup_ui.confirm)
     print('  Previous release remains available through ./install.sh --rollback.')
     return 0
 

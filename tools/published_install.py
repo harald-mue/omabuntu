@@ -13,6 +13,7 @@ import repair_gnome_buttons
 import retire_legacy_titlebars
 import session_activation
 import session_config
+import focus_policy
 import user_artwork
 
 import setup
@@ -341,6 +342,9 @@ def main():
         offer_plugins(root, prerequisites_ready=prerequisites_ready)
         print('Application installation is not native/titlebar acceptance; deferred stages remain explicit.')
         print('To continue deferred steps later, rerun the same install.sh entry point. No temporary-cache commands are needed.')
+    # Also reconcile an already-current app or a just-created generic profile.
+    # This dedicated, disclosed config stage is independent of app switching.
+    focus_policy.ensure(installation, ask)
     # Keep the installed release: do not leave references into the temporary download.
 
 
