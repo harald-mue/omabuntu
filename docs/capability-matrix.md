@@ -1,7 +1,8 @@
 # Capability matrix
 
 This is an implementation/evidence matrix, not a blanket functional acceptance
-record. Current additions are included in [v0.2.4](releases.md#v024-release-scope);
+record. The current release is [v0.2.5](releases.md#v025-release-scope), including
+the earlier [v0.2.4 additions](releases.md#v024-release-scope);
 publication does not make optional configuration automatic or establish native
 acceptance beyond the explicitly recorded observations.
 
@@ -9,6 +10,7 @@ acceptance beyond the explicitly recorded observations.
 |---|---|---|---|---|
 | Lua configuration | Version-specific Hyprland Lua APIs | Workspace integration reviewed against Hyprland 0.57.0 sources and exercised through an approved config reload | Prefer native Lua; review each imported helper/version | Current workspace config loads without errors; not general native/plugin/security acceptance |
 | Core bindings | Original workspace factories plus broader shell/application bindings | All 45 monitor-workspace chords registered exactly once after the approved migration; callback discovery/replay supported by the keybindings menu; unrelated existing shortcuts preserved | Review remaining upstream bindings individually; do not expose original helper PATH | User reports tried workspace and cross-monitor operations working; no config errors; remaining shortcuts are not blanket-accepted |
+| Application activation focus | Original global `misc.focus_on_activate = true` | Fresh defaults and dedicated managed module shipped in v0.2.5; installer/updater rollout uses separate confirmation, backups and guarded recovery | Existing profiles require the disclosed desktop grant; fresh-machine helper/login acceptance remains open | Owner confirmed local Chrome interaction; 1,297 tests and signed source/bundle checks pass, not every application's activation-token behavior; see [scope](browser-launch-focus-parity.md) |
 | Terminal | Ghostty and Omarchy launch helper | Prototype binds Ghostty directly | Test launch without provisioning dependencies | Binding parsed; launch untested |
 | Tiling and decoration | Dwindle; gaps 2/10; border 2; rounding 8; blur off; shadow on | Prototype uses these values and parses natively | Back up target before any application; test behavior | Parser accepted; runtime untested |
 | Workspaces | Per-monitor helper logic and persistent modes | Original allocation/widget with narrow Ubuntu state adapters, ten local slots per monitor, real-ID modes/minimized tags and journaled adoption; shipped in v0.2.4 | Explicit opt-in/migration for existing profiles; physical docking/hotplug and fresh-login checks remain | Local migration preserved windows/output geometry/layouts; tried operations received positive user feedback; see [boundaries](monitor-local-workspaces.md) |

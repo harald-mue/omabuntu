@@ -103,13 +103,16 @@ published v0.2.4 defaults remain unchanged.
 
 ## Installation and update integration (plan 125)
 
-New source defaults enable `misc.focus_on_activate = true` in both the generic
-session template and standalone evaluation profile. Future bundles ship
-`config/hypr/focus-policy.lua`; the normal published installer, setup release
+Published [v0.2.5](releases.md#v025-release-scope) enables
+`misc.focus_on_activate = true` in both the generic session template and standalone
+evaluation profile. Its verified bundle ships `config/hypr/focus-policy.lua`;
+the normal published installer, setup release
 workflow and application-menu updater reconcile it after a successful app
 transaction. Already-current installer/update checks also reconcile the policy.
 An older bundle without the artifact remains supported and is not retroactively
-modified.
+modified. Publication assets, signature, exact source and bundle checks passed;
+all 1,297 tests pass. Publication does not install this helper or establish fresh
+login/fresh-machine acceptance.
 
 For an existing personal profile, `tools/focus_policy.py` adds only
 `~/.config/hypr/omabuntu-focus.lua` and a marked

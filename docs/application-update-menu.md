@@ -80,7 +80,7 @@ instead of writing into the immutable installed updater payload. The ordinary
 updater transaction retains its normal private selector/launcher backups and
 application update journals. Existing preference files are not migrated/reset.
 
-Source bundles after v0.2.4 add a separate, disclosed
+Published [v0.2.5](releases.md#v025-release-scope) adds a separate, disclosed
 [activation-focus policy stage](browser-launch-focus-parity.md#installation-and-update-integration-plan-125)
 after a successful app switch, or an already-current public-version check. The
 first addition asks before writing the narrow managed module/include and before
@@ -90,6 +90,8 @@ provisioning or a private-profile reset. The `activation_focus` result is separa
 from application status: declining/failing the policy stage does not roll back a
 successful app update. Its private backups/recovery journals live in the user's
 Omabuntu state, not the immutable release. Published v0.2.4 remains unchanged.
+Signed publication artifacts and the packaged helper/import closure were checked;
+publication is not live updater/fresh-machine acceptance.
 
 The old application release is retained. Startup failure triggers the existing
 previous-selection/startup recovery; it is not proof of successful visual or

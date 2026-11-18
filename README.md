@@ -26,7 +26,7 @@ configuration — install and update it without building anything yourself.
 curl -fsSL https://raw.githubusercontent.com/harald-mue/omabuntu/main/install.sh | bash
 ```
 
-The latest release is **[v0.2.4](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.4)**;
+The latest release is **[v0.2.5](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.5)**;
 fresh-machine installation is not yet
 accepted. The installer downloads it, verifies the publisher signature and
 archive checksums before extraction, and asks before installing missing
@@ -41,6 +41,10 @@ silently.
 ### Your desktop stays yours
 
 - Your personal `hyprland.lua` is never replaced or merged automatically.
+  Since v0.2.5, a separate confirmation can add a backed-up focus-only module
+  and include, with a reload in the current Hyprland session. Fresh generic
+  profiles enable the original activation-focus default; existing customizations
+  are preserved for review. See [focus-policy scope and recovery](docs/browser-launch-focus-parity.md#installation-and-update-integration-plan-125).
 - Package changes require approval; there are no blanket upgrades, automatic
   logouts or reboots.
 - GNOME remains fully available. Omabuntu's services and settings never affect
@@ -129,19 +133,21 @@ make guide                    # review local installation stages
 make test                     # unit suite
 ```
 
-Version **[v0.2.4](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.4)** is
-published with World Clock/calendar/tray persistence repairs, serialized widget
-requests, original Network surfaces and opt-in monitor-local workspaces with a
-backed-up migration/recovery path. Workspace navigation and cross-monitor moves
-received positive user feedback; physical docking, fresh login and comprehensive
-native/security acceptance remain unverified. See the
-[0.2.4 scope and acceptance limits](docs/releases.md#v024-release-scope).
+Version **[v0.2.5](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.5)** is
+published with the original global activation-focus policy in fresh profiles and
+a separately confirmed, backed-up rollout for existing installations and updates.
+The user confirmed the local Chrome interaction works. It also retains v0.2.4's
+World Clock/calendar/tray persistence repairs, serialized widget requests,
+original Network surfaces and opt-in monitor-local workspaces. Workspace
+navigation and cross-monitor moves received positive user feedback; physical
+docking, fresh login and comprehensive native/security acceptance remain
+unverified. See the [0.2.5 scope and acceptance limits](docs/releases.md#v025-release-scope).
 
 Maintainers publish a signed release after setting up the publisher key and
 GitHub access. Choose an unused version; for example, for a future release:
 
 ```bash
-make release VERSION=0.2.5
+make release VERSION=0.2.6
 ```
 
 This asks before committing, builds the committed source without theme

@@ -11,6 +11,12 @@ See [workspace modes](workspace-modes.md) and the optional
 [monitor-local policy](monitor-local-workspaces.md), published in
 [v0.2.4](releases.md#v024-release-scope).
 
+Current [v0.2.5](releases.md#v025-release-scope) adds the original compositor
+activation-focus default and a separately confirmed installer/update rollout.
+The owner confirmed the local Chrome app-grid interaction after enabling that
+policy; the grid's desktop launch chain is unchanged. This is not complete shell
+or per-application activation acceptance; see [focus-policy boundaries](browser-launch-focus-parity.md).
+
 ## Fidelity correction after user feedback
 
 The user rejected the overall quality of the authored partial panels. Original

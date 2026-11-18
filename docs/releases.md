@@ -2,20 +2,21 @@
 
 ## Status
 
-The current published release is **[v0.2.4](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.4)**,
-published on 2026-11-17 at 23:48:09 UTC from commit
-`7fa27607f65f6c2ee54998756a8531e805056123`. It is GitHub's latest release,
+The current published release is **[v0.2.5](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.5)**,
+published on 2026-11-18 at 06:49:07 UTC from commit
+`94cd982f76d0bd65f347b520541e61f4dfd3bb80`. It is GitHub's latest release,
 public and neither a draft nor prerelease. All four expected assets are present:
 the Ubuntu 26.04 x86_64 archive, `release.json`, `SHA256SUMS` and
 `SHA256SUMS.sig`. Retained publication artifacts match GitHub's asset sizes and
 digests; publisher-signature, source-export, bundle-integrity and
-artwork-exclusion checks pass. The separately prepared local build is not the
-published archive. Publication does not establish fresh-machine or
-native/security acceptance.
+artwork-exclusion checks pass. The release includes the original activation-focus
+policy and its separately confirmed installation/update stage; see
+[v0.2.5 scope](#v025-release-scope). Publication does not establish fresh-machine
+or native/security acceptance.
 
 After explicit approval and verified private backups, GitHub release objects and
 attached assets for v0.1.8, v0.1.9, v0.2.0, v0.2.1 and v0.2.2 were deleted.
-Both v0.2.4 and v0.2.3 are currently published GitHub releases. The six tags
+v0.2.5, v0.2.4 and v0.2.3 are currently published GitHub releases. The six tags
 present at the earlier retirement checkpoint were retained unchanged; old source
 tags remain available, but retired releases' download URLs no longer work. The
 historical scope/verification records below describe artifacts at publication or
@@ -306,6 +307,54 @@ for that separate configuration/reload approval; consult
 No native package, service, plugin, autostart, locking or private-profile change
 is implied by publication. Public releases remain artwork-free; v0.2.3 and
 existing immutable tags/artifacts were not retired by this publication.
+
+### v0.2.5 release scope
+
+Version **[0.2.5](https://github.com/harald-mue/omabuntu/releases/tag/v0.2.5)**
+identifies source commit `94cd982f76d0bd65f347b520541e61f4dfd3bb80` and was
+published on 2026-11-18 at 06:49:07 UTC. It is public, latest and neither draft
+nor prerelease. All four expected assets match the retained publication files'
+sizes and GitHub SHA256 digests. Publisher-signature verification, exact committed
+source export/packaged-source comparison, safe extraction, bundle integrity and
+artwork-exclusion checks pass. The Ubuntu 26.04 x86_64 archive is **8,585,658 bytes**
+with SHA256:
+
+```text
+d48e9e33ea83bbd2a9ca19b28d1e74bcc6b29d2a5203b197f22b6e410f8d0486
+```
+
+Changes since v0.2.4:
+
+- Enable the original global `misc.focus_on_activate = true` default in generic
+  session and standalone evaluation profiles. Eligible applications can request
+  focus for existing windows, including on hidden workspaces.
+- Ship a dedicated focus-only Lua module and reconcile it through the normal
+  published installer, setup release workflow and application-menu updater,
+  including already-current installer/update checks.
+- Ask separately before adding a backed-up managed module/include to an existing
+  profile and reloading the current supported Hyprland session. Stage for the
+  next login while stopped; current owned settings need no repeated prompt,
+  write or reload. Noninteractive app approval alone defers the desktop stage.
+- Refuse edited/ambiguous/symlinked files, stale approvals and unrelated sessions;
+  preserve concurrent edits and provide guarded journal recovery. Keep later
+  explicit adoption of an untouched legacy managed profile available.
+- Report application switching and activation-focus deployment independently.
+  Declining/failing the focus stage does not roll back a successful app switch;
+  app rollback does not undo this independent configuration.
+
+All **1,297 tests** pass. Fixtures cover stopped/live rollout, idempotency,
+refusal, failure/recovery, host admission and updater ordering. The updater's
+packaged import closure includes the new helper. The owner confirmed the local
+Chrome interaction after the earlier approved one-line correction; that is not
+fresh-machine acceptance of the new installer helper or a guarantee that every
+application supplies valid activation context. Browser commands/profiles and
+the GTK/UWSM launch-chain difference are unchanged.
+
+All [v0.2.4 features and acceptance limits](#v024-release-scope) remain applicable.
+No installed desktop, package, service, native plugin, autostart or locking state
+was changed by publication verification. Workspace migration remains a separate
+opt-in. Public artifacts remain artwork-free; v0.2.4/v0.2.3 and existing tags were
+not retired or replaced. See [focus-policy scope and recovery](browser-launch-focus-parity.md#installation-and-update-integration-plan-125).
 
 ## One-time publisher setup
 

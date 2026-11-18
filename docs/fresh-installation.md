@@ -14,6 +14,16 @@ now shows the next implemented stage and can apply only that local stage.
 The operator guide is [installer.md](installer.md). Plan [043](../plans/043-fresh-install-and-updates.md) tracks the broader installation work. Published distribution is documented in [releases.md](releases.md).
 No PPA, packages, desktop files, session or service was changed by this audit.
 
+The current public release is [v0.2.5](releases.md#v025-release-scope). It enables
+the original activation-focus default in fresh generic profiles and ships a
+separately confirmed, backed-up focus-only stage for existing installations and
+updates. Current owned settings need no repeated write/reload; private edits and
+noninteractive desktop deferral remain explicit. This does not replace an
+existing personal profile or enable session/login services. See
+[policy scope and recovery](browser-launch-focus-parity.md#installation-and-update-integration-plan-125).
+Signed artifact/source/bundle checks and 1,297 tests pass; clean-target and
+first-login acceptance remain outstanding.
+
 ## Terminal experience: implemented preview
 
 Run `./install.sh` from your normal account, not via sudo. The shell wrapper
