@@ -47,9 +47,11 @@ silently.
   are preserved for review. See [focus-policy scope and recovery](docs/browser-launch-focus-parity.md#installation-and-update-integration-plan-125).
 - Package changes require approval; there are no blanket upgrades, automatic
   logouts or reboots.
-- GNOME remains fully available. Omabuntu's services and settings never affect
-  a GNOME session: its units start only under Hyprland, and no global GNOME
-  setting is changed.
+- GNOME remains fully available. Omabuntu's units start only under Hyprland.
+  Default installation does not change global GNOME settings. The optional
+  **Setup → Window Controls** setting explicitly changes one shared button layout
+  for this user, **including GNOME**, after confirmation; it can be shown/hidden
+  or restored. See [scope and recovery](docs/window-controls.md).
 
 Installing the application does not finish a new Hyprland session setup.
 Generic session configuration, plugin loading at next login and login

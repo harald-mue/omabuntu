@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 """Restore the Ubuntu default GNOME window-button layout (plan 074).
 
-Omabuntu never changes user-global GNOME settings, but a 2026-10-25 manual
-change set org.gnome.desktop.wm.preferences button-layout to 'appmenu',
-which strips minimize/maximize/close from every CSD app in GNOME sessions
-too. review is read-only; apply restores the Ubuntu default
+A 2026-10-25 manual change set the shared button-layout to 'appmenu',
+removing buttons from applications consulting that layout in GNOME too.
+Plan 131 now offers the same user-wide setting deliberately, after explicit
+confirmation; a verified intentional hide is not legacy damage. review is
+read-only; apply repairs only the unowned old signature to the Ubuntu default
 'appmenu:minimize,maximize,close' and records the previous value first;
 rollback restores that recorded value. Only this one key is touched.
 """
@@ -15,6 +16,8 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+
+import window_controls
 
 SCHEMA = 'org.gnome.desktop.wm.preferences'
 KEY = 'button-layout'
@@ -106,14 +109,18 @@ def review(home=None, binary=GSETTINGS):
     """Read-only: current value, whether the documented repair is needed.
 
     The repair targets exactly the documented 2026-10-25 damage signature
-    ('appmenu', no right-side buttons). Any other value, including a stock
-    schema default or a user's own layout, is left alone and never offered.
+    ('appmenu', no right-side buttons). A verified explicit user-wide hide
+    transaction (plan 131) is intentional and never offered as damage. Any
+    other value, including a stock schema default or custom layout, is left alone.
     """
     home = check_home(home or os.path.expanduser('~'))
     value = current_value(home, binary)
+    root = Path(os.environ.get('OMABUNTU_STATE_HOME') or state_dir(home).parent)
+    intentional = value == DAMAGE and window_controls.owns_hidden_layout(root)
     return {'home': home, 'schema': SCHEMA, 'key': KEY, 'current': value,
             'damage': DAMAGE, 'default': DEFAULT,
-            'repair_needed': value == DAMAGE,
+            'intentional_user_wide_hide': intentional,
+            'repair_needed': value == DAMAGE and not intentional,
             'records': record_paths(home)}
 
 

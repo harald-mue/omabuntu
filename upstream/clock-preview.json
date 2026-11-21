@@ -1104,7 +1104,7 @@
     },
     "CommandMenu.qml": {
       "path": "config/shell/preview/CommandMenu.qml",
-      "sha256": "6f78ecc0cbf99f3fdd90b29770d7ecfeee9e6e205cf03d1bc61d0411c6e46b99"
+      "sha256": "249283d391d7484a4d8c8c387dc8896c7137f1a63a8b610e6d66ae8208995f2a"
     },
     "MenuModel.js": {
       "path": "config/shell/preview/MenuModel.js",

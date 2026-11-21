@@ -35,6 +35,7 @@ import font_backend
 import menu_common
 import power_actions
 import theme_backend
+import window_controls
 
 ROOT = Path(__file__).resolve().parents[1]
 COMMIT = 'ac2690cd7be4f47e4a255f5e2e78d904d436b068'
@@ -248,7 +249,7 @@ def guard_script(items, state_home_text=None):
     lines = []
     for item_id, entry in items.items():
         for tag, key in (('w', 'when'), ('c', 'checked'), ('d', 'disabled')):
-            if entry.get(key) and not entry[key].startswith('appearance:'):
+            if entry.get(key) and not entry[key].startswith(('appearance:', 'window-controls:')):
                 lines.append(guard_line(item_id, tag, entry[key]))
     if not lines:
         return ''
@@ -290,6 +291,11 @@ def evaluate_guards(items, run=None, workspace=None):
     if any(entry.get(key, '').startswith('appearance:')
            for entry in items.values() for key in results):
         extra = appearance_backend.guards(items, workspace)
+        for key in results:
+            results[key].update(extra[key])
+    if any(entry.get(key, '').startswith('window-controls:')
+           for entry in items.values() for key in results):
+        extra = window_controls.guards(items)
         for key in results:
             results[key].update(extra[key])
     return results
@@ -415,6 +421,12 @@ def _run_action(action, run=None, palettes_path=None, state_root=None, dirs=None
     """Execute one registry action; session-ending verbs go through gates."""
     if action == 'omabuntu-update:review':
         return menu_update.launch()
+    if action in window_controls.ACTIONS:
+        try:
+            mode = window_controls.ACTIONS[action]
+            return window_controls.restore() if mode == 'restore' else window_controls.change(mode)
+        except (OSError, ValueError) as error:
+            return {'ok': False, 'error': 'window-controls', 'message': str(error)}
     if action in appearance_backend.ACTIONS:
         try:
             return appearance_backend.change(*appearance_backend.ACTIONS[action])
@@ -461,7 +473,8 @@ def run_item(row_id, definitions=None, run=None):
             return defaults_backend.set_terminal(row['value'])
         return {'ok': False, 'error': 'refused'}
     action = entry.get('action')
-    if not action or not (ACTION_RE.fullmatch(action) or action in appearance_backend.ACTIONS):
+    if not action or not (ACTION_RE.fullmatch(action) or action in appearance_backend.ACTIONS
+                          or action in window_controls.ACTIONS):
         return {'ok': False, 'error': 'refused', 'message': 'That action is not allowed here.'}
     return _run_action(action, run=run)
 

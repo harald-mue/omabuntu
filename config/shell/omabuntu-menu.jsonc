@@ -10,8 +10,8 @@
   // builds the dispatch allowlist from this file and refuses everything else.
   // Excluded upstream sections (install, remove, about,
   // dmenu modes, locale catalogs) are documented in plans/002-command-menu.md
-  // and docs/command-menu.md. Setup keeps only reviewed default-application
-  // rows backed by xdg-settings and xdg-terminal-exec.
+  // and docs/command-menu.md. Setup includes reviewed default applications
+  // and explicitly confirmed user-wide window-button preferences, including GNOME.
 
   // Root menu (upstream order: apps, learn, appearance, trigger, setup, install,
   // remove, update, about, system; only sections with reviewed Ubuntu
@@ -81,6 +81,15 @@
   "setup.default": {"icon": "\uf005", "label": "Defaults", "title": "Default applications"},
   "setup.default.browser": {"icon": "\uf488", "label": "Browser", "title": "Default browser", "provider": "default-browsers"},
   "setup.default.terminal": {"icon": "\uf489", "label": "Terminal", "title": "Default terminal", "provider": "default-terminals"},
+
+  // Explicitly user-wide: confirmation rows disclose GNOME/concurrent-session effects.
+  "setup.window-controls": {"icon":"󰖯","label":"Window Controls","description":"Application buttons for this user across desktops, including GNOME; hyprbars is unchanged"},
+  "setup.window-controls.hide": {"icon":"󰈉","label":"Hide Buttons …","checked":"window-controls:hidden","disabled":"window-controls:unavailable","description":"Also affects GNOME and concurrent sessions; application-owned controls may ignore it"},
+  "setup.window-controls.hide.confirm": {"icon":"󰈉","label":"Hide in All Desktops","disabled":"window-controls:unavailable","description":"Confirm: remove min/max/close from applications following the shared layout, including GNOME","action":"omabuntu-window-controls:hide"},
+  "setup.window-controls.show": {"icon":"󰈈","label":"Show Buttons …","checked":"window-controls:shown","disabled":"window-controls:unavailable","description":"Set minimize/maximize/close on the right, including GNOME"},
+  "setup.window-controls.show.confirm": {"icon":"󰈈","label":"Show in All Desktops","disabled":"window-controls:unavailable","description":"Confirm: show minimize/maximize/close for applications following the shared layout","action":"omabuntu-window-controls:show"},
+  "setup.window-controls.restore": {"icon":"󰁯","label":"Restore Previous Layout …","disabled":"window-controls:cannot-restore","description":"Restore the last recorded value or original default inheritance, including GNOME"},
+  "setup.window-controls.restore.confirm": {"icon":"󰁯","label":"Restore in All Desktops","disabled":"window-controls:cannot-restore","description":"Confirm: restore/recover the latest change; refuse unrelated later edits","action":"omabuntu-window-controls:restore"},
 
   // System menu (Super+Escape opens this route). Upstream order is kept:
   // screensaver, lock, suspend, hibernate, logout, reboot, shutdown. Only

@@ -46,10 +46,11 @@ PanelWindow {
 
   // Geometry and paint from the pinned Menu.qml card. Colors follow the
   // active palette once defs returns; until then they match the bar.
-  readonly property int cardWidth: Math.min(activeMenu === "appearance.font" ? 520 : 300, width - 20)
+  readonly property int cardWidth: Math.min(activeMenu === "appearance.font" || activeMenu.indexOf("setup.window-controls") === 0 ? 520 : 300, width - 20)
   readonly property int cornerRadius: 8
   readonly property int contentMargin: 18
-  readonly property int headerHeight: 34
+  readonly property int headerHeight: activeMenu.indexOf("setup.window-controls") === 0 && note
+      ? Math.max(34, menuHeaderText.implicitHeight + 16) : 34
   readonly property int baseRowHeight: 50
   readonly property int rowSpacing: 3
   readonly property int rowPeek: Math.round(baseRowHeight * 0.55)
@@ -345,7 +346,13 @@ PanelWindow {
       root.mergeProviderRows(payload.rows || [], root.pendingProviderMenu)
     } else if (kind === "run") {
       if (payload.appearance && root.appearanceChanged) root.appearanceChanged(payload.appearance)
-      root.close()
+      if (payload.window_controls) {
+        // This one confirmed user-wide preference includes GNOME; keep its scope visible.
+        root.note = payload.message || "Window-button layout updated for this user, including GNOME."
+        root.queryHelper("guards", root.currentWorkspace ? [root.currentWorkspace] : [])
+      } else {
+        root.close()
+      }
     }
     root.pump()
   }
@@ -498,16 +505,18 @@ PanelWindow {
         radius: root.cornerRadius
         color: "transparent"
         Text {
+          id: menuHeaderText
           anchors.fill: parent
           anchors.leftMargin: 10
           anchors.rightMargin: 10
           verticalAlignment: Text.AlignVCenter
+          wrapMode: root.activeMenu.indexOf("setup.window-controls") === 0 && root.note ? Text.WordWrap : Text.NoWrap
           text: root.note ? root.note : (root.filterText || root.placeholder)
           color: root.note ? "#ee8888" : root.menuText
           opacity: root.note || root.filterText ? 1 : 0.58
           font.family: root.rowFont
-          font.pixelSize: 16
-          elide: Text.ElideRight
+          font.pixelSize: root.activeMenu.indexOf("setup.window-controls") === 0 && root.note ? 12 : 16
+          elide: root.activeMenu.indexOf("setup.window-controls") === 0 && root.note ? Text.ElideNone : Text.ElideRight
         }
       }
 
