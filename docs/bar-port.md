@@ -1,7 +1,10 @@
 # Original bar port: implementation and remaining work
 
 Normal approved bar runs now use [session lifetime without expiry](bar-session.md).
-The timed launches recorded below are historical; no autostart has been configured.
+The timed launches and process/deployment observations recorded below are
+historical, not an assertion of the current autostart/session state. For the
+owner's accepted everyday and VM tests and remaining source differences, see
+[current project status](project-status.md).
 
 The complete Omarchy bar is **not finished**. A complete bar means usable
 panels and their real backend semantics, not decorative status symbols. The
@@ -23,15 +26,23 @@ The user rejected the overall quality of the authored partial panels. Original
 primitives alone are not a faithful port. Further work must use the original
 layout/components, adapting only reviewed Ubuntu backend and safety boundaries,
 not add more unrelated replacements. [Original horizontal section geometry](bar-frame.md)
-is now integrated, but full frame/theme/registry remains an unresolved gap;
-successful unit tests do not establish visual quality.
+is integrated. Plan 134 adds source-only original keyed WidgetPool ownership,
+a closed individual Component registry, shared five-section layout persistence
+and layout-order navigation. The existing widgets share one per-output bar API.
+Conditional original-model move/remove operations now reject stale writes and
+recover shared pending state. The original widget pointer/ghost/poof and
+open-panel surfaces now use that guarded write seam in source, together with
+original stable full-screen/idle-input-strip ownership. Full plugin/theme
+services and new native input/visual acceptance remain unresolved;
+successful unit tests do not establish visual quality or native acceptance.
 
 The first correction is the [source-derived audio output frontend](audio-output-port.md):
 original hero/output/device markup, cursor surfaces, switch, typography, lazy
 keyboard panel and scroll behavior replace the authored output popup. This is
-still output-only and not complete audio or shell parity. That initial Network
+not complete audio or shell parity; typed input was subsequently added. That initial Network
 status-only checkpoint was superseded by the original-source Network adaptation
-in plans 116–117, included in v0.2.4; native interaction acceptance remains open.
+in plans 116–117, included in v0.2.4; the owner reports the existing everyday
+network interaction working under plan 133.
 
 ## Original tray, now integrated
 
@@ -48,10 +59,15 @@ import. No private configuration or assets were copied. Their exact origins,
 lengths, Git blobs and SHA-256 hashes are in upstream/clock-preview.json;
 vendor/omarchy/LICENSE retains the full upstream MIT notice.
 
-PortTrayHost is a deliberately restricted owner, not a replacement tray:
+PortTrayHost is a deliberately restricted wrapper, not a replacement tray.
+Its standalone owner retains the following boundaries. In plan-134 source, the
+real registry supplies the common bar API instead; the original tray still has
+no arbitrary command/module loader or automatic application startup:
 
 - Supplies geometry, palette, popup coordination and tooltips.
-- Stores pin/hide choices in memory only. Restart resets those preferences.
+- Originally stored pin/hide choices in memory only. Plans 114/117 added the
+  shared transactional preference adapter; persistence is owner-accepted in
+  plan 133.
 - Does not offer a command runner or configuration file writer.
 - Does not change application registration or start applications automatically.
 - Uses Quickshell's StatusNotifier host/watcher and live application menus.
@@ -66,18 +82,23 @@ No VPN connection or corporate settings were changed.
 
 ## Validation
 
-- 216 Python contracts pass; they do not start Qt or DBus.
+- The initial tray checkpoint had 216 Python contracts; current validation is
+  tracked in [project status](project-status.md).
 - The [app launcher first-open fix](app-launcher.md) reacts to queued catalog
   publication; seven actual Qt cases include a private native DesktopEntries
   catalog. No host application or shortcut is executed by those tests.
 - The [source-derived tooltip correction](tooltip-port.md) is activated. Original
   independent popup anchoring replaces the authored bare Controls ToolTip;
   seven isolated cases do not prove native hover acceptance.
-- The [horizontal section layout](bar-frame.md) is source-derived; seven actual
-  Qt cases cover supported widths, narrow clipping, long titles and centering.
+- The [horizontal section layout](bar-frame.md) is source-derived; plan 134's
+  twenty-four isolated Qt cases cover geometry, original pointer-handler bodies,
+  ghost/settle/poof, stable/guarded widget moves, real Appearance conflict
+  recovery, empty/missing admissions, removal, output-
+  local pools/navigation, real registry compilation with synthetic ownership,
+  and an intentional failure. No native layer/session is started.
 - The [audio output port](audio-output-port.md) now uses source-derived original
-  layout/control markup, native output actions and eight isolated fake-node Qt
-  fixtures. Offscreen fixtures replace native surface ownership, not controls.
+  layout/control markup, native output actions and twelve isolated fake-node Qt
+  fixtures after plan 134's source-only playback stream slice. Offscreen fixtures replace native surface ownership, not controls.
 - The [network control port](network-control.md) replaces the live status popup
   with the original connection hero, list and row. Wi-Fi connect, passphrase,
   disconnect, forget and radio toggle use Quickshell's NetworkManager API.
@@ -108,28 +129,29 @@ unit was edited. ~/.config/hypr/hyprland.lua retains its October 22 timestamp.
 
 | Area | Current state | Required before claiming completion |
 | --- | --- | --- |
-| Tray | Original code integrated; shared transactional pin/hide preferences implemented in source (plan 114; locally deployed by plan 117) | Native drawer/menu, restart and multi-output preference acceptance |
-| Bar frame/theme | Source-derived original horizontal/center section geometry; watched theme palette state with the original 420 ms OutCubic color behaviors, opaque/glassy/none background looks and the bar-off flag | Full original theme/frame/registry, native visual acceptance, reviewed notch/vertical/gesture policies; blur behind a glassy bar stays user-owned (Hyprland 0.56 has no runtime layerrule) |
-| Workspaces | Original monitor-local blocks/slots, widget and bindings are implemented, opt-in and locally deployed under plan 120; user reports tried navigation/cross-monitor operations working | Physical docking/hotplug and fresh-login acceptance; legacy global mode remains the default until explicit opt-in/migration |
+| Tray | Original code integrated; shared transactional pin/hide preferences implemented in source (plan 114; locally deployed by plan 117) | Existing everyday interaction/persistence accepted by owner (plan 133); not every third-party tray action |
+| Bar frame/theme | Original horizontal/center geometry, watched palette with 250 ms OutCubic behaviors, background looks/bar-off flag; plan 134 adds source-only keyed pools, closed individual registry, shared layout persistence/API and layout-order routing | Original widget pointer/ghost/poof source is restored but not deployed or natively accepted; arbitrary plugin/full theme ownership, bar-edge relocation, nested tray and notch/vertical/blur policies remain out |
+| Workspaces | Original monitor-local blocks/slots, widget and bindings are implemented, opt-in and locally deployed under plan 120; user reports tried navigation/cross-monitor operations working | Owner reports docking/hotplug and fresh-login tests working (plan 133); legacy global mode still requires explicit opt-in/migration |
 | Workspace modes | Saved modes, startup restoration and floating membership/ownership are implemented | Continue native regression acceptance; not complete original helper parity |
 | Floating mode/titlebars | Native integration and floating dock are implemented separately from the widget surfaces | Preserve existing reviewed plugin/profile management; plan 114 makes no native/plugin changes |
-| Network | Original grid/hero/phrase transitions and standalone QR/speed layouts restored (plan 116), locally deployed (plan 117) and published in v0.2.4; bounded Ubuntu details/actions, queued requests and secondary profile expansion | Native acceptance pending; ping/loss probes, plaintext password reveal, enterprise creation and original helper execution remain excluded; see [implementation](network-original-surface.md) |
-| Audio | Source-derived original output/input layout, cursor controls, peak meter and native volume/mute/preferred-device actions | Native acceptance; streams, untyped-source fallback, profiles, physical-sink resolver and original helper/OSD parity remain incomplete |
-| Bluetooth/monitor/power | Original derived surfaces mounted with Ubuntu-native controllers | Native acceptance; Bluetooth radio-retention, AC/battery policy and persistent monitor configuration remain separate gates |
-| Keyboard layout | Original widget vendored byte-identically (single reviewed visibility deviation), mounted between tray and Bluetooth; xkb cycling through the allowlisted run | xkbcli briefs need an optional package decision (fallback label is the description's first word); input-method (fcitx) indicator deliberately not ported |
-| Clock/calendar | Derived original calendar; shared transactional calendar fields and binding repair implemented in source (plan 114; locally deployed by plan 117); sealed label stays read-only | Native click/restart/multi-output acceptance. No timezone helper, shell.json writes, IPC, or calendar hotkey |
+| Network | Original grid/hero/phrase transitions and standalone QR/speed layouts restored (plan 116), locally deployed (plan 117) and published in v0.2.4; bounded Ubuntu details/actions, queued requests and secondary profile expansion | Existing everyday interaction accepted by owner (plan 133); ping/loss probes, plaintext password reveal, enterprise creation and original helper execution remain excluded; see [implementation](network-original-surface.md) |
+| Audio | Source-derived original output/input layout, cursor controls, peak meter and native volume/mute/preferred-device actions | Existing output/input controls accepted by owner (plan 133); original per-app streams added in source only under plan 134, not installed; untyped-source fallback, profiles, physical-sink resolver and original helper/OSD parity remain incomplete |
+| Bluetooth/monitor/power | Original derived surfaces mounted with Ubuntu-native controllers | Existing Bluetooth/brightness/runtime-scale interaction accepted by owner (plan 133); Bluetooth radio-retention, AC/battery policy and persistent monitor configuration remain separate gates |
+| Keyboard layout | Original widget vendored byte-identically (single reviewed visibility deviation), mounted between tray and Bluetooth; xkb cycling through the allowlisted run | xkbcli 1.13.1 is installed in the documented development setup; input-method (fcitx) indicator deliberately not ported |
+| Clock/calendar | Derived original calendar; shared transactional calendar fields and binding repair implemented in source (plan 114; locally deployed by plan 117); sealed label stays read-only | Existing interaction/persistence accepted by owner (plan 133). No timezone helper, shell.json writes, IPC, or calendar hotkey |
 | Indicators/menu | Menu button at the left edge: original BarIconButton with the extracted U+E900 mark, left click opens the command menu's root route, right click opens a terminal | Native click acceptance; no Arch package or system-management routes
-| Elsewhen | Original panel derived to the right of the clock; Cities and preferences persist in shared, backed-up Omabuntu state (plans 111–112; locally deployed with clean startup) | Native open/click acceptance. No weather fetch, GitHub profiles, notifications, or system timezone change |
+| Elsewhen | Original panel derived to the right of the clock; Cities and preferences persist in shared, backed-up Omabuntu state (plans 111–112; locally deployed with clean startup) | Existing interaction/persistence accepted by owner (plan 133). No weather fetch, GitHub profiles, notifications, or system timezone change |
 | Weather | Original panel after Elsewhen, Celsius/km/h, 15-minute refresh; original city editor, wttr.in/IP location and Open-Meteo city search/forecast | Location-parity version deployed with clean startup; native editor acceptance pending. Notification actions and IPC remain out |
 | Agents | Not implemented | Dependency, notices and asset decisions |
-| Updates | Arch route excluded | Ubuntu-native, reviewed status/actions if agreed; never pacman or Omarchy migrations |
+| Updates | Ubuntu application-update review/menu is implemented; Arch management routes are excluded | Future rollout retains explicit approval and rollback; never pacman or Omarchy migrations |
 
 Plan 114 also implements dock/display request queues, visible failure handling
 and fixed-registry keyboard panel switching in source. See the
 [repair status and remaining deviations](widget-preference-repairs.md).
 Plan 117 subsequently deployed those repairs and the Network source changes,
-with backups and a verified bar-only restart. Native interactive acceptance and
-policy gates remain open; see [deployment status](network-original-surface.md#approved-local-deployment-plan-117).
+with backups and a verified bar-only restart. The owner subsequently confirmed
+the everyday interaction/persistence tests in plan 133; separate policy gates
+remain unchanged; see [deployment status](network-original-surface.md#approved-local-deployment-plan-117).
 
 ### World Clock preference storage (plan 111)
 
@@ -153,7 +175,8 @@ bar processes do not live-sync state; deployment should maintain one bar owner.
 Plan 112 deployed a narrow private derivative of the installed release with a
 bar-only restart, unchanged native runtime and no wallpaper reapplication.
 Bundle integrity, clean startup and creation of valid private settings state
-were verified. Interactive add/remove and next-login acceptance remain pending.
+were verified. The owner subsequently reported the everyday World Clock
+interaction/persistence and next-login tests working in plan 133.
 Existing process-only cities cannot be automatically migrated from an already
 running old bar by this change.
 

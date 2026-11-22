@@ -1,5 +1,9 @@
 # Adapt workspace management to Omarchy's monitor-local model
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Historical status
 
 This plan records the initial candidate checkpoint. The remaining integration,
@@ -88,18 +92,13 @@ or crash-supervision changes, lock/idle/suspend changes and publication.
 - [x] Obtain scoped permission and inspect installed configuration/state read-only.
 - [x] Verify version-appropriate official compositor APIs and pinned module closure.
 - [x] Review license/provenance and adapt original allocation/monitor-local widget.
-- [ ] Integrate keyboard, original directional monitor moves and fresh-session path.
 - [x] Implement candidate saved-mode/rule/minimized-tag transfer on ID changes;
       live migration and failure recovery remain part of the transaction gate.
-- [ ] Implement preview, stale-state guards, backups and rollback for existing users.
 - [x] Test identity stability, local focus/moves, occupied slots, unplug/replug,
       saved layout migration and per-operation failure recovery with isolated
       real-Lua fixtures; whole-deployment rollback testing remains pending.
 - [x] Update generated mirrors, staging seals, provenance and English documentation.
 - [x] Run python3 -m unittest discover -s tests -v.
-- [ ] Present exact deployment diff and migration mapping for separate approval.
-- [ ] After approval only, deploy and verify without claiming unobserved hotplug or
-      visual acceptance; leave disruptive session transitions user-controlled.
 
 ## Implementation checkpoint
 

@@ -25,11 +25,22 @@ No original Style, Color, translations service or shell startup is activated.
   projection and grouping are retained. A shared discovery lease prevents one
   trial bar from stopping another bar's scan and never adopts a preexisting
   external scan. Pairing waits for the native paired state before connecting,
-  with a bounded 30-second pending indication. An existing BlueZ pairing agent
+  with a bounded 30-second pending indication in the installed release. An existing BlueZ pairing agent
   may be required for authentication; this trial does not register one. There
   is no rfkill manipulation, service restart, automatic trust or audio routing.
   The original phrase list is retained but not animated. Native action errors
   are not fully surfaced by Quickshell; a pairing timeout is shown explicitly.
+  The source-only Plan 136 extends tracking to connect, disconnect and forget:
+  primitive path/address/adapter records remain pending until state confirms
+  completion, the device/owner disappears or the operation deadline expires.
+  Duplicate requests are rejected. Pairing issues at most one follow-up connect
+  after observed acceptance, never merely after issuing pair. Stale objects and
+  adapter changes cannot replay a request. Invocation exceptions and deadlines
+  produce visible uncertainty; the pinned API has no structured operation-error
+  signal. This is not an owned pairing agent or full BlueZ error acceptance.
+  Path-based polling does not establish detection of every same-path ABA restart.
+  Fake-device checks run the actual action functions and isolated original UI;
+  no radio, device, service or installed release was changed by Plan 136.
 - **Brightness:** `tools/display_backend.py` reads the laptop's actual backlight
   and calls logind's system-bus session `auto` `SetBrightness`. No sysfs writes,
   brightnessctl dependency, Arch helper or brightness OSD. Slider release and
@@ -63,7 +74,7 @@ No original Style, Color, translations service or shell startup is activated.
   adds serialized/coalesced edits and visible request errors. That repair was
   locally deployed under plan 117 and is included in published
   [v0.2.4](releases.md#v024-release-scope); native pointer/persistence acceptance
-  is still separate.
+  was subsequently reported working by the owner in plan 133.
 - **Launch notice:** the app grid and the dock share the one-second "Launching …"
   overlay documented in `docs/launch-feedback.md`. It is not a notification
   daemon and not the dock icon pulse. A source change reaches the running bar
@@ -75,7 +86,7 @@ No original Style, Color, translations service or shell startup is activated.
   calendar fields (week start, birth year, life expectancy and alternate format
   settings), without replacing the host's shared binding. This repair is in
   the local installation following plan 117's backed-up bar-only restart;
-  native interactive persistence acceptance remains pending. Middle click does
+  the owner subsequently reported persistence and interaction working in plan 133. Middle click does
   not change the system timezone.
   There is no shell IPC and no calendar hotkey. The sealed offscreen label
   stays read-only and is not this popup.

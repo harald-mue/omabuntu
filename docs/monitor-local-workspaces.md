@@ -12,9 +12,10 @@ approved configuration deployment completes.
 That separate deployment completed on the development session, preserving window
 membership, monitor geometry and layouts. All 45 original workspace binding
 chords were registered exactly once; the user reported the tried navigation and
-cross-monitor window operations working. Physical docking/hotplug and a fresh
-login have not been independently verified. This is scoped interactive feedback,
-not a claim of complete visual, native or security acceptance.
+cross-monitor window operations working. Under plan 133 the owner also confirmed
+physical docking/hotplug and fresh-login tests in the tested setup. This is
+owner-reported acceptance, not new independent measurements or a claim of
+complete visual, hardware or security acceptance.
 
 The original Omarchy v4.5.0 policy, binding reference and workspace widget are
 pinned to `ac2690cd7be4f47e4a255f5e2e78d904d436b068`. Source bytes are unchanged

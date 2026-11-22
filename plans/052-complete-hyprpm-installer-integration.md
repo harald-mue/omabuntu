@@ -1,5 +1,9 @@
 # Complete Hyprpm installer integration for the current PPA target
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and comparison
 
 Complete the source-side installer integration started in plan 051: offer the
@@ -78,11 +82,6 @@ filenames, foreign plugins and unresolved transactions rather than invoking a
 manager fallback that might create privileged cache paths. Persistent login
 consent and immediate owned-rule application remain separate choices.
 
-- [ ] Approve a clean-VM/system-package test separately.
-- [ ] Run and accept the real pinned header/plugin build on a matching 0.57 session.
-- [ ] Verify live titlebars, first/repeat login and interrupted-operation recovery.
-- [ ] Verify fresh application install, repeat/update and rollback on the VM.
-- [ ] Review and approve any new commit/push/release publication separately.
 
 No package installation, manager execution, plugin load, private-profile change,
 service activation, session transition, commit, push or publication was performed.

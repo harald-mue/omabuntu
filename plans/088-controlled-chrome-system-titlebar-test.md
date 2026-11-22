@@ -1,5 +1,9 @@
 # Controlled Chrome system-titlebar test
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Test the approved ordinary-Chrome system-titlebar candidate from plan 087 on
@@ -33,9 +37,6 @@ GNOME login and PWA acceptance remain separate. No commit or publication.
 ## Tasks
 
 - [x] Record narrow current session/browser/compositor facts.
-- [ ] Inspect and record the original Chrome UI toggle before any change.
-- [ ] If disabled, perform one reversible UI toggle; otherwise stop and diagnose.
-- [ ] Verify ordinary-window appearance and document rollback/acceptance limits.
 - [x] Run full unit tests and diff checks after repository changes.
 
 ## Preflight and pending user-assisted inspection

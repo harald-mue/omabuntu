@@ -1,5 +1,9 @@
 # PPA system headers and explicit interrupted-migration recovery
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Correct the cache-only header assumption exposed by the real migration. The
@@ -70,9 +74,6 @@ build output, exact continuation consent, isolated fixture execution, immutable
 original journals, hash-bound resolutions and standard activation guard behavior.
 Clean-source verification and whitespace checks passed.
 
-- [ ] Obtain separate approval and execute the real interactive recovery/build.
-- [ ] Establish native titlebar acceptance and separately approved activation.
-- [ ] Deploy any updated immutable helper/login integration under separate consent.
 
 No packages, manager cache, original journal, loaded plugins, private profile,
 services or session state were changed during implementation. No commit, push or

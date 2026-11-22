@@ -1,5 +1,9 @@
 # Command menu for Super+Space and the system menu for Super+Esc
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 Status: implemented and applied. The user approved the live gates on
 2026-10-25: package and restart the bar, session-only Super+Space and
 Super+Escape, and the logout, reboot, shutdown, and hibernate gates.
@@ -184,5 +188,4 @@ Live machine facts (recorded 2026-10-25, not stored):
       Super+Space and Super+Esc bindings (conflict re-check), and enabling the
       reboot/shutdown/logout/hibernate rows. Hibernate was included at the
       user's request before resume verification.
-- [ ] Ask before any live theme, font, or background application.
 - [x] Update `docs/` (menu surface, backends, exclusions) and `WORKLOG.md`.

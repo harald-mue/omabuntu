@@ -1,5 +1,9 @@
 # Document v0.2.5 publication
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Verify the maintainer's completed release and update all affected current release,
@@ -30,7 +34,6 @@ source-document backups private under ignored work/release-025-docs/.
 - [x] Back up affected documents and update current release/feature status consistently.
 - [x] Review scope, links, private-data exclusions and immutable-release boundaries.
 - [x] Run the full unit suite and whitespace checks.
-- [ ] Commit and push the approved documentation changes.
 
 ## Pre-commit verification checkpoint
 

@@ -1,5 +1,9 @@
 # Restore the recorded wallpaper after a login
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal
 
 The user's wallpaper must come back after a login without re-selecting the
@@ -57,4 +61,3 @@ change, no theme redesign, and no change to Ubuntu's `hyprpaper.service`.
       `background_backend.restore_background` resolves the recorded still
       against the selected release and applies it per monitor; `omabuntu start`
       calls the packaged helper best-effort.
-- [ ] Verify after a real logout and login.

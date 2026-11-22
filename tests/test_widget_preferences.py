@@ -187,7 +187,9 @@ class WidgetPreferenceTests(unittest.TestCase):
         files, _ = preview.verified_sources(ROOT)
         panel = files['TrialPanel.qml'].decode()
         self.assertIn('appearance.bar.clock_settings', panel)
-        self.assertIn('appearanceSettings: bars.appearance; popoutState: barBus', panel)
+        self.assertIn('appearanceSettings: bars.appearance', panel)
+        self.assertIn('popoutState: barBus', panel)
+        self.assertIn('barOverride: clockBar', panel)
         self.assertIn('bars.appearance.setClock(values)', panel)
         self.assertIn('root.appearanceSettings.setTray(values)', files['PortTrayHost.qml'].decode())
         for name in ('CalendarPanel.qml', 'ClockControlView.qml'):
@@ -198,12 +200,12 @@ class WidgetPreferenceTests(unittest.TestCase):
     def test_actual_js_functions_share_pending_state_and_preserve_bindings(self):
         source = (ROOT / 'config/shell/preview/AppearanceState.qml').read_text()
         functions = '\n'.join(qml_function(source, name) for name in
-                              ('projectBar', 'apply', 'request', 'pump', 'setClock', 'setTray'))
+                              ('sameLayout', 'reportLayoutConflict', 'projectBar', 'apply', 'request', 'pump', 'setClock', 'setTray'))
         calendar = (ROOT / 'config/shell/preview/CalendarPanel.qml').read_text()
         script = '''
 const assert = require('assert');
 let confirmedBar={clock_format:'dddd HH:mm',clock_settings:{},tray_settings:{pinned:[],hidden:[]}};
-let queue=[],inFlight=[],finishing=false,loaded=false,errorText='',dock={},helper='/fixture/menu_model.py';
+let queue=[],inFlight=[],finishing=false,loaded=false,errorText='',layoutErrorText='',dock={},helper='/fixture/menu_model.py';
 let calls=[],changed=()=>{},backend={running:false,exec:args=>{calls.push(args);backend.running=true;}};
 ''' + functions + '''
 setClock({birthYear:1990});setTray({pinned:['ignored']});assert.equal(calls.length,0);

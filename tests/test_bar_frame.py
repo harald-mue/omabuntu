@@ -21,9 +21,10 @@ class BarFrameTests(unittest.TestCase):
         self.assertEqual((ROOT / "config/shell/preview/BarFrame.qml").read_text(), self.frame)
         frame_code = "\n".join(line for line in self.frame.splitlines()
                                if not line.lstrip().startswith("//"))
-        self.assertNotIn("BarModel.", frame_code)
+        self.assertIn("BarModel.layoutWidgets(layoutConfig, widgetMemo)", frame_code)
+        self.assertIn('import "Port/BarModel.js" as BarModel', frame_code)
         self.assertNotIn("window.peekEdge =", self.frame)
-        self.assertEqual(meta["upstream"]["BarFrame.qml"]["stage_transform"], "fixed-horizontal-sections-v1")
+        self.assertEqual(meta["upstream"]["BarFrame.qml"]["stage_transform"], "original-horizontal-peek-v5")
         self.assertNotIn("BarFrame.qml", meta["authored"])
 
     def test_original_center_position_formulas_are_unchanged(self):
@@ -35,12 +36,18 @@ class BarFrameTests(unittest.TestCase):
         self.assertIn('fixedEdge: "start"', self.frame)
         self.assertIn('fixedEdge: "end"', self.frame)
 
-    def test_registry_drag_and_commands_are_not_staged(self):
-        for forbidden in ("Process {", "FileView {", "ShellIpc", "Quickshell.Io", "WidgetPool {", "CenterGestureArea {", "DropOutline {", "registerCenterBox(", "root.barDragSource", "execDetached"):
+    def test_only_registered_components_and_original_gestures_are_staged(self):
+        for forbidden in ("Process {", "FileView {", "ShellIpc", "Quickshell.Io", "CustomCommandModule {", "CenterGestureArea {", "BarMoveGhostPanel", "qmlLoader", "customModuleSource", "execDetached"):
             self.assertNotIn(forbidden, self.frame)
-        self.assertIn("required property Component leftContent", self.frame)
-        self.assertIn("sourceComponent: region ===", self.frame)
-        self.assertNotIn("source:", self.frame)
+        self.assertIn("required property var widgetComponents", self.frame)
+        self.assertIn("sourceComponent: host.registered ? host.registryComponent : null", self.frame)
+        self.assertIn("Object.prototype.hasOwnProperty.call(widgetComponents, id)", self.frame)
+        self.assertIn("WidgetPool {", self.frame)
+        self.assertEqual({line.strip() for line in self.frame.splitlines() if line.strip().startswith("source:")},
+                         {"source: root.barDragImageUrl", "source: poof.spec.image"})
+        self.assertEqual(self.frame.count("component DragGhostPanel: PanelWindow"), 1)
+        self.assertIn('mask: Region {}', self.frame)
+        self.assertIn('WlrLayershell.keyboardFocus: WlrKeyboardFocus.None', self.frame)
         self.assertIn("readonly property bool centerBesideRight: false", self.frame)
 
     def test_narrow_layout_clips_sides_not_the_center(self):
@@ -54,8 +61,9 @@ class BarFrameTests(unittest.TestCase):
         text = (ROOT / "config/shell/preview/TrialPanel.qml").read_text()
         self.assertIn("BarFrame {", text)
         self.assertNotIn("PreviewContent {", text)
-        self.assertIn("frame.centerStart - 16", text)
-        self.assertIn("ExclusionMode.Ignore : ExclusionMode.Auto", text)
+        self.assertIn("frame.width - 16", text)
+        self.assertIn("appearance.bar.bar_layout", text)
+        self.assertIn("ExclusionMode.Ignore : ExclusionMode.Normal", text)
         self.assertNotIn("WlrKeyboardFocus.Exclusive", text)
         self.assertIn('readonly property int barSize: 26', text)
 
@@ -71,14 +79,22 @@ class BarFrameTests(unittest.TestCase):
         self.assertIn("hl.dsp.focus({ workspace = ", text)
         self.assertIn("if (id < 1 || id > 6) return", text)
 
+    def test_layer_fixture_substitution_has_closed_witnesses(self):
+        original = (ROOT / 'config/shell/preview/TrialPanel.qml').read_bytes()
+        surface = fixtures.trial_surface(original)
+        self.assertNotIn(b'  PanelWindow {', surface)
+        self.assertIn(b'widgetComponents: ({', surface)
+        with self.assertRaises(ValueError):
+            fixtures.trial_surface(original.replace(b'    surfaceFormat.opaque: false\n', b''))
+
     def test_extractors_fail_closed_when_source_boundaries_change(self):
         with self.assertRaises(ValueError):
             bar_frame.derive_frame(self.source.replace(b"WidgetPool { id: horizontalPool }", b"changed"))
         with self.assertRaises(ValueError):
-            bar_frame.derive_frame(self.source.replace(b"visible: box.dragHere", b"changed"))
+            bar_frame.derive_frame(self.source.replace(b"      onCanceled: {", b"changed"))
 
     def test_fixed_fixtures_are_synthetic_and_reject_spurious_success(self):
-        self.assertEqual(len(fixtures.CASES), 7)
+        self.assertEqual(len(fixtures.CASES), 39)
         with self.assertRaises(ValueError):
             fixtures.fixture("reload-desktop")
         self.assertIn("No startup dispatch allowed", fixtures.HYPRLAND)
@@ -89,6 +105,11 @@ class BarFrameTests(unittest.TestCase):
         self.assertFalse(fixtures.classify("laptop", -11, good))
         self.assertFalse(fixtures.classify("negative", 42, "ERROR unrelated\n"))
         self.assertTrue(fixtures.classify("negative", 42, "ERROR deliberate frame assertion\n"))
+        notice = 'WARN qml: OMABUNTU_APPEARANCE_FAILED Bar layout changed; fixture conflict.\n'
+        queued = 'Configuration Loaded\n' + fixtures.MARKER + '::appearance-queue\n'
+        self.assertFalse(fixtures.classify('appearance-queue', 0, queued))
+        self.assertTrue(fixtures.classify('appearance-queue', 0, queued + notice))
+        self.assertFalse(fixtures.classify('appearance-queue', 0, queued + notice + 'WARN unrelated\n'))
 
 
 if __name__ == "__main__":

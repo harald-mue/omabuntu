@@ -1,5 +1,9 @@
 # Theme backgrounds, persistent accent, live font apply
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 Status: drafted, awaiting the user's approval decisions below. This plan
 is not approval for package installation, user-config edits, daemon
 starts, bar replacement, or a commit.
@@ -129,8 +133,6 @@ Live session (read-only, 2026-10-25):
 
 ## Tasks
 
-- [ ] User decisions: asset commit scope, hyprpaper install, hyprland.lua
-      border edit, font user-config writes, bar restart.
 - [x] Import the 97 stills + 23 previews with the provenance record.
 - [x] `theme_backend`: persistent border colors, per-theme background
       state and apply.

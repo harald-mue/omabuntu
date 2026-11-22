@@ -1,5 +1,9 @@
 # Persistent plugin loading for the preserved private profile
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 After a reboot the verified hyprbars was not loaded: `hyprctl -j plugin list`
@@ -76,8 +80,6 @@ outstanding.
 - [x] Gather read-only evidence for both routes on this machine.
 - [x] Record the decision: A stays as the bridge, B is blocked by profile
       preservation, the durable fix moves to the repository (plan 071).
-- [ ] On consent: implement plan 071 (bundle-mode-aware managed snippet) and
-      deliver it through a later signed release.
 
 ## Result
 

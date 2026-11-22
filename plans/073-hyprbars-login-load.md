@@ -1,5 +1,9 @@
 # Load hyprbars automatically at login (receipt-driven managed snippet)
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal
 
 The floating-workspace titlebar plugin (hyprbars) is loaded only by an
@@ -231,13 +235,6 @@ Deployment and publication:
       A read-only `--session-activate --enable-plugin-login` plan on this
       machine reports no blockers (digest
       `dc1b048865cac1e0a766c6d3840fef23080e72ce28db6ed5e39718e650414130`).
-- [ ] After approval: deploy with backup, then verify at a real
-      logout/login (plugin list, titlebar, configerrors).
-- [ ] Optional, separate approval: remove the dead `hyprland.start`
-      handler block from the private `~/.config/hypr/hyprland.lua` with a
-      recorded backup.
-- [ ] Request separate approval to publish a new signed release carrying
-      the fix.
 ## Follow-up: the first live login silently skipped the load (2026-11-02)
 
 The 16:22 login (Hyprland 0.57.0) did not load hyprbars: `hyprctl plugin

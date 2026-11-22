@@ -1,5 +1,9 @@
 # Diagnose browser-native minimize and restore on floating workspaces
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Investigate the user's report that browser-owned minimize and restore-from-
@@ -30,7 +34,6 @@ approval. Preserve GNOME, current user state and recorded deployment rollback.
 ## Tasks
 
 - [x] Inspect client/fullscreen state and the relevant workspace/minimize code.
-- [ ] Check version-specific native requests and relevant profile policy.
 - [x] Document confirmed causes, remaining uncertainty and the next bounded test.
 
 ## Findings and remaining uncertainty

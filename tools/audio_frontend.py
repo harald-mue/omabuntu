@@ -3,7 +3,8 @@
 Vendor parents stay byte-identical; every splice requires unique witnesses.
 The output slice preserves Omarchy's hero, output section and SinkRow markup.
 The input slice preserves the separator, header, input slider, native peak
-meter markup and SourceRow; per-app streams stay excluded.
+meter markup and SourceRow. Playback stream sections/rows retain the original
+layout with primitive snapshots and identity-checked native actions.
 """
 
 
@@ -27,13 +28,15 @@ def derive_audio(data):
     button = between(text, "  BarIconButton {\n", "  KeyboardPanel {\n")
     wheel = between(button, "    onWheelMoved: function(delta) {\n", "\n  }\n")
     button = replace(button, wheel, "    onWheelMoved: function(delta) { root.wheel(delta) }")
-    # Hero, output and input sections; the per-app streams section is excluded.
+    # Preserve hero, output/input sections and the original per-app stream grid.
     panel = between(text, "  KeyboardPanel {\n", "          // ---- Per-app streams ----\n")
     keys = between(panel, "      onTextKey: function(t) {\n", "      ScrollView {\n")
     panel = replace(panel, keys, '''      onTextKey: function(t) {
-        // 'm' mutes whatever the cursor is on: the focused section's slider.
+        // 'm' operates on the current section or that individual stream only.
         if ((t === "m" || t === "M") && root.cursorActive) {
-          if (root.focusSection === "input") root.toggleInputMute()
+          if (root.focusSection === "streams") {
+            if (root.selectedIndex >= 0) root.toggleStreamMute(root.displayAudioStreams[root.selectedIndex])
+          } else if (root.focusSection === "input") root.toggleInputMute()
           else root.toggleOutputMute()
         }
       }
@@ -42,7 +45,13 @@ def derive_audio(data):
     panel = replace(panel, "                onMoved: function(v) { root.setOutputVolume(v) }",
                     "                onDraggingChanged: root.dragTarget = dragging ? root.current : null\n"
                     "                onMoved: function(v) { root.setOutputVolume(v) }")
-    # The input slider carries the same drag-identity guard as the output one.
+    panel = replace(panel, '                enabled: !!root.sink',
+                    '                enabled: root.outputControlAvailable')
+    panel = replace(panel, 'text: Commons.I18n.formatNumber(Math.round((outputSlider.dragging ? outputSlider.liveValue : root.outputVolume) * 100)) + "%"',
+                    'text: root.outputControlAvailable ? Commons.I18n.formatNumber(Math.round((outputSlider.dragging ? outputSlider.liveValue : root.outputVolume) * 100)) + "%" : "—"')
+    # The original input slider needs both a captured target and live authority.
+    panel = replace(panel, '                  enabled: !!root.source',
+                    '                  enabled: root.inputControlAvailable')
     panel = replace(panel, "                  onMoved: function(v) { root.setInputVolume(v) }",
                     "                  onDraggingChanged: root.dragSourceTarget = dragging ? root.source : null\n"
                     "                  onMoved: function(v) { root.setInputVolume(v) }")
@@ -52,6 +61,8 @@ def derive_audio(data):
     panel = replace(panel, "Util.alpha(root.bar.foreground, 0.18)",
                     "Style.alpha(root.bar.foreground, 0.18)")
     panel = replace(panel, "inputPeakMonitor.peak", "root.inputPeak")
+    panel += between(text, "          // ---- Per-app streams ----\n",
+                     "        }\n      }\n    }\n  }\n\n  // ---- Reusable inline components ----\n")
     # Close the exact upstream Column, ScrollView, key catcher and panel.
     panel += '''          Text {
             visible: root.errorText !== ""
@@ -75,10 +86,35 @@ def derive_audio(data):
                          "  // Per-app stream row")
     source_row = replace(source_row, "root.source.id === node.id",
                           "root.source.id === node.id && root.source.name === node.name")
+    stream_row = between(text, "  // Per-app stream row", "\n}\n")
+    stream_row = replace(stream_row, '    required property int rowIndex\n',
+                         '    required property int rowIndex\n    property var dragKey: null\n')
+    stream_row = replace(stream_row, 'node && node.audio ? node.audio.volume : 0',
+                         'node ? node.volume : 0')
+    stream_row = replace(stream_row, 'node && node.audio ? node.audio.muted : false',
+                         'node ? node.muted : false')
+    # Preserve the original active-row visual; compute matching in the provider
+    # with the original model and project only a frozen primitive boolean.
+    stream_row = replace(stream_row, 'root.streamRepresentsPlayer(node, root.activeMediaPlayer)',
+                         '!!node && node.active')
+    stream_row = replace(stream_row, '''              if (streamRow.node && streamRow.node.audio)
+                streamRow.node.audio.muted = !streamRow.node.audio.muted''',
+                         '              root.toggleStreamMute(streamRow.node)')
+    stream_row = replace(stream_row, '''        onMoved: function(v) {
+          if (streamRow.node && streamRow.node.audio) streamRow.node.audio.volume = v
+        }
+        onRightClicked: {
+          if (streamRow.node && streamRow.node.audio)
+            streamRow.node.audio.muted = !streamRow.node.audio.muted
+        }''', '''        onDraggingChanged: streamRow.dragKey = dragging ? streamRow.node : null
+        onMoved: function(v) {
+          root.setStreamVolume(dragging ? streamRow.dragKey : streamRow.node, v)
+        }
+        onRightClicked: root.toggleStreamMute(streamRow.node)''')
     return ('''// Derived from Omarchy audio/Panel.qml; upstream MIT notice is in LICENSE.
-// Original hero, output and input layout/cursor controls; Ubuntu backend and
-// focus are separate. Streams, helpers, IPC, OSD and untyped (virtual) sources
-// are not admitted.
+// Original hero, output/input and playback-stream layout/cursor controls.
+// Ubuntu backend and focus are separate. MPRIS labels/active marks are read-only.
+// Helpers, IPC, OSD, transport and untyped capture sources are not admitted.
 import QtQuick
 import QtQuick.Controls
 import qs.Ui
@@ -89,7 +125,7 @@ AudioPanelController {
   id: root
   panelWindow: panel
 
-''' + button + panel + row + source_row + "}\n").encode()
+''' + button + panel + row + source_row + stream_row + "}\n").encode()
 
 
 def derive_keyboard(data):

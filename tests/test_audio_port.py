@@ -69,7 +69,7 @@ class AudioPortTests(unittest.TestCase):
         self.assertIn("wheelRemainder / 120", controller)
 
     def test_fixed_fixtures_are_not_native_audio(self):
-        self.assertEqual(len(fixtures.CASES), 8)
+        self.assertEqual(len(fixtures.CASES), 32)
         with self.assertRaises(ValueError):
             fixtures.fixture("play-test-sound")
         text = fixtures.fixture("controls")

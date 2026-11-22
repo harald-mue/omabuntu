@@ -1,5 +1,9 @@
 # Installer-managed Hyprland settings (splash and ecosystem text)
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal
 
 Remove Hyprland's startup text ("Thanks raf!" and the other random splash
@@ -85,4 +89,3 @@ owns, without hand-editing the user's Hyprland configuration on every change.
       plan/backup/rollback gate.
 - [x] Add the `hypr-settings` Makefile target and documentation.
 - [x] Run the full unit suite.
-- [ ] Ask for approval before applying to this host.

@@ -19,7 +19,7 @@ class AudioFidelityTests(unittest.TestCase):
         self.assertEqual(self.output, (ROOT / "config/shell/preview/AudioOutputView.qml").read_text())
         files, meta = preview.verified_sources(ROOT)
         self.assertEqual(files["AudioOutputView.qml"].decode(), self.output)
-        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-output-frontend-v1")
+        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-native-input-frontend-v5")
         self.assertNotIn("AudioOutputView.qml", meta["authored"])
 
     def test_original_hero_is_byte_identical(self):
@@ -31,9 +31,14 @@ class AudioFidelityTests(unittest.TestCase):
     def test_original_output_geometry_is_preserved(self):
         start, end = "          // ---- Output devices ----", "          // ---- Input ----"
         original = frontend.between(self.source.decode(), start, end)
-        # Exactly one added drag-identity guard; no independently authored layout.
+        # Only drag identity, admitted-route enablement and unknown percentage;
+        # the original section geometry/content otherwise remains identical.
         original = original.replace("                onMoved: function(v)",
             "                onDraggingChanged: root.dragTarget = dragging ? root.current : null\n                onMoved: function(v)")
+        original = frontend.replace(original, 'enabled: !!root.sink', 'enabled: root.outputControlAvailable')
+        original = frontend.replace(original,
+            'text: Commons.I18n.formatNumber(Math.round((outputSlider.dragging ? outputSlider.liveValue : root.outputVolume) * 100)) + "%"',
+            'text: root.outputControlAvailable ? Commons.I18n.formatNumber(Math.round((outputSlider.dragging ? outputSlider.liveValue : root.outputVolume) * 100)) + "%" : "—"')
         self.assertIn(original, self.output)
         self.assertIn("panel.fittedContentWidth(Style.space(380))", self.output)
 
@@ -55,6 +60,7 @@ class AudioFidelityTests(unittest.TestCase):
         original = original.replace("Util.alpha(root.bar.foreground, 0.18)",
                                      "Style.alpha(root.bar.foreground, 0.18)")
         original = original.replace("inputPeakMonitor.peak", "root.inputPeak")
+        original = frontend.replace(original, "enabled: !!root.source", "enabled: root.inputControlAvailable")
         self.assertIn(original, self.output)
         self.assertIn("root.inputPeak", self.output)
         self.assertIn("Style.alpha(root.bar.foreground, 0.18)", self.output)
@@ -67,16 +73,28 @@ class AudioFidelityTests(unittest.TestCase):
         self.assertIn(row, self.output)
         self.assertIn("onClicked: root.setDefaultSource(sourceRow.node)", row)
 
-    def test_streams_helpers_and_untyped_routes_are_absent(self):
-        # The input section is admitted; per-app streams, helpers, IPC and the
-        # untyped/virtual-source wpctl route stay excluded.
+    def test_helpers_and_untyped_routes_are_absent(self):
+        # Original playback-stream controls use native typed actions; helpers,
+        # IPC and untyped capture remain excluded.
         for forbidden in ("Process {", "FileView {", "Quickshell.Io", "UntypedInput", "Mpris",
-                          "StreamRow", "ipcTarget", "moduleName", "wpctl", "pactl"):
+                          "ipcTarget", "moduleName", "wpctl", "pactl"):
             self.assertNotIn(forbidden, self.output)
         self.assertIn("SourceRow", self.output)
         self.assertIn("onMoveRequested", self.output)
         self.assertIn("onActivateRequested", self.output)
         self.assertIn("onCloseRequested", self.output)
+
+    def test_original_stream_section_and_controls_are_preserved(self):
+        start = "          // ---- Per-app streams ----\n"
+        end = "        }\n      }\n    }\n  }\n\n  // ---- Reusable inline components ----\n"
+        self.assertIn(frontend.between(self.source.decode(), start, end), self.output)
+        for token in ("component StreamRow: CursorSurface", "root.streamLabel(streamRow.node)",
+                      'Commons.I18n.t("audio.sources")', "maximum: 1.5",
+                      "root.toggleStreamMute(streamRow.node)",
+                      "dragging ? streamRow.dragKey : streamRow.node"):
+            self.assertIn(token, self.output)
+        self.assertNotIn("streamRow.node.audio", self.output)
+        self.assertIn("streamRow.dragKey = dragging ? streamRow.node : null", self.output)
 
     def test_extraction_fails_when_unique_witness_changes(self):
         with self.assertRaises(ValueError):

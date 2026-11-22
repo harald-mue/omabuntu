@@ -28,6 +28,8 @@ class ClockPreviewTests(unittest.TestCase):
         names = ["upstream/omarchy-source.json", "upstream/clock-preview.json",
                  "licenses/Omarchy-MIT.txt", "vendor/omarchy/LICENSE", *checker.AUTHORED.values(),
                  "config/shell/preview/AudioOutputView.qml",
+                 "config/shell/preview/MediaSelection.qml",
+                 "config/shell/preview/MediaControlView.qml",
                  "config/shell/preview/NetworkControlView.qml",
                  "config/shell/preview/WorkspaceSwitcher.qml",
                  "config/shell/preview/MonitorWorkspaces.qml",
@@ -35,6 +37,12 @@ class ClockPreviewTests(unittest.TestCase):
                  "config/shell/preview/CalendarPanel.qml",
                  "config/shell/preview/ClockControlView.qml",
                  "config/shell/preview/BarFrame.qml",
+                 "config/shell/preview/BarFullscreenState.qml",
+                 "config/shell/preview/BarPeekState.qml",
+                 "config/shell/preview/BarIndicator.qml",
+                 "config/shell/preview/IndicatorsView.qml",
+                 "config/shell/preview/DndIndicator.qml",
+                 "config/shell/preview/NightLightIndicator.qml",
                  *("config/shell/preview/" + name for name in checker.ELSEWHEN_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.WEATHER_TRANSFORMS),
                  *("config/shell/preview/" + name for name in checker.DESKTOP_TRANSFORMS),
@@ -85,6 +93,16 @@ class ClockPreviewTests(unittest.TestCase):
     def test_generated_audio_mirror_change_rejected(self):
         (self.root / "config/shell/preview/AudioOutputView.qml").write_text("independent layout")
         with self.assertRaisesRegex(checker.builder.BuildError, "Generated audio frontend mirror differs"):
+            checker.verified_sources(self.root)
+
+    def test_generated_media_mirror_change_rejected(self):
+        (self.root / "config/shell/preview/MediaSelection.qml").write_text("independent media service")
+        with self.assertRaisesRegex(checker.builder.BuildError, "Generated media frontend mirror differs"):
+            checker.verified_sources(self.root)
+
+    def test_generated_media_widget_mirror_change_rejected(self):
+        (self.root / "config/shell/preview/MediaControlView.qml").write_text("independent media widget")
+        with self.assertRaisesRegex(checker.builder.BuildError, "Generated media frontend mirror differs"):
             checker.verified_sources(self.root)
 
     def test_generated_frame_mirror_change_rejected(self):
@@ -182,6 +200,16 @@ class ClockPreviewTests(unittest.TestCase):
                 for forbidden in ("execDetached", "hyprctl", "omarchy-", "sudo", "FileView", "Timer {"):
                     self.assertNotIn(forbidden, text)
                 continue
+            if name.endswith("IndicatorState.qml"):
+                self.assertEqual(text.count("property Process"), 1)
+                self.assertIn('property bool enabled: false', text)
+                self.assertIn('"indicator_state.py"', text)
+                self.assertIn('"--allow-existing-owner-queries"', text)
+                self.assertIn('"--apply-user-indicator"', text)
+                self.assertIn('if (!enabled || busy || rpc.running || !helper)', text)
+                for forbidden in ("ShellIpc", "execDetached", "hyprctl", "sudo", "systemctl", "notify-send"):
+                    self.assertNotIn(forbidden, text)
+                continue
             if name.endswith("AppearanceState.qml"):
                 self.assertEqual(text.count("Process {"), 1)
                 self.assertIn("OMABUNTU_MENU_HELPER", text)
@@ -233,7 +261,7 @@ class ClockPreviewTests(unittest.TestCase):
         self.assertIn("model: Quickshell.screens", text)
         self.assertIn("required property var modelData", text)
         self.assertIn("screen: modelData", text)
-        self.assertIn("ExclusionMode.Ignore : ExclusionMode.Auto", text)
+        self.assertIn("ExclusionMode.Ignore : ExclusionMode.Normal", text)
         self.assertNotIn("exclusiveZone: 0", text)
         apps = (ROOT / "config/shell/preview/AppLauncher.qml").read_text()
         self.assertIn("exclusiveZone: 0", apps)
@@ -246,12 +274,13 @@ class ClockPreviewTests(unittest.TestCase):
         self.assertLess(text.index("PortTrayHost {"), text.index("KeyboardLayout {"))
         self.assertLess(text.index("KeyboardLayout {"), text.index("BluetoothControlView {"))
         self.assertLess(text.index("ClockControlView {"), text.index("ElsewhenPanel {"))
-        self.assertIn("centerEndContent:", text)
+        self.assertIn('centerEnd: ["omarchy.elsewhen", "omarchy.weather"]', text)
+        self.assertIn('"omarchy.elsewhen": elsewhenComponent', text)
         self.assertIn("openMenu: bars.openMenu", text)
         # Background looks and the hidden-bar park, as upstream Bar.qml.
         self.assertIn('look === "opaque" || look === "glassy" || look === "none"', text)
-        self.assertIn("bars.barHidden ? -26 : 0", text)
-        self.assertIn("bars.barHidden ? ExclusionMode.Ignore : ExclusionMode.Auto", text)
+        self.assertIn("bars.barHidden ? -barPanel.implicitHeight : 0", text)
+        self.assertIn("bars.barHidden ? ExclusionMode.Ignore : ExclusionMode.Normal", text)
         self.assertIn("clockBar.glassy ? clockBar.glassBackground : clockBar.themeBackground", text)
         self.assertIn("Math.min(themeBackground.a, 0.35)", text)
         self.assertEqual(text.count("Behavior on themeBackground"), 1)

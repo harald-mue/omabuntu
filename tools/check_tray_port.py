@@ -93,19 +93,22 @@ def run_checks(root, build_dir, suite="tray"):
               "checker_sha256": runtime.builder.digest(Path(__file__)),
               "network_fixtures_sha256": runtime.builder.digest(root / "tools/network_port_fixtures.py"),
               "audio_fixtures_sha256": runtime.builder.digest(root / "tools/audio_port_fixtures.py"),
+              "media_extraction_sha256": runtime.builder.digest(root / "tools/media_frontend.py"),
               "tooltip_fixtures_sha256": runtime.builder.digest(root / "tools/tooltip_port_fixtures.py"),
               "tooltip_extraction_sha256": runtime.builder.digest(root / "tools/tooltip_port.py"),
               "frame_fixtures_sha256": runtime.builder.digest(root / "tools/bar_frame_fixtures.py"),
               "frame_extraction_sha256": runtime.builder.digest(root / "tools/bar_frame.py"),
+              "frame_gesture_extraction_sha256": runtime.builder.digest(root / "tools/bar_drag.py"),
               "app_fixtures_sha256": runtime.builder.digest(root / "tools/app_launcher_fixtures.py"),
               "key_fixtures_sha256": runtime.builder.digest(root / "tools/keybindings_menu_fixtures.py"),
               "wifi_fixtures_sha256": runtime.builder.digest(root / "tools/wifi_control_fixtures.py"),
               "wifi_extraction_sha256": runtime.builder.digest(root / "tools/network_frontend.py"),
               "suite": suite,
-              "surface_fixture": ("synthetic KeyboardPanel ownership; original audio content/controls" if suite == "audio"
+              "surface_fixture": ("synthetic KeyboardPanel/media PopupCard ownership; original audio/media content and controls" if suite == "audio"
+                                  else "synthetic layer/KeyboardPanel ownership; original frame and trusted registry wiring" if suite == "frame"
                                   else "original bubble measured without native popup/anchor" if suite == "tooltip"
                                   else "selector copy without layer or shortcut ownership" if suite == "keys" else None),
-              "limits": "Fixed synthetic desktop fixtures and primitive device inputs. No native NetworkManager/PipeWire, live DBus, application menu, host pointer, native tooltip popup/anchoring, focus-grab, GPU or interactive acceptance."}
+              "limits": "Fixed synthetic desktop fixtures and primitive device inputs. No native NetworkManager/PipeWire/MPRIS, live DBus, application menu, host pointer, native popup/anchoring, focus-grab, GPU or interactive acceptance."}
     try:
         for name in cases:
             case = runtime.builder.private_directory(base / name)
@@ -118,18 +121,40 @@ def run_checks(root, build_dir, suite="tray"):
                     data = apps.fixture_launcher(data, native=name == "native-cold")
                 if suite == "keys" and relative == "KeybindingsMenu.qml":
                     data = keys.fixture_menu(data)
-                if suite in ("audio", "wifi") and relative == "Ui/KeyboardPanel.qml":
+                if suite in ("audio", "wifi", "frame") and relative == "Ui/KeyboardPanel.qml":
                     data = audio.KEYBOARD_SURFACE.encode()
+                if suite == "audio" and relative == "MediaControlView.qml":
+                    witness = b"  PopupCard {\n"
+                    if data.count(witness) != 1:
+                        raise runtime.builder.BuildError("Media popup ownership witness changed")
+                    data = data.replace(witness, b"  FixtureMediaPopup {\n")
+                if suite == "frame" and relative == "TrialPanel.qml":
+                    data = frame.trial_surface(data)
+                if suite == "frame" and relative == "IndicatorState.qml" and name != "indicator-rpc":
+                    data = frame.indicator_transport(data)
+                if suite == "frame" and relative == "BarFrame.qml":
+                    data = frame.ghost_surface(data)
                 if suite == "wifi" and relative in ("NetworkControlView.qml", "NetworkPanelController.qml"):
                     witness = b"import Quickshell.Networking\n"
                     if data.count(witness) != 1:
                         raise runtime.builder.BuildError("Network service witness changed")
                     data = data.replace(witness, b'import "FixtureNetworking"\n')
-                if suite == "frame" and relative in ("LiveStatus.qml", "WorkspaceSwitcher.qml"):
+                if suite == "frame" and relative in ("LiveStatus.qml", "WorkspaceSwitcher.qml", "BarFullscreenState.qml"):
                     witness = b"import Quickshell.Hyprland\n"
                     if data.count(witness) != 1:
                         raise runtime.builder.BuildError("Hyprland fixture witness differs")
                     data = data.replace(witness, b'import "FixtureHyprland"\n')
+                if relative == "Commons/MediaSelection.qml":
+                    for service in ("Mpris", "Pipewire"):
+                        witness = ("import Quickshell.Services." + service + "\n").encode()
+                        if data.count(witness) != 1:
+                            raise runtime.builder.BuildError("Media service witness changed")
+                        data = data.replace(witness, ('import "../Fixture' + service + '"\n').encode())
+                if suite == "audio" and relative == "AudioOutputProvider.qml":
+                    witness = b"import Quickshell.Services.Pipewire\n"
+                    if data.count(witness) != 1:
+                        raise runtime.builder.BuildError("Audio provider service witness changed")
+                    data = data.replace(witness, b'import "FixturePipewire"\n')
                 if relative == "Port/Tray.qml":
                     # Only the fixture copy uses a fake service. Production bytes stay unchanged.
                     witness = b"import Quickshell.Services.SystemTray\n"
@@ -142,6 +167,18 @@ def run_checks(root, build_dir, suite="tray"):
             (fake / "qmldir").write_text("singleton SystemTray 1.0 SystemTray.qml\nsingleton Status 1.0 Status.qml\n")
             (fake / "SystemTray.qml").write_text('pragma Singleton\nimport QtQml\nQtObject { property var items: ({ values: [] }) }\n')
             (fake / "Status.qml").write_text('pragma Singleton\nimport QtQml\nQtObject { enum State { Passive, Active, NeedsAttention } }\n')
+            (case / "probe/FixtureMediaPlayer.qml").write_text(audio.MEDIA_PLAYER)
+            (case / "probe/FixtureMediaPopup.qml").write_text(audio.MEDIA_POPUP_SURFACE)
+            fake_media = case / "probe/FixtureMpris"
+            fake_media.mkdir()
+            (fake_media / "qmldir").write_text("singleton Mpris 1.0 Mpris.qml\n")
+            (fake_media / "Mpris.qml").write_text(audio.MPRIS_SINGLETON)
+            fake_pipewire = case / "probe/FixturePipewire"
+            fake_pipewire.mkdir()
+            (fake_pipewire / "qmldir").write_text("singleton Pipewire 1.0 Pipewire.qml\nPwObjectTracker 1.0 PwObjectTracker.qml\nPwNodePeakMonitor 1.0 PwNodePeakMonitor.qml\n")
+            (fake_pipewire / "Pipewire.qml").write_text(audio.PIPEWIRE_SINGLETON)
+            (fake_pipewire / "PwObjectTracker.qml").write_text('import QtQml\nQtObject { property var objects: [] }\n')
+            (fake_pipewire / "PwNodePeakMonitor.qml").write_text('import QtQml\nQtObject { property var node: null; property bool enabled: false; readonly property real peak: 0 }\n')
             if suite == "apps":
                 fake_entries = case / "probe/FixtureEntries"
                 fake_entries.mkdir()
@@ -165,6 +202,8 @@ def run_checks(root, build_dir, suite="tray"):
                 (fake_net / "qmldir").write_text("\n".join(qmldir) + "\n")
                 (case / "probe/FixtureNetwork.qml").write_text(wifi.NETWORK)
                 (case / "probe/FixtureDevice.qml").write_text(wifi.DEVICE)
+            if suite == "frame" and name == "indicator-rpc":
+                (case / "probe/indicator_state.py").write_text(frame.INDICATOR_HELPER)
             (case / "probe/shell.qml").write_text(generate(name))
             (case / "probe/fonts.conf").write_text('<fontconfig><dir>/usr/share/fonts</dir><cachedir>/home/probe/cache/fontconfig</cachedir></fontconfig>\n')
             if suite == "apps" and name == "native-cold":

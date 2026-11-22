@@ -1,5 +1,9 @@
 # Complete normal application launch integration for partial window controls
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Superseded and archived before deployment
 
 The user clarified that the original user-wide button-layout switch, including
@@ -41,10 +45,6 @@ export, package action, deployment or commit. Further live integration requires
 review and approval. No injection or unsupported universal-support claim. Keep
 raw public sources and machine evidence under ignored work/.
 
-## Tasks
+## Disposition
 
-- [ ] Inspect pinned launch APIs and distinguish grid/dock/keybinding activation.
-- [ ] Select and implement the safe normal-launch path for supported applications.
-- [ ] Add regression tests for real entry semantics and policy refresh/failure.
-- [ ] Document remaining GNOME Files and activation-path limits, not just saved intent.
-- [ ] Run the full unit suite and review source hashes/packaging without deployment.
+No launch-wrapper implementation tasks remain: plan 131 superseded this approach.

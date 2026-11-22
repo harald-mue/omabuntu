@@ -1,5 +1,9 @@
 # Audio panel input section (source selection, input volume, input mute)
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 Status: analysis only. This plan does not approve a bar restart, a release
 installation, a Hyprland binding, package installation, or execution of any
 Omarchy helper.
@@ -131,6 +135,5 @@ private snapshot; no upstream code ran.
       forbidden-route checks, upstream `audio.input` label use.
 - [x] Update `docs/audio-output-port.md` and `WORKLOG.md`; list remaining
       input deviations (virtual sources, peak meter if excluded, hero scope).
-- [ ] Package a release; ask before install and bar restart.
-- [ ] User acceptance on a real microphone: select source, slider, mute,
-      keyboard path; only then treat input parity as achieved.
+- [x] Owner reports the existing microphone selection, slider, mute and
+      keyboard path working (plan 133); full input-feature parity is not implied.

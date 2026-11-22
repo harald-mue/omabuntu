@@ -1,5 +1,9 @@
 # 012 — Login autostart for the installed Omabuntu shell
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal
 
 Make the installed Omabuntu shell start automatically when the user logs into
@@ -140,9 +144,3 @@ deployed to `~/.config/systemd/user/` after approval:
       `systemctl --user daemon-reload`, and `systemctl --user enable`
       omabuntu-shell.service (enable only; do not start it manually).
       Deployed: `enabled`, `inactive`, nothing started.
-- [ ] Verify at the user's next login: status running, log clean, unit state
-      consistent. The 2026-10-26 20:59 login failed before the shell started;
-      the instance-lock race is plan 014.
-- [ ] Verify rollback once (disable + remove; next login leaves the shell
-      down; manual start still works).
-- [ ] Update `WORKLOG.md` with the deployment record and rollback state.

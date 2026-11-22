@@ -10,7 +10,8 @@ import "Weather"
 import "BarRun.js" as BarRun
 
 // One top bar per screen, with source-derived original section geometry.
-// Registry, gestures and theme IO are not loaded. Monitor-local workspaces
+// Only trusted registered Components are admitted; gestures/theme IO and
+// arbitrary plugin startup are not loaded. Monitor-local workspaces
 // require a separately approved compositor policy and state marker.
 Variants {
   id: bars
@@ -70,20 +71,44 @@ Variants {
     onLoadFailed: {}
   }
 
+  // One event-driven read refresh for all outputs, not one per bar.
+  property BarFullscreenState fullscreenRefresh: BarFullscreenState { refreshEvents: true }
+
+  property BarPeekState peekState: BarPeekState {}
+
+  // One native owner, only after explicit optional-widget visibility consent.
+  property IndicatorState indicatorState: IndicatorState {
+    enabled: !bars.barHidden && !!bars.appearance && bars.appearance.loaded && Object.keys(bars.appearance.bar.bar_layout || {}).some(function(region) {
+      return bars.appearance.bar.bar_layout[region].indexOf("omarchy.indicators") >= 0
+    })
+  }
+
   model: Quickshell.screens
   PanelWindow {
+    id: barPanel
     required property var modelData
     screen: modelData
     anchors { top: true; left: true; right: true }
-    implicitHeight: 26
+    // Original BarPanel policy: a stable full-screen alpha surface keeps
+    // the active grab; only the 26px strip reserves space or takes idle input.
+    implicitHeight: screen ? screen.height : 26
     // Hiding parks the bar just past the screen edge instead of unmapping
     // it, so a reveal is a margin change (upstream BarPanel behavior).
-    margins { top: bars.barHidden ? -26 : 0 }
-    exclusionMode: bars.barHidden ? ExclusionMode.Ignore : ExclusionMode.Auto
+    margins { top: bars.barHidden ? -barPanel.implicitHeight : 0 }
+    exclusiveZone: 26
+    exclusionMode: bars.barHidden ? ExclusionMode.Ignore : ExclusionMode.Normal
+    property BarFullscreenState fullscreenState: BarFullscreenState {
+      screen: barPanel.screen
+      hidden: bars.barHidden
+      dragFrame: frame
+    }
+    mask: fullscreenState.maskFor(frame.barDragSource !== null, stripInputRegion, noInputRegion)
+    Region { id: stripInputRegion; item: barStrip }
+    Region { id: noInputRegion }
     // Preferences load after creation. Keep an alpha buffer even when the
     // initial Opaque default would otherwise permanently select an opaque surface.
     surfaceFormat.opaque: false
-    color: clockBar.transparentBar ? "transparent" : (clockBar.glassy ? clockBar.glassBackground : clockBar.themeBackground)
+    color: "transparent"
     WlrLayershell.namespace: "omabuntu-clock-trial"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -92,37 +117,7 @@ Variants {
       id: barBus
       property var activePopout: null
       property var clickTargets: []
-      property var panels: ({})
-      readonly property var panelGroups: [
-        ["clock", "elsewhen", "weather"],
-        ["bluetooth", "network", "audio", "display", "power"]
-      ]
-      function registerPanel(key, item) {
-        if (!panelGroups.some(function(group) { return group.indexOf(key) >= 0 })) return
-        var next = Object.assign({}, panels)
-        next[key] = item
-        panels = next
-      }
-      function unregisterPanel(key, item) {
-        if (panels[key] !== item) return
-        var next = Object.assign({}, panels)
-        delete next[key]
-        panels = next
-      }
-      function switchPanelFrom(owner, direction) {
-        for (var g = 0; g < panelGroups.length; g++) {
-          var candidates = panelGroups[g].map(function(key) { return panels[key] }).filter(function(item) {
-            return item && item.visible && item.enabled && item.width > 0 && item.height > 0
-              && typeof item.open === "function" && typeof item.close === "function"
-          })
-          var index = candidates.indexOf(owner)
-          if (index < 0) continue
-          if (candidates.length < 2) return false
-          candidates[(index + (direction < 0 ? -1 : 1) + candidates.length) % candidates.length].open()
-          return true
-        }
-        return false
-      }
+      function switchPanelFrom(owner, direction) { return frame.switchPanelFrom(owner, direction) }
       // Stable Bar.qml card handoff, scoped to the fixed trusted sections.
       property var popoutCard: null
       function notePopoutCard(card, section) {
@@ -132,12 +127,16 @@ Variants {
       }
       function popoutCardFor(section) {
         var card = popoutCard
-        if (!card || card.section !== section) return null
+        if (!card || !section || card.section !== section) return null
         return { screen: card.screen, x: card.x, y: card.y, width: card.width, height: card.height }
       }
     }
     QtObject {
       id: clockBar
+      readonly property bool barHidden: bars.barHidden
+      readonly property bool centerSectionRevealHeld: bars.peekState.centerSectionRevealHeld
+      readonly property bool centerHoverRevealSuppressed: bars.peekState.centerHoverRevealSuppressed
+      function setCenterHoverRevealSuppressed(value) { bars.peekState.setCenterHoverRevealSuppressed(value) }
       readonly property bool vertical: false
       readonly property int barSize: 26
       readonly property string position: "top"
@@ -159,6 +158,9 @@ Variants {
       readonly property var activePopout: barBus.activePopout
       readonly property var clickTargets: barBus.clickTargets
       readonly property string preferenceError: bars.appearance ? bars.appearance.errorText : ""
+      readonly property var layoutConfig: ({tray: []})
+      readonly property bool traySectionDragActive: false
+      readonly property bool traySectionPopoutOpen: false
       readonly property QtObject shell: QtObject {
         readonly property bool persistAppearance: bars.appearance !== null
         function updateClockSettings(values) {
@@ -166,7 +168,13 @@ Variants {
           else bars.clockSettings = Object.assign({}, bars.clockSettings, values)
         }
         function updateEntryInline(id, entry) {
-          if (id !== "omarchy.clock" || !entry) return
+          if (!entry) return
+          if (id === "omarchy.tray") {
+            if (bars.appearance && Array.isArray(entry.pinned) && Array.isArray(entry.hidden))
+              bars.appearance.setTray({pinned: entry.pinned.slice(), hidden: entry.hidden.slice()})
+            return
+          }
+          if (id !== "omarchy.clock") return
           var values = Object.assign({}, entry)
           delete values.id
           updateClockSettings(values)
@@ -188,8 +196,8 @@ Variants {
       function releasePopout(key) {
         if (barBus.activePopout === key) barBus.activePopout = null
       }
-      function notePopoutCard(card) { barBus.notePopoutCard(card, "center") }
-      function popoutCardFor(owner) { return barBus.popoutCardFor("center") }
+      function notePopoutCard(card) { barBus.notePopoutCard(card, frame.popoutSectionOf(barBus.activePopout)) }
+      function popoutCardFor(owner) { return barBus.popoutCardFor(frame.popoutSectionOf(owner)) }
       function itemContainsPoint(target, source, x, y) {
         if (!target || !target.contains(target.mapFromItem(source, x, y))) return false
         for (var item = target; item; item = item.parent) {
@@ -198,7 +206,7 @@ Variants {
         }
         return true
       }
-      function showTooltip(item, text) { clockTips.showTooltip(item, text) }
+      function showTooltip(item, text) { clockTips.showTooltip(item, preferenceError || text) }
       function hideTooltip(item) { clockTips.hideTooltip(item) }
       // The only command path: every ';'-separated segment must pass the
       // BarRun allowlist (keyboard-layout cycling, terminal). Executed
@@ -223,104 +231,112 @@ Variants {
     }
     BarTooltip { host: clockTips }
     AudioOutputProvider { id: audioProvider }
+    Component {
+      id: menuComponent
+      MenuButton { bar: clockBar; openMenu: bars.openMenu }
+    }
+    Component {
+      id: workspacesComponent
+      LiveStatus { bar: clockBar; liveModes: true; maximumWidth: Math.max(0, frame.width - 16) }
+    }
+    Component {
+      id: clockComponent
+      ClockControlView { bar: clockBar; settings: bars.clockSettings }
+    }
+    Component {
+      id: elsewhenComponent
+      ElsewhenPanel { bar: clockBar }
+    }
+    Component {
+      id: weatherComponent
+      WeatherWidget { bar: clockBar; settings: ({unit: "metric"}) }
+    }
+    Component {
+      id: trayComponent
+      PortTrayHost {
+        appearanceSettings: bars.appearance
+        popoutState: barBus
+        barOverride: clockBar
+      }
+    }
+    Component {
+      id: keyboardComponent
+      KeyboardLayout { bar: clockBar }
+    }
+    Component {
+      id: bluetoothComponent
+      BluetoothControlView { bar: clockBar }
+    }
+    Component {
+      id: networkComponent
+      NetworkControlView { bar: clockBar }
+    }
+    Component {
+      id: audioComponent
+      AudioOutputView { bar: clockBar; backend: audioProvider }
+    }
+    Component {
+      id: mediaComponent
+      MediaControlView { bar: clockBar }
+    }
+    Component { id: dndIndicatorComponent; DndIndicator { backend: bars.indicatorState.dnd } }
+    Component { id: nightlightIndicatorComponent; NightLightIndicator { backend: bars.indicatorState.nightlight } }
+    Component {
+      id: indicatorsComponent
+      IndicatorsView {
+        bar: clockBar
+        settings: ({items: ["NightLight", "Dnd"], stableControls: true})
+        indicatorComponents: ({
+          "Dnd": bars.indicatorState.dnd.known ? dndIndicatorComponent : null,
+          "NightLight": bars.indicatorState.nightlight.known ? nightlightIndicatorComponent : null
+        })
+        onRefreshRequested: bars.indicatorState.refresh()
+      }
+    }
+    Component {
+      id: displayComponent
+      DisplayControlView { bar: clockBar }
+    }
+    Component {
+      id: powerComponent
+      PowerControlView { bar: clockBar; appearanceSettings: bars.appearance }
+    }
+    Rectangle {
+      id: barStrip
+      width: parent.width
+      height: 26
+      color: clockBar.transparentBar ? "transparent" : (clockBar.glassy ? clockBar.glassBackground : clockBar.themeBackground)
+    }
+    Connections {
+      target: bars
+      function onBarHiddenChanged() { frame.clearBarDrag() }
+    }
     BarFrame {
       id: frame
-      anchors.fill: parent
-      leftContent: Component {
-        Row {
-          spacing: 0
-          MenuButton {
-            id: menuButton
-            bar: clockBar
-            openMenu: bars.openMenu
-          }
-          LiveStatus {
-            bar: clockBar
-            liveModes: true
-            maximumWidth: Math.max(0, frame.centerStart - 16 - menuButton.implicitWidth)
-          }
-        }
-      }
-      centerContent: Component {
-        ClockControlView {
-          id: clockWidget
-          bar: clockBar
-          settings: bars.clockSettings
-          Component.onCompleted: barBus.registerPanel("clock", clockWidget)
-          Component.onDestruction: if (barBus) barBus.unregisterPanel("clock", clockWidget)
-        }
-      }
-      centerEndContent: Component {
-        Row {
-          spacing: 0
-          ElsewhenPanel {
-            id: elsewhenWidget
-            bar: clockBar
-            Component.onCompleted: barBus.registerPanel("elsewhen", elsewhenWidget)
-            Component.onDestruction: if (barBus) barBus.unregisterPanel("elsewhen", elsewhenWidget)
-          }
-          WeatherWidget {
-            id: weatherWidget
-            bar: clockBar
-            settings: ({unit: "metric"})
-            Component.onCompleted: barBus.registerPanel("weather", weatherWidget)
-            Component.onDestruction: if (barBus) barBus.unregisterPanel("weather", weatherWidget)
-          }
-        }
-      }
-      rightContent: Component {
-        Row {
-          spacing: 0
-          PortTrayHost { id: trayHost; appearanceSettings: bars.appearance; popoutState: barBus; width: implicitWidth; height: implicitHeight }
-          KeyboardLayout {
-            bar: clockBar
-            width: implicitWidth
-            height: implicitHeight
-          }
-          BluetoothControlView {
-            id: bluetoothWidget
-            Component.onCompleted: barBus.registerPanel("bluetooth", bluetoothWidget)
-            Component.onDestruction: if (barBus) barBus.unregisterPanel("bluetooth", bluetoothWidget)
-            bar: trayHost.ownerApi
-            width: implicitWidth
-            height: implicitHeight
-          }
-          NetworkControlView {
-            id: networkWidget
-            Component.onCompleted: barBus.registerPanel("network", networkWidget)
-            Component.onDestruction: if (barBus) barBus.unregisterPanel("network", networkWidget)
-            bar: trayHost.ownerApi
-            width: implicitWidth
-            height: implicitHeight
-          }
-          AudioOutputView {
-            id: audioWidget
-            Component.onCompleted: barBus.registerPanel("audio", audioWidget)
-            Component.onDestruction: if (barBus) barBus.unregisterPanel("audio", audioWidget)
-            bar: trayHost.ownerApi
-            backend: audioProvider
-            width: implicitWidth
-            height: implicitHeight
-          }
-          DisplayControlView {
-            id: displayWidget
-            Component.onCompleted: barBus.registerPanel("display", displayWidget)
-            Component.onDestruction: if (barBus) barBus.unregisterPanel("display", displayWidget)
-            bar: trayHost.ownerApi
-            width: implicitWidth
-            height: implicitHeight
-          }
-          PowerControlView {
-            id: powerWidget
-            Component.onCompleted: barBus.registerPanel("power", powerWidget)
-            Component.onDestruction: if (barBus) barBus.unregisterPanel("power", powerWidget)
-            appearanceSettings: bars.appearance
-            bar: trayHost.ownerApi
-            width: implicitWidth
-            height: implicitHeight
-          }
-        }
-      }
+      width: parent.width
+      height: 26
+      barWindow: barPanel
+      barApi: clockBar
+      peekState: bars.peekState
+      peekSuppressed: fullscreenState.suppressed
+      // The closed Python registry validates persisted values; Components and
+      // their API/settings bindings are authored here, never loaded from URLs.
+      layoutEditor: bars.appearance
+      layoutConfig: bars.appearance && bars.appearance.loaded && bars.appearance.bar.bar_layout
+        ? bars.appearance.bar.bar_layout
+        : ({left: ["omabuntu.menu", "omarchy.workspaces"], centerBegin: [],
+            center: ["omarchy.clock"], centerEnd: ["omarchy.elsewhen", "omarchy.weather"],
+            right: ["omarchy.tray", "omarchy.keyboard-layout", "omarchy.bluetooth",
+                    "omarchy.network", "omarchy.audio", "omarchy.monitor", "omarchy.power"]})
+      widgetComponents: ({
+        "omabuntu.menu": menuComponent, "omarchy.workspaces": workspacesComponent,
+        "omarchy.clock": clockComponent, "omarchy.elsewhen": elsewhenComponent,
+        "omarchy.weather": weatherComponent, "omarchy.tray": trayComponent,
+        "omarchy.keyboard-layout": keyboardComponent, "omarchy.bluetooth": bluetoothComponent,
+        "omarchy.network": networkComponent, "omarchy.audio": audioComponent,
+        "omarchy.media": mediaComponent, "omarchy.indicators": indicatorsComponent,
+        "omarchy.monitor": displayComponent, "omarchy.power": powerComponent
+      })
     }
   }
 }

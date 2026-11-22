@@ -8,7 +8,9 @@ engine used by that entry. Package apply still requires an approved plan and an
 interactive terminal. Session start is separate.
 
 This is not a universal fresh-desktop provisioner. v0.1.0 is published but its
-fresh-VM install failed; native login and VM acceptance remain open. New source
+fresh-VM install failed historically. The owner subsequently reported VM
+installation/deployment acceptance in plan 133; no exact image/release/scenario
+matrix was supplied. See [current status](project-status.md). New source
 builds use separate [hyprpm stages](plugin-management.md), an explicit persistent
 plugin-login grant, and source-reviewed 0.57 APIs (not native acceptance). Signed release distribution is
 described in [releases.md](releases.md).
@@ -203,25 +205,25 @@ authentication and recovery acceptance.
 
 Do not call release rollback a whole-desktop or package rollback.
 
-## Implementation and acceptance backlog
+## Historical implementation checklist and current acceptance
 
-Implemented stages and remaining work:
+This checklist records implementation history, not a fresh action queue.
+Plan 133 retires its remaining unverified task entries rather than falsely
+checking them. The owner reports VM installation/deployment testing passed;
+exceptional recovery and approval gates remain described in
+[current status](project-status.md). Recorded implementation:
 
 - [x] Define a feature prerequisite manifest separately from build packages
       (`packages/installer-runtime.json`); exhaustive clean-target closure remains pending.
 - [x] Add bounded target/package/font and isolated runtime/WebP preflight.
 - [x] Add reviewed dependency transaction planning and pre/post-state evidence.
 - [x] Provide separate approved package and existing user-release deployment stages.
-- [ ] Implement conflict-aware, backed-up optional configuration adapters.
 - [x] Expose separately approved shell activation using the existing manager's
       session validation and owned-process tracking.
-- [ ] Add wallpaper session activation, owned-process tracking and verified logout cleanup.
 - [x] Add fixture coverage for no-apply defaults, package drift/failure,
       saved-plan validation, backed-up deployment and later-launcher-edit refusal.
-- [ ] Exercise real interrupted APT recovery and complete end-to-end integration adapters.
-- [ ] Exercise a clean supported Ubuntu target, including WebP preview and wallpaper apply.
-- [ ] Document and test rollback separately for releases, configuration and packages.
-- [ ] Complete privacy, license and distribution review before any public release.
+- [x] Owner reports VM installation/deployment testing passed (plan 133); no
+      exact version or per-scenario matrix was provided.
 
 Autostart, supervision and lock/security acceptance remain independent of this
 backlog; none is implicitly enabled by completing a first installation.

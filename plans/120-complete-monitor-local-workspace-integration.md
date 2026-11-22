@@ -1,5 +1,9 @@
 # Complete monitor-local workspace integration
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 Finish the Omarchy-based candidate from plan 119 and independently verify whether
 the current desktop actually uses it. Compare Omarchy v4.5.0 stable commit
@@ -95,7 +99,8 @@ normal user-state transaction directories.
 - [x] Apply the journaled workspace migration and restore autoreload/session lifetime.
 - [x] Verify runtime membership, output/layout preservation, binding uniqueness and logs.
 - [x] Obtain positive user feedback for the interactive workspace/window/monitor operations tried.
-- [ ] Verify real docking/hotplug and fresh-login behavior separately.
+- [x] Owner reports docking/hotplug and fresh-login behavior working in the
+      tested setup (plan 133); no independent new measurements were collected.
 
 The user subsequently reported that the tried workspace and cross-monitor window
 operations work. This is positive interactive feedback, not independently observed

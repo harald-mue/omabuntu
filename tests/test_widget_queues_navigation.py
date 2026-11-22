@@ -94,28 +94,41 @@ setScale('1.25');focusedMonitor='fixture-b';setScale('2');
 assert.deepEqual(queue,[['scale','fixture-a','1.25'],['scale','fixture-b','2']]);
 ''')
 
-    def test_fixed_registry_switches_visible_panels_only_on_its_output(self):
-        code = functions('config/shell/preview/TrialPanel.qml', ['registerPanel', 'unregisterPanel', 'switchPanelFrom'])
-        self.run_js('''
+    def test_original_registry_switches_visible_panels_in_layout_order_per_output(self):
+        code = functions('config/shell/preview/BarFrame.qml',
+                         ['entryId', 'layoutEntries', 'panelNavigationSlots', 'switchPanelFrom', 'slotWindow', 'sameWindow'])
+        model = str(ROOT / 'vendor/omarchy/shell/plugins/bar/BarModel.js')
+        self.run_js("const BarModel=require(" + repr(model) + ");\n" + '''
 function makeRegistry() {
- let panels={},panelGroups=[['clock','elsewhen','weather'],['bluetooth','network','audio','display','power']];
+ let moduleSlots=[],layoutConfig={left:[],centerBegin:[],center:['clock'],centerEnd:['elsewhen','weather'],right:['bluetooth','network','audio']};
 ''' + code + '''
- return {registerPanel,unregisterPanel,switchPanelFrom};
+ return {moduleSlots,layoutConfig,switchPanelFrom};
 }
 let opened=[];
-function item(name,visible=true) {return {visible,enabled:true,width:26,height:26,open:()=>opened.push(name),close:()=>{}};}
+function item(name,visible=true) {return {visible,enabled:true,width:26,height:26,opened:false,open:()=>opened.push(name),close:()=>{}};}
 const a=makeRegistry(),b=makeRegistry();
 const clock=item('clock'),weather=item('weather',false),elsewhen=item('elsewhen');
 const bt=item('bluetooth'),net=item('network'),audio=item('audio');
-for (const [key,value] of [['clock',clock],['weather',weather],['elsewhen',elsewhen],['bluetooth',bt],['network',net],['audio',audio]]) a.registerPanel(key,value);
-b.registerPanel('network',item('other-output'));
+function slot(id,region,activeItem){return {moduleName:id,region,activeItem,visible:true,width:26,height:26,window:null};}
+for(const [key,region,value] of [['clock','center',clock],['elsewhen','centerEnd',elsewhen],
+ ['weather','centerEnd',weather],['bluetooth','right',bt],['network','right',net],['audio','right',audio]])
+ a.moduleSlots.push(slot(key,region,value));
+b.moduleSlots.push(slot('network','right',item('other-output')));
 assert.equal(a.switchPanelFrom(clock,1),true);assert.deepEqual(opened,['elsewhen']);
 assert.equal(a.switchPanelFrom(elsewhen,1),true);assert.equal(opened.at(-1),'clock');
 assert.equal(a.switchPanelFrom(bt,-1),true);assert.equal(opened.at(-1),'audio');
 assert.equal(b.switchPanelFrom(net,1),false);
-a.unregisterPanel('network',net);assert.equal(a.switchPanelFrom(bt,1),true);assert.equal(opened.at(-1),'audio');
-a.registerPanel('unreviewed',item('not-allowed'));assert.equal(a.switchPanelFrom(item('unknown'),1),false);
-a.unregisterPanel('audio',audio);assert.equal(a.switchPanelFrom(bt,1),false);
+// Reordering persisted keys changes navigation, without rebuilding the registry.
+a.layoutConfig.right=['bluetooth','audio','network'];
+assert.equal(a.switchPanelFrom(bt,1),true);assert.equal(opened.at(-1),'audio');
+audio.enabled=false;
+assert.equal(a.switchPanelFrom(bt,1),true);assert.equal(opened.at(-1),'network');
+audio.enabled=true;
+a.moduleSlots.find(s=>s.activeItem===audio).width=0;
+assert.equal(a.switchPanelFrom(bt,1),true);assert.equal(opened.at(-1),'network');
+a.moduleSlots.find(s=>s.activeItem===net).visible=false;
+assert.equal(a.switchPanelFrom(bt,1),false);
+assert.equal(a.switchPanelFrom(item('unknown'),1),false);
 ''')
 
     def test_display_cursor_uses_original_section_navigation_without_text_size(self):

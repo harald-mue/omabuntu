@@ -1,9 +1,10 @@
 import QtQuick
 import qs.Commons
 import "AudioPresentation.js" as Presentation
+import "AudioRouting.js" as Routing
 import "Port/AudioModel.js" as Model
 
-// Backend boundary for the source-derived Omarchy output+input frontend.
+// Backend boundary for the source-derived Omarchy output/input/stream frontend.
 // Native QObjects never escape the provider; no shell helpers or IPC here.
 // Cursor model mirrors upstream Panel.qml: the virtual "header" hero, then
 // sections with a slider row (-1) above device rows (0..N-1).
@@ -23,6 +24,8 @@ Item {
   readonly property var current: backend.state.current
   readonly property var sink: current
   readonly property var displayAudioSinks: opened ? backend.state.outputs : []
+  readonly property var displayAudioStreams: opened ? backend.streamState.streams : []
+  readonly property bool outputControlAvailable: !!current && current.controlAvailable !== false
   readonly property real outputVolume: current ? current.volume : 0
   readonly property bool outputMuted: !current || current.muted
   // Input section state; typed sources only.
@@ -31,23 +34,31 @@ Item {
   readonly property real inputVolume: source ? source.volume : 0
   readonly property bool inputMuted: !source || source.muted
   readonly property bool hasInput: !!source
-  readonly property bool inputLevelKnown: hasInput
+  readonly property bool inputControlAvailable: hasInput && source.controlAvailable !== false
+  readonly property bool inputUnavailable: !!backend.inputState.defaultPresent && !inputControlAvailable
+  readonly property bool inputLevelKnown: inputControlAvailable
   readonly property bool inputLevelShown: !!source
   readonly property real inputPeak: backend.peak
-  // The hero stays OUTPUT ONLY in this stage (documented deviation from
-  // upstream's two-channel master mute).
-  readonly property bool anyAudible: !!current && !outputMuted
+  // Original hero semantics: on while either channel remains unmuted.
+  // The bar glyph and the separate output/input row actions stay channel-local.
+  readonly property bool anyAudible: (!!current && !outputMuted) || (hasInput && !inputMuted)
   readonly property bool headerHasCursor: cursorActive && focusSection === "header"
-  readonly property string toggleHint: I18n.t(anyAudible ? "audio.mute" : "audio.unmute")
+  readonly property string toggleHint: current && !outputControlAvailable ? "Output route unavailable"
+    : (inputUnavailable ? "Microphone controls unavailable"
+    : (anyAudible ? "Mute output and microphone" : "Unmute output and microphone"))
   readonly property color hoverFill: Style.hoverFillFor(bar.foreground)
   readonly property color selectedFill: Style.selectedFillFor(bar.foreground)
-  readonly property string currentKey: current ? current.id + ":" + current.name : ""
-  readonly property string icon: Presentation.icon(current)
+  readonly property string currentKey: current ? current.id + ":" + current.name + ":" + current.serial
+    + ":" + (current.control ? current.control.proof : "") : ""
+  readonly property string icon: current && !outputControlAvailable ? "󰓃" : Presentation.icon(current)
   implicitWidth: 26
   implicitHeight: 26
   onCurrentKeyChanged: wheelRemainder = 0
   onDisplayAudioSinksChanged: clampCursor()
   onDisplayAudioSourcesChanged: clampCursor()
+  onInputControlAvailableChanged: clampCursor()
+  onDisplayAudioStreamsChanged: clampCursor()
+  onVisibleSectionsChanged: clampCursor()
   onOpenedChanged: {
     backend.monitoring = opened;
     if (opened) {
@@ -65,34 +76,46 @@ Item {
   function close() { opened = false; }
   function toggle() { opened = !opened; }
   function setVolume(key, value) {
-    errorText = backend.setVolume(key, value) ? "" : "Output device is no longer available";
+    errorText = backend.setVolume(key, value) ? "" : "Output device or route changed; request refused or outcome uncertain";
   }
   function setOutputVolume(value) { setVolume(dragTarget || current, value); }
   function toggleMute() {
-    errorText = backend.toggleMute(current) ? "" : "No audio output available";
+    errorText = backend.toggleMute(current) ? "" : "Output route unavailable or mute outcome uncertain";
   }
   function toggleOutputMute() { toggleMute(); }
-  // Original header/right-click action is deliberately OUTPUT ONLY here.
-  function toggleAllMuted() { toggleMute(); }
+  // Explicit original hero/right-click action; never called by opening/readback.
+  function toggleAllMuted() {
+    errorText = backend.toggleAllMuted(current, source) ? ""
+      : "Audio state changed; check output and microphone mute";
+  }
   function setDefaultSink(row) {
-    errorText = backend.chooseOutput(row) ? "" : "Output device is no longer available";
+    errorText = backend.chooseOutput(row) ? "" : "Output selection unavailable or outcome uncertain";
   }
   function setInputVolume(value) {
-    errorText = backend.setSourceVolume(dragSourceTarget || source, value) ? "" : "Input device is no longer available";
+    errorText = backend.setSourceVolume(dragSourceTarget || source, value) ? "" : "Microphone changed, unavailable or gain outcome uncertain";
   }
   function toggleInputMute() {
-    errorText = backend.toggleSourceMute(source) ? "" : "No audio input available";
+    errorText = backend.toggleSourceMute(source) ? "" : "Microphone unavailable or mute outcome uncertain";
   }
   function setDefaultSource(row) {
-    errorText = backend.chooseInput(row) ? "" : "Input device is no longer available";
+    errorText = backend.chooseInput(row) ? "" : "Input selection unavailable or outcome uncertain";
   }
+  function setStreamVolume(row, value) {
+    errorText = backend.setStreamVolume(row, value) ? "" : "Playback stream is no longer available";
+  }
+  function toggleStreamMute(row) {
+    errorText = backend.toggleStreamMute(row) ? "" : "Playback stream is no longer available";
+  }
+  function streamLabel(row) { return row ? row.label : ""; }
   function outputIcon() { return icon; }
-  function outputVolumeName(value, muted) { return Model.outputVolumeName(value, muted, I18n.t); }
+  function outputVolumeName(value, muted) {
+    return current && !outputControlAvailable ? "Output route unavailable" : Model.outputVolumeName(value, muted, I18n.t);
+  }
   function nodeLabel(row) { return row ? row.label : ""; }
   function sinkGlyph(row) { return row ? row.glyph : "󰓃"; }
   function sourceGlyph(row) { return row ? row.glyph : "󰍬"; }
-  // A row resolves through either list; PipeWire may reuse ids, so both
-  // id and name must match. Rows never dangle; a vanished node returns null.
+  // Rows never retain native nodes. Inputs additionally require the captured
+  // serial/provider/generation proof, so an old row cannot acquire a new node.
   function nodeFor(key) {
     if (!key) return null;
     var outputs = backend.state.outputs;
@@ -100,36 +123,44 @@ Item {
       if (outputs[i].id === key.id && outputs[i].name === key.name) return outputs[i];
     var inputs = backend.inputState.inputs;
     for (var j = 0; j < inputs.length; j++)
-      if (inputs[j].id === key.id && inputs[j].name === key.name) return inputs[j];
+      if (inputs[j].id === key.id && inputs[j].name === key.name && inputs[j].serial === key.serial
+          && (key.control ? Routing.sameKey(inputs[j].control, key.control) : !inputs[j].control)) return inputs[j];
+    var streams = backend.streamState.streams;
+    for (var k = 0; k < streams.length; k++)
+      if (streams[k].id === key.id && streams[k].name === key.name
+          && streams[k].serial === key.serial) return streams[k];
     return null;
   }
   function wheel(delta) {
-    if (!current || !isFinite(delta)) return;
+    if (!outputControlAvailable || !isFinite(delta)) return;
     wheelRemainder += delta;
     var steps = Math.trunc(wheelRemainder / 120);
     wheelRemainder -= steps * 120;
     if (steps !== 0) setVolume(current, current.volume + steps * 0.05);
   }
-  // ---- Upstream cursor model (Panel.qml), streams excluded ----
+  // ---- Upstream cursor model (Panel.qml), including per-stream sliders ----
   function sectionCount(section) {
     if (section === "output") return displayAudioSinks.length;
     if (section === "input") return displayAudioSources.length;
+    if (section === "streams") return displayAudioStreams.length;
     return 0;
   }
   function sectionVisible(section) {
     if (section === "output") return true;
     if (section === "input") return displayAudioSources.length > 0 || !!source;
+    if (section === "streams") return displayAudioStreams.length > 0;
     return false;
   }
   function sectionHasSlider(section) {
     if (section === "output") return true;
-    if (section === "input") return !!source;
+    if (section === "input") return inputControlAvailable;
     return false;
   }
   readonly property var visibleSections: {
     var list = [];
     if (sectionVisible("output")) list.push("output");
     if (sectionVisible("input")) list.push("input");
+    if (sectionVisible("streams")) list.push("streams");
     return list;
   }
   function setHeaderCursor() { cursorActive = true; focusSection = "header"; }
@@ -180,10 +211,14 @@ Item {
     if (selectedIndex > count - 1) selectedIndex = Math.max(floor, count - 1);
     if (selectedIndex < floor) selectedIndex = floor;
   }
-  // Device rows (selectedIndex >= 0) are no-ops for h/l, exactly upstream.
+  // Device rows are no-ops for h/l; stream rows adjust only their own slider.
   function adjustVolume(delta) {
     if (focusSection === "output" && selectedIndex === -1) setOutputVolume(outputVolume + delta);
     else if (focusSection === "input" && selectedIndex === -1) setInputVolume(inputVolume + delta);
+    else if (focusSection === "streams" && selectedIndex >= 0) {
+      var row = nodeFor(displayAudioStreams[selectedIndex]);
+      if (row) setStreamVolume(row, row.volume + delta);
+    }
   }
   function activateCursor() {
     if (focusSection === "header") { toggleAllMuted(); return; }
@@ -195,7 +230,10 @@ Item {
     if (focusSection === "input") {
       if (selectedIndex === -1) { toggleInputMute(); return; }
       setDefaultSource(nodeFor(displayAudioSources[selectedIndex]));
+      return;
     }
+    if (focusSection === "streams" && selectedIndex >= 0)
+      toggleStreamMute(displayAudioStreams[selectedIndex]);
   }
   function switchPanel(direction) {
     return bar && typeof bar.switchPanelFrom === "function" ? bar.switchPanelFrom(root, direction) : false;

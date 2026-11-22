@@ -361,13 +361,16 @@ A checkout is the development path; GitHub Releases are the published path.
 ## Not done
 
 - Source builds now use hyprpm, but existing v0.1.0 artifacts are unchanged.
-- New builds target source-reviewed Hyprland 0.57.0; real manager/build/login
-  acceptance remains outstanding. A source pin does not authorize a live action.
+- New builds target source-reviewed Hyprland 0.57.0. The owner reports VM
+  installation/deployment acceptance (plan 133), without an exact version or
+  per-scenario matrix. A source pin does not authorize a live action.
 - The published installer offers plugin prerequisites separately, defers manager
   work outside a matching live session and offers an explicit plugin-login grant.
-- No stock Ubuntu VM install, reinstall, update, or rollback has been accepted.
-- Native first-login, plugin loading, and wallpaper appearance still need a real
-  Hyprland login.
+- The owner reports having tested the installation/deployment review on a VM;
+  do not retain a generic "VM untested" claim. See
+  [acceptance scope](project-status.md#owner-reported-acceptance). Actual
+  power-loss/interrupted-APT recovery and arbitrary version combinations are not
+  established by that general report.
 - A newer upstream source revision is not offered until it is reviewed and pinned.
 - The development machine's private Hyprland profile has not been replaced.
 

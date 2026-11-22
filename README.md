@@ -165,6 +165,7 @@ working material, not release content.
 
 ## Documentation
 
+- [Current acceptance and remaining source-parity work](docs/project-status.md)
 - [Installer and session setup](docs/installer.md)
 - [Releases, signing and verification](docs/releases.md)
 - [Plugin management](docs/plugin-management.md) and [titlebars](docs/hyprbars.md)

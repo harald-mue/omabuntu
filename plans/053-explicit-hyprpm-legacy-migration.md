@@ -1,5 +1,9 @@
 # Explicit migration of the known mixed Hyprpm legacy state
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Provide a review-only migration plan and separately confirmed application for the
@@ -77,10 +81,6 @@ executor is bound to the reviewed root-owned Hyprland-package-owned system
 binary; its hash/metadata are rechecked. A newly completed receipt remains
 inactive and normal activation is still separately reviewed.
 
-- [ ] Separately approve/install the reviewed additive prerequisite transaction.
-- [ ] Run the real interactive migration and verify its retained journal/results.
-- [ ] Separately approve live plugin loading, titlebar/private-loader handoff and
-  any subsequent persistent login integration; establish native/VM acceptance.
 
 No real package or manager mutation, plugin load/unload, private configuration
 change, service/session action, commit, push or publication was performed.

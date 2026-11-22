@@ -66,8 +66,10 @@ class NetworkPortTests(unittest.TestCase):
         text = (ROOT / "config/shell/preview/TrialPanel.qml").read_text()
         self.assertIn("NetworkControlView {", text)
         self.assertNotIn("NetworkStatusProvider", text)
-        self.assertIn("bar: trayHost.ownerApi", text)
-        self.assertIn("ExclusionMode.Ignore : ExclusionMode.Auto", text)
+        self.assertIn("NetworkControlView { bar: clockBar }", text)
+        self.assertIn('"omarchy.network": networkComponent', text)
+        self.assertIn('"omarchy.tray": trayComponent', text)
+        self.assertIn("ExclusionMode.Ignore : ExclusionMode.Normal", text)
 
 
 if __name__ == "__main__":

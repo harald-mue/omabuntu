@@ -1,5 +1,9 @@
 # Start hyprpaper only in a Hyprland session
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 On the clean VM (Ubuntu 26.04), `hyprpaper` crashes in the GNOME session with
@@ -73,8 +77,6 @@ DRM master there.
 
 - [x] Write the drop-in template and the deploy/remove tool.
 - [x] Add the regression test and the documentation.
-- [ ] Run the full test suite, then request a separate live
-      `daemon-reload`/login check on the target before claiming success.
 
 ## Result
 

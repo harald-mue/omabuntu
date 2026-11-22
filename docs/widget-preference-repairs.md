@@ -12,7 +12,9 @@ clock/dock derivations and authored-source seals are updated reproducibly.
 Plan 117 subsequently installed these repairs alongside the Network adaptation
 and restarted only the owned bar. Startup passed, prior releases/prestates are
 preserved, and existing preference files remained unchanged. This is local
-deployment, not native interactive acceptance; see the
+deployment; the owner subsequently confirmed the everyday persistence,
+interaction and multi-output tests in plan 133. See
+[current acceptance](project-status.md#owner-reported-acceptance) and the
 [deployment record](network-original-surface.md#approved-local-deployment-plan-117).
 
 ## Implemented
@@ -100,9 +102,9 @@ and visibly unavailable; this change does not bypass that existing policy gate.
   Bluetooth, power-policy or monitor acceptance.
 
 The complete real bar's native layer-window backend is not available in the
-standalone offscreen fixture. Actual multi-monitor focus/popup transitions,
-interactive preference edits and next-login retention still need a separately
-approved deployment and acceptance pass.
+standalone offscreen fixture. The owner subsequently reported the multi-monitor focus/navigation,
+interactive preference and next-login tests working (plan 133). This is human
+acceptance for the tested setup, not a new offscreen/native measurement.
 
 ## Remaining work and explicit gates
 
@@ -119,8 +121,9 @@ This is not a claim that every omitted upstream feature is fixed. In particular:
   design and deployment approval.
 - **Other parity boundaries:** per-app audio streams/untyped-source/physical-sink
   routing, automatic Bluetooth audio selection, input-method integration,
-  per-monitor workspace blocks, full shell/plugin/layout persistence and omitted
-  services remain explicit backlog items from the audit, not completed work.
+  full shell/plugin/layout persistence and omitted services remain feature
+  differences. Per-monitor workspace blocks were subsequently implemented and
+  deployed in plans 119–120; see [current status](project-status.md).
 
 Capability documentation was reconciled for the touched widget areas. Historical
 native-version/acceptance records are not replaced by invented fresh acceptance.

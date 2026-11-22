@@ -1,5 +1,9 @@
 # Top bar parity: menu icon, keyboard layout, frame/theme
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 Status: implemented in the repository; live activation (packaging, bar
 restart) not yet requested. Tests pass. No bar release was staged, installed,
 or started. The user separately installed `libxkbcommon-tools` on 2026-10-25
@@ -151,4 +155,3 @@ SHAs, transform ids, mirrors), mark path data recorded in
 - [x] Tests: mark data/manifest consistency, keyboard transform witnesses,
       allowlist validation, background-look parsing, suite green (399 pass).
 - [x] Update `WORKLOG.md` and docs.
-- [ ] Ask before packaging and replacing the running bar process.

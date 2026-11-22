@@ -1,5 +1,9 @@
 # Load the titlebar plugin at session start
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal
 
 Floating workspaces must show the reviewed hyprbars titlebar after a login,
@@ -65,6 +69,3 @@ plugin, no second titlebar implementation and no automatic start of the shell.
 - [x] Superseded by plan 020: `hl.plugin.load` only queues a path outside a
       config apply, so the registration moved to the managed snippet, which
       runs at config-load time, and the handler block is removed at deploy.
-- [ ] Verify the automatic load after a real logout and login.
-- [ ] Native acceptance of close, minimise and maximise on disposable
-      floating windows.

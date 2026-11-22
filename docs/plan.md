@@ -2,18 +2,21 @@
 
 ## Current status and next deployment milestone
 
-The numbered stages below describe the original sequencing, not live process
-status. Since then, a selected-shell trial and versioned user deployment have
-been implemented; the latest recorded deployment is release `.23` (see
-[user installation](user-installation.md)). Theme/background application and
-WebP picker decoding required separate hyprpaper and Qt image-plugin package
-installs, now recorded in [dependencies](dependencies.md).
+See [current project status](project-status.md) for the owner's accepted everyday
+and VM tests, the remaining original-shell feature differences and unchanged
+safety gates. The numbered stages below describe the original sequencing, not
+live process status. Versioned user deployment and subsequent releases are
+implemented; plan 132 records the latest local Window Controls deployment.
+Theme/background application and WebP picker decoding required separate
+hyprpaper and Qt image-plugin package installs, recorded in
+[dependencies](dependencies.md).
 
 A [guided local-bundle installer](guided-installer.md) now implements
 feature-oriented preflight, separate runtime/build dependencies, reviewed APT
 transactions and reuse of the existing release installer. Configuration and
-keybinding integration, wallpaper process management and clean-target acceptance
-remain pending. The CLI is not approval to change a desktop or a universal
+keybinding integration and wallpaper management evolved through later plans;
+the owner now reports VM installation/deployment acceptance. Historical gaps
+below must be read with the current status, not treated as a live checklist. The CLI is not approval to change a desktop or a universal
 fresh-desktop provisioner. Autostart, supervision and authentication/recovery
 remain separate gates.
 

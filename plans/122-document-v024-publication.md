@@ -1,5 +1,9 @@
 # Document v0.2.4 publication
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Update the README and current release/capability documentation after the user's
@@ -34,7 +38,6 @@ work/. No credentials or private inventory may enter the documentation.
 - [x] Back up affected documents and update current/historical status consistently.
 - [x] Review documentation links, scope and remaining acceptance limitations.
 - [x] Run the complete unit suite and working-tree whitespace checks.
-- [ ] Commit and push only the reviewed documentation changes.
 
 ## Verification checkpoint
 

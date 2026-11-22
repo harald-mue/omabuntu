@@ -33,6 +33,7 @@ QtObject {
     readonly property int displayLarge: 32
     readonly property int heading: 18
     readonly property int icon: 14
+    readonly property int iconLarge: 18
   }
   readonly property QtObject spacing: QtObject {
     readonly property int popupPadding: 14

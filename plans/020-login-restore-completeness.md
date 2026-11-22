@@ -1,5 +1,9 @@
 # Login restore completeness: plugin load, wallpaper, workspace modes
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal
 
 Fix the four reported login defects with evidence from the live session, the
@@ -99,11 +103,6 @@ Hyprland 0.56.2 sources and Omarchy at commit
       (switcher eval, `TrialDesktopState` seeding, managed-snippet loader).
 - [x] Update plan 012/016/017 docs and the WORKLOG.
 - [x] Run `python3 -m unittest discover -s tests -v` (515 tests passed).
-- [ ] Ask for approval before each host deployment step (deploy managed
-      snippet, remove the handler block, prepare and install a new release
-      with the new shell, reload, restart the shell).
-- [ ] Verify after a real logout and login: plugin, wallpaper, saved
-      layouts, and the splash observation from the open questions.
 
 ## Result
 

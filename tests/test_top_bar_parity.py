@@ -161,8 +161,8 @@ class FrameLookTests(unittest.TestCase):
     def test_bar_off_parks_without_exclusion(self):
         text = read("config/shell/preview/TrialPanel.qml")
         self.assertIn("toggles/bar-off", text)
-        self.assertIn("bars.barHidden ? -26 : 0", text)
-        self.assertIn("bars.barHidden ? ExclusionMode.Ignore : ExclusionMode.Auto", text)
+        self.assertIn("bars.barHidden ? -barPanel.implicitHeight : 0", text)
+        self.assertIn("bars.barHidden ? ExclusionMode.Ignore : ExclusionMode.Normal", text)
 
     def test_bar_json_state_schema_is_watched(self):
         text = read("config/shell/preview/TrialPanel.qml")

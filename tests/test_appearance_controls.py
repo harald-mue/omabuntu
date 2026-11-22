@@ -55,7 +55,7 @@ class AppearanceTests(unittest.TestCase):
 
     def test_original_menu_choices_use_only_closed_registry(self):
         rows = [entry for entry in self.items.values() if entry['action'].startswith('omabuntu-appearance:')]
-        self.assertEqual(len(rows), 23)
+        self.assertEqual(len(rows), 28)
         self.assertTrue(all(row['action'] in backend.ACTIONS for row in rows))
         self.assertNotIn('appearance.top-bar.position', self.items)
         for missing in ('appearance.unlock', 'appearance.windows', 'appearance.branding'):

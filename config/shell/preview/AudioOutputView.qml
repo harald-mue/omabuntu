@@ -1,7 +1,7 @@
 // Derived from Omarchy audio/Panel.qml; upstream MIT notice is in LICENSE.
-// Original hero, output and input layout/cursor controls; Ubuntu backend and
-// focus are separate. Streams, helpers, IPC, OSD and untyped (virtual) sources
-// are not admitted.
+// Original hero, output/input and playback-stream layout/cursor controls.
+// Ubuntu backend and focus are separate. MPRIS labels/active marks are read-only.
+// Helpers, IPC, OSD, transport and untyped capture sources are not admitted.
 import QtQuick
 import QtQuick.Controls
 import qs.Ui
@@ -49,9 +49,11 @@ AudioPanelController {
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
-        // 'm' mutes whatever the cursor is on: the focused section's slider.
+        // 'm' operates on the current section or that individual stream only.
         if ((t === "m" || t === "M") && root.cursorActive) {
-          if (root.focusSection === "input") root.toggleInputMute()
+          if (root.focusSection === "streams") {
+            if (root.selectedIndex >= 0) root.toggleStreamMute(root.displayAudioStreams[root.selectedIndex])
+          } else if (root.focusSection === "input") root.toggleInputMute()
           else root.toggleOutputMute()
         }
       }
@@ -175,7 +177,7 @@ AudioPanelController {
               Text {
                 id: outputPercent
                 textFormat: Text.PlainText
-                text: Commons.I18n.formatNumber(Math.round((outputSlider.dragging ? outputSlider.liveValue : root.outputVolume) * 100)) + "%"
+                text: root.outputControlAvailable ? Commons.I18n.formatNumber(Math.round((outputSlider.dragging ? outputSlider.liveValue : root.outputVolume) * 100)) + "%" : "—"
                 color: Qt.darker(root.bar.foreground, 1.4)
                 font.family: root.bar.fontFamily
                 font.pixelSize: Style.font.caption
@@ -207,7 +209,7 @@ AudioPanelController {
                 step: 0.05
                 value: root.outputVolume
                 opacity: root.outputMuted ? 0.5 : 1.0
-                enabled: !!root.sink
+                enabled: root.outputControlAvailable
 
                 onDraggingChanged: root.dragTarget = dragging ? root.current : null
                 onMoved: function(v) { root.setOutputVolume(v) }
@@ -305,7 +307,7 @@ AudioPanelController {
                   step: 0.05
                   value: root.inputVolume
                   opacity: root.inputMuted ? 0.5 : 1.0
-                  enabled: !!root.source
+                  enabled: root.inputControlAvailable
 
                   onDraggingChanged: root.dragSourceTarget = dragging ? root.source : null
                   onMoved: function(v) { root.setInputVolume(v) }
@@ -350,6 +352,35 @@ AudioPanelController {
             }
           }
 
+          // ---- Per-app streams ----
+          PanelSeparator {
+            visible: root.displayAudioStreams.length > 0
+            foreground: root.bar.foreground
+          }
+
+          Column {
+            width: parent.width
+            spacing: Style.space(10)
+            visible: root.displayAudioStreams.length > 0
+
+            PanelSectionHeader {
+              text: Commons.I18n.t("audio.sources")
+              foreground: root.bar.foreground
+              fontFamily: root.bar.fontFamily
+            }
+
+            Repeater {
+              model: root.displayAudioStreams
+
+              StreamRow {
+                required property var modelData
+                required property int index
+                width: panelColumn.width
+                node: root.nodeFor(modelData)
+                rowIndex: index
+              }
+            }
+          }
           Text {
             visible: root.errorText !== ""
             width: parent.width
@@ -486,4 +517,115 @@ AudioPanelController {
     }
   }
 
-}
+  // Per-app stream row — cursor target inside the "streams" section.
+  // The stream has its own slider inline, so h/l from the keyboard
+  // adjusts THIS stream's volume (not the global output) when the cursor
+  // sits on this row. Enter/Space mutes the stream.
+  component StreamRow: CursorSurface {
+    id: streamRow
+    required property var node
+    required property int rowIndex
+    property var dragKey: null
+
+    readonly property real streamVolume: node ? node.volume : 0
+    readonly property bool streamMuted: node ? node.muted : false
+    readonly property bool isActive: !!node && node.active
+
+    hasCursor: root.cursorActive && root.focusSection === "streams" && root.selectedIndex === rowIndex
+    onHasCursorChanged: if (hasCursor) root.ensureCursorVisible(streamRow)
+    current: isActive
+    foreground: root.bar.foreground
+    fill: root.hoverFill
+    currentFill: root.selectedFill
+    implicitHeight: streamColumn.implicitHeight + Style.spacing.xl
+
+    Column {
+      id: streamColumn
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.leftMargin: Style.space(6)
+      anchors.rightMargin: Style.space(6)
+      spacing: Style.space(2)
+
+      Row {
+        width: parent.width
+        spacing: Style.space(8)
+
+        Text {
+          id: streamMuteIcon
+          textFormat: Text.PlainText
+          text: streamRow.streamMuted ? "󰝟" : "󰕾"
+          color: root.bar.foreground
+          font.family: root.bar.fontFamily
+          font.pixelSize: Style.font.title
+          width: Style.space(22)
+          horizontalAlignment: Text.AlignHCenter
+          anchors.verticalCenter: parent.verticalCenter
+          opacity: streamRow.streamMuted ? 0.5 : 1.0
+
+          MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+              root.toggleStreamMute(streamRow.node)
+            }
+          }
+        }
+
+        Text {
+          textFormat: Text.PlainText
+          text: root.streamLabel(streamRow.node)
+          color: root.bar.foreground
+          font.family: root.bar.fontFamily
+          font.pixelSize: Style.font.body
+          font.bold: streamRow.isActive
+          elide: Text.ElideRight
+          width: parent.width - streamMuteIcon.width - streamPct.width - Style.space(16)
+          anchors.verticalCenter: parent.verticalCenter
+        }
+
+        Text {
+          id: streamPct
+          textFormat: Text.PlainText
+          text: Commons.I18n.formatNumber(Math.round(streamRow.streamVolume * 100)) + "%"
+          color: Qt.darker(root.bar.foreground, 1.5)
+          font.family: root.bar.fontFamily
+          font.pixelSize: Style.font.caption
+          font.bold: true
+          width: Style.space(36)
+          horizontalAlignment: Text.AlignRight
+          anchors.verticalCenter: parent.verticalCenter
+          opacity: streamRow.streamMuted ? 0.5 : 1.0
+        }
+      }
+
+      PanelSlider {
+        bar: root.bar
+        width: parent.width
+        minimum: 0
+        maximum: 1.5
+        step: 0.05
+        value: streamRow.streamVolume
+        opacity: streamRow.streamMuted ? 0.5 : 1.0
+
+        onDraggingChanged: streamRow.dragKey = dragging ? streamRow.node : null
+        onMoved: function(v) {
+          root.setStreamVolume(dragging ? streamRow.dragKey : streamRow.node, v)
+        }
+        onRightClicked: root.toggleStreamMute(streamRow.node)
+      }
+    }
+
+    MouseArea {
+      anchors.fill: parent
+      hoverEnabled: true
+      acceptedButtons: Qt.NoButton
+      propagateComposedEvents: true
+      onContainsMouseChanged: if (containsMouse) {
+        root.cursorActive = true
+        root.focusSection = "streams"
+        root.selectedIndex = streamRow.rowIndex
+      }
+    }
+  }}

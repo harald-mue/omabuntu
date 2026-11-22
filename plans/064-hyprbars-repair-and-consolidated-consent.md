@@ -1,5 +1,9 @@
 # Hyprbars repair and consolidated consent
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Add a discoverable repair path inside the normal install.sh published workflow
@@ -49,7 +53,6 @@ separate approvals. Authentication and external APT/hyprpm prompts stay intact.
 - [x] Integrate repair discovery and remove duplicate public workflow questions.
 - [x] Add drift/failure/foreign-state and prompt-boundary regressions.
 - [x] Update documentation and run full tests/clean-source/whitespace checks.
-- [ ] Present source results and request separate live-repair/Git approvals.
 
 ## Result
 

@@ -1,5 +1,9 @@
 # Controlled Chrome restart for process-local window-control acceptance
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 > **Closed after plan 085 rollback:** the controlled browser test failed; no
 > module integration was deployed, and the earlier browser exception is removed.
 
@@ -40,7 +44,6 @@ Keep previous module/variant-1 state available until visual acceptance.
 - [x] Verify and record exact Chrome/window/module prestate privately.
 - [x] Close the verified Chrome process and relaunch with the scoped module.
 - [x] Verify fresh process, module loading, workspace and unchanged GNOME state.
-- [ ] Record result and request user visual acceptance before further deployment.
 
 ## Result: browser-specific blocker, no further deployment
 

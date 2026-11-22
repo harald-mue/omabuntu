@@ -1,5 +1,9 @@
 # Implement Update > Omabuntu with a packaged application-only runner
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Implement the first proposal in plan 098: original Update root placement/icon
@@ -43,7 +47,6 @@ Local releases are reported but never automatically replaced by public latest.
 - [x] Deploy after explicit approval and verify startup, menu and unchanged state.
 - [x] Obtain user confirmation of native terminal invocation and pre-network cancellation.
 - [x] Verify signed online metadata and local-derivative refusal after separate approval.
-- [ ] Obtain separately approved real update-switch acceptance.
 
 ## Repository result and verification
 

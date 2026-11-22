@@ -11,6 +11,8 @@ Item {
   implicitWidth: tray.implicitWidth
   implicitHeight: 26
   property var appearanceSettings: null
+  property var barOverride: null
+  property string fixedEdge: "end"
   property var fixturePreferences: ({ pinned: [], hidden: [] })
   readonly property var preferences: appearanceSettings ? appearanceSettings.bar.tray_settings : fixturePreferences
   // Null in isolated fixtures. The trial bar sets this so the clock, which
@@ -102,9 +104,9 @@ Item {
   Port.Tray {
     id: tray
     anchors.fill: parent
-    bar: owner
+    bar: root.barOverride || owner
     settings: root.preferences
-    fixedEdge: "end"
+    fixedEdge: root.fixedEdge
   }
 
   BarTooltipHost {

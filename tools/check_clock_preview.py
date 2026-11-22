@@ -16,9 +16,11 @@ import zlib
 
 import audit_widgets
 import audio_frontend
+import media_frontend
 import check_runtime
 import tooltip_port
 import bar_frame
+import indicator_frontend
 import network_frontend
 import workspace_modes
 import monitor_workspaces
@@ -45,10 +47,20 @@ UPSTREAM = {
     "Port/TrayModel.js": "shell/plugins/bar/widgets/TrayModel.js",
     "Port/NetworkModel.js": "shell/plugins/panels/network/Model.js",
     "Port/AudioModel.js": "shell/plugins/panels/audio/Model.js",
+    "Port/MediaModel.js": "shell/plugins/services/media/MediaModel.js",
+    "Commons/MediaSelection.qml": "shell/plugins/services/media/Service.qml",
+    "MediaControlView.qml": "shell/plugins/services/media/BarWidget.qml",
+    "Port/BarModel.js": "shell/plugins/bar/BarModel.js",
     "Ui/PanelSlider.qml": "shell/Ui/PanelSlider.qml",
     "AudioOutputView.qml": "shell/plugins/panels/audio/Panel.qml",
     "BarTooltip.qml": "shell/plugins/bar/Bar.qml",
     "BarFrame.qml": "shell/plugins/bar/Bar.qml",
+    "BarFullscreenState.qml": "shell/plugins/bar/Bar.qml",
+    "BarPeekState.qml": "shell/plugins/bar/Bar.qml",
+    "IndicatorsView.qml": "shell/plugins/bar/widgets/Indicators.qml",
+    "DndIndicator.qml": "shell/plugins/bar/indicators/Dnd.qml",
+    "NightLightIndicator.qml": "shell/plugins/bar/indicators/NightLight.qml",
+    "Ui/BarIndicator.qml": "shell/Ui/BarIndicator.qml",
     "BarTooltipHost.qml": "shell/plugins/bar/Bar.qml",
     "Ui/KeyboardPanel.qml": "shell/Ui/KeyboardPanel.qml",
     "Ui/PanelKeyCatcher.qml": "shell/Ui/PanelKeyCatcher.qml",
@@ -146,7 +158,11 @@ AUTHORED = {name: "config/shell/preview/" + source for name, source in (
     ("NetworkPresentation.js", "NetworkPresentation.js"),
     ("NetworkStatusProvider.qml", "NetworkStatusProvider.qml"),
     ("NetworkStatusView.qml", "NetworkStatusView.qml"),
-    ("AudioActions.js", "AudioActions.js"), ("AudioPresentation.js", "AudioPresentation.js"),
+    ("AudioActions.js", "AudioActions.js"),
+    ("AudioRouting.js", "AudioRouting.js"), ("AudioInput.js", "AudioInput.js"),
+    ("AudioPresentation.js", "AudioPresentation.js"),
+    ("MediaPresentation.js", "MediaPresentation.js"),
+    ("MediaIdentity.js", "MediaIdentity.js"),
     ("AudioOutputProvider.qml", "AudioOutputProvider.qml"), ("AudioPanelController.qml", "AudioPanelController.qml"),
     ("NetworkPanelController.qml", "NetworkPanelController.qml"))}
 for name in ("DesktopPanelController", "BluetoothActions", "DisplayPanelController", "PowerPanelController", "FloatingDock"):
@@ -159,6 +175,7 @@ AUTHORED["WifiQrController.qml"] = "config/shell/preview/WifiQrController.qml"
 AUTHORED["NetworkSpeedController.qml"] = "config/shell/preview/NetworkSpeedController.qml"
 AUTHORED["DockState.qml"] = "config/shell/preview/DockState.qml"
 AUTHORED["AppearanceState.qml"] = "config/shell/preview/AppearanceState.qml"
+AUTHORED["IndicatorState.qml"] = "config/shell/preview/IndicatorState.qml"
 AUTHORED["CommandMenu.qml"] = "config/shell/preview/CommandMenu.qml"
 AUTHORED["LaunchFeedback.qml"] = "config/shell/preview/LaunchFeedback.qml"
 AUTHORED["ImagePicker.qml"] = "config/shell/preview/ImagePicker.qml"
@@ -171,13 +188,14 @@ MAPS = {"Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.
         "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\n"}
 MAPS["Ui/qmldir"] += "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "PopupCard", "BarIconButton", "BarIconContent", "IconContentBounds", "Button", "BorderSurface", "BorderOverlay", "PanelSlider", "KeyboardPanel", "PanelKeyCatcher",
-    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField", "Panel", "PanelController", "OverlayWindow", "SpeedTestOverlay"))
+    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField", "Panel", "PanelController", "OverlayWindow", "SpeedTestOverlay", "BarIndicator"))
 MAPS["Elsewhen/qmldir"] = "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "ArcText", "Avatar", "CityMatches", "CityRow", "CitySearch", "DaylightStrip",
     "ElsewhenPanel", "Globe", "GlobeFooter", "HeroTitle", "MiniGlobe", "MoonDot"))
 
 MAPS["Weather/qmldir"] = "WeatherPanel 1.0 WeatherPanel.qml\nWeatherWidget 1.0 WeatherWidget.qml\n"
 MAPS["Commons/qmldir"] += "singleton ElsewhenSettings 1.0 ElsewhenSettings.qml\n"
+MAPS["Commons/qmldir"] += "singleton MediaSelection 1.0 MediaSelection.qml\n"
 MAPS["Commons/qmldir"] += "singleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\n"
 MAPS["Commons/qmldir"] += "singleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n"
 MAPS["Port/qmldir"] = "Tray 1.0 Tray.qml\n"
@@ -238,11 +256,19 @@ def verified_sources(root):
     for target, source_path in UPSTREAM.items():
         record = meta["upstream"][target]
         vendor = "vendor/omarchy/" + source_path
-        transform = {"ClockLabel.qml": "readonly-clock-v1", "AudioOutputView.qml": "audio-output-frontend-v1",
+        transform = {"ClockLabel.qml": "readonly-clock-v1", "AudioOutputView.qml": "audio-native-input-frontend-v5",
+                     "Commons/MediaSelection.qml": "guarded-media-owner-v2",
+                     "MediaControlView.qml": "original-media-widget-v1",
                      "CalendarPanel.qml": "clock-calendar-v2", "ClockControlView.qml": "clock-calendar-host-v2",
                      "Ui/KeyboardPanel.qml": "ondemand-keyboard-panel-v1",
                      "BarTooltip.qml": "bar-tooltip-window-v1", "BarTooltipHost.qml": "bar-tooltip-host-v1",
-                     "BarFrame.qml": "fixed-horizontal-sections-v1",
+                     "BarFrame.qml": "original-horizontal-peek-v5",
+                     "BarFullscreenState.qml": "bar-fullscreen-input-v1",
+                     "BarPeekState.qml": "bar-peek-owner-v1",
+                     "IndicatorsView.qml": "original-indicators-ui-v2",
+                     "DndIndicator.qml": "native-dnd-indicator-v2",
+                     "NightLightIndicator.qml": "native-nightlight-indicator-v2",
+                     "Ui/BarIndicator.qml": "original-indicator-ui-v1",
                      "NetworkControlView.qml": "network-control-frontend-v2",
                      "WorkspaceSwitcher.qml": "workspace-switcher-v1",
                      "MonitorWorkspaces.qml": "monitor-workspaces-v1"}.get(target, "none")
@@ -265,10 +291,18 @@ def verified_sources(root):
         if (record.get("bytes") != len(data) or record.get("sha256") != hashlib.sha256(data).hexdigest()
                 or record.get("git_blob_sha1") != blob):
             raise builder.BuildError("Upstream clock-preview source changed")
-        transforms = {"readonly-clock-v1": derive_clock, "audio-output-frontend-v1": audio_frontend.derive_audio,
+        transforms = {"readonly-clock-v1": derive_clock, "audio-native-input-frontend-v5": audio_frontend.derive_audio,
+                      "guarded-media-owner-v2": media_frontend.derive_selection,
+                      "original-media-widget-v1": media_frontend.derive_widget,
                       "ondemand-keyboard-panel-v1": audio_frontend.derive_keyboard,
                       "bar-tooltip-window-v1": tooltip_port.derive_window, "bar-tooltip-host-v1": tooltip_port.derive_host,
-                      "fixed-horizontal-sections-v1": bar_frame.derive_frame,
+                      "original-horizontal-peek-v5": bar_frame.derive_frame,
+                      "bar-fullscreen-input-v1": bar_frame.derive_fullscreen,
+                      "bar-peek-owner-v1": bar_frame.derive_peek,
+                      "original-indicators-ui-v2": indicator_frontend.derive_indicators,
+                      "native-dnd-indicator-v2": indicator_frontend.derive_dnd,
+                      "native-nightlight-indicator-v2": indicator_frontend.derive_nightlight,
+                      "original-indicator-ui-v1": indicator_frontend.derive_indicator,
                       "network-control-frontend-v2": network_frontend.derive_network,
                       "workspace-switcher-v1": workspace_modes.derive_workspaces,
                       "monitor-workspaces-v1": monitor_workspaces.derive_widget,
@@ -283,8 +317,13 @@ def verified_sources(root):
             raise builder.BuildError("Generated network destination mirror differs")
         if target in DESKTOP_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
             raise builder.BuildError("Generated desktop frontend mirror differs")
-        if target == "AudioOutputView.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/AudioOutputView.qml", 65536):
-            raise builder.BuildError("Generated audio frontend mirror differs")
+        if target in ("AudioOutputView.qml", "Commons/MediaSelection.qml", "MediaControlView.qml"):
+            mirror = "config/shell/preview/" + target.rsplit("/", 1)[-1]
+            if files[target] != audit_widgets.bounded(root, mirror, 65536):
+                kind = "audio" if target == "AudioOutputView.qml" else "media"
+                raise builder.BuildError("Generated " + kind + " frontend mirror differs")
+        if target in ("DndIndicator.qml", "NightLightIndicator.qml") and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
+            raise builder.BuildError("Generated native indicator frontend mirror differs")
         if target == "NetworkControlView.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/NetworkControlView.qml", 65536):
             raise builder.BuildError("Generated network frontend mirror differs")
         if target == "MonitorWorkspaces.qml" and files[target] != audit_widgets.bounded(root, "config/shell/preview/MonitorWorkspaces.qml", 65536):
@@ -297,7 +336,7 @@ def verified_sources(root):
             raise builder.BuildError("Generated weather mirror differs")
         if target in ELSEWHEN_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 131072):
             raise builder.BuildError("Generated elsewhen mirror differs")
-        if target in ("CalendarPanel.qml", "ClockControlView.qml", "BarFrame.qml") and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
+        if target in ("CalendarPanel.qml", "ClockControlView.qml", "BarFrame.qml", "BarFullscreenState.qml", "BarPeekState.qml", "IndicatorsView.qml") and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 131072 if target == "BarFrame.qml" else 65536):
             raise builder.BuildError("Generated clock/frame mirror differs")
         if hashlib.sha256(files[target]).hexdigest() != record.get("staged_sha256"):
             raise builder.BuildError("Staged clock extraction differs from review")
@@ -312,6 +351,8 @@ def verified_sources(root):
         if hashlib.sha256(data).hexdigest() != pin["license"].get("sha256"):
             raise builder.BuildError("Complete upstream notice differs")
     files["LICENSE"] = data
+    if files["Ui/BarIndicator.qml"] != audit_widgets.bounded(root, "config/shell/preview/BarIndicator.qml", 65536):
+        raise builder.BuildError("Generated indicator frontend mirror differs")
     return files, meta
 
 

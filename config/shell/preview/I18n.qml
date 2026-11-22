@@ -10,7 +10,10 @@ QtObject {
   readonly property bool rightToLeft: false
   function formatNumber(value, decimals) { return decimals === undefined ? String(value) : Number(value).toFixed(decimals); }
   function t(key, fallback) {
-    var labels = {"weather.feels": "FEELS", "weather.humid": "HUMIDITY",
+    var labels = {"bar.allowNotifications": "Allow Notifications",
+                  "bar.silenceNotifications": "Silence Notifications",
+                  "bar.dayLight": "Day Light", "bar.nightLight": "Night Light",
+                  "weather.feels": "FEELS", "weather.humid": "HUMIDITY",
                   "weather.wind": "WIND", "weather.fetching": "Fetching weather…",
                   "weather.searchCity": "Search city", "tray.title": "Tray icons", "tray.help": "Pinned icons stay visible. Hidden icons never show.",
                   "tray.empty": "No tray items reporting.", "tray.unknown": "Unknown",

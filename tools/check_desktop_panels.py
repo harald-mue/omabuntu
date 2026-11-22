@@ -80,9 +80,39 @@ ShellRoot {
             if (view.connectedDevices.length !== 1 || view.scrollRows.length !== 1) throw new Error("Bluetooth groups");
             var device = Bluetooth.defaultAdapter.devices.values[1];
             view.connectDevice(device);
+            if(view.pendingAction(device.address)!=="connecting")throw new Error("Connection is pending until observed");
             view.disconnectDevice(device);
             view.forgetDevice(device);
+            view.syncPendingActions();
             if (device.connects !== 1 || device.disconnects !== 1 || device.forgets !== 1) throw new Error("Native device action routing");
+            if(view.pendingAction(device.address)!=="")throw new Error("Observed forgetting completion");
+            var adapter=Bluetooth.defaultAdapter, original=adapter.devices.values;
+            var candidate={address:"AA:BB:CC:DD:EE:03",dbusPath:"/fixture/device3",name:"Pending device",connected:false,
+              paired:false,bonded:false,trusted:false,blocked:false,pairing:true,pairs:0,connects:0,
+              pair:function(){this.pairs++},connect:function(){this.connects++}};
+            adapter.devices={values:original.concat([candidate])};
+            if(!view.connectDevice(candidate) || candidate.pairs!==1 || candidate.connects!==0)throw new Error("Pair first without claiming connection");
+            if(view.connectDevice(candidate) || candidate.pairs!==1)throw new Error("Duplicate pair rejected");
+            view.syncPendingActions();if(candidate.connects!==0)throw new Error("Never connect before pairing acceptance");
+            candidate.paired=true;candidate.pairing=false;view.syncPendingActions();view.syncPendingActions();
+            if(candidate.connects!==1 || view.pendingAction(candidate.address)!=="connecting")throw new Error("Pair followup issued once, not marked successful");
+            candidate.connected=true;view.syncPendingActions();
+            if(view.pendingAction(candidate.address)!=="")throw new Error("Observed connection clears pending");
+            candidate.connected=false;view.connectDevice(candidate);
+            view.pendingRecords[candidate.address].deadline=0;view.syncPendingActions();
+            if(view.pendingAction(candidate.address)!=="" || view.errorText==="")throw new Error("Deadline reports uncertainty");
+            view.connectDevice(candidate);var before=candidate.connects;
+            adapter.devices={values:original};view.syncPendingActions();
+            if(view.pendingAction(candidate.address)!=="" || candidate.connects!==before)throw new Error("Removed device is never replayed");
+            if(view.connectDevice(candidate))throw new Error("Stale object rejected");
+            adapter.devices={values:original.concat([candidate])};view.connectDevice(candidate);
+            adapter.dbusPath="/fixture/replacement";view.syncPendingActions();
+            if(view.pendingAction(candidate.address)!=="")throw new Error("Adapter ownership loss clears pending");
+            adapter.dbusPath="/fixture/adapter";
+            candidate.connect=function(){throw new Error("Fixture invocation failure");};
+            if(view.connectDevice(candidate) || view.pendingAction(candidate.address)!=="" || view.errorText==="")throw new Error("Invocation failure is not completion");
+            adapter.devices={values:original};
+            console.log("OMABUNTU_BLUETOOTH_ACTION_OWNERSHIP_OK");
             view.toggle();
             if (!Bluetooth.defaultAdapter.discovering) throw new Error("Discovery start");
             view.close();
@@ -401,11 +431,13 @@ import QtQml
 QtObject {
   property QtObject defaultAdapter: QtObject {
     property bool enabled: true
+    property string dbusPath: "/fixture/adapter"
     property bool discovering: false
     property var devices: ({values:[
-      {address:"AA:BB:CC:DD:EE:01", name:"Speaker", connected:true, paired:true, batteryAvailable:true, battery:0.8},
-      {address:"AA:BB:CC:DD:EE:02", name:"Headset", connected:false, paired:true, connects:0, disconnects:0, forgets:0,
-       connect:function(){this.connects++}, disconnect:function(){this.disconnects++}, forget:function(){this.forgets++}}
+      {address:"AA:BB:CC:DD:EE:01", dbusPath:"/fixture/device1", name:"Speaker", connected:true, paired:true, batteryAvailable:true, battery:0.8},
+      {address:"AA:BB:CC:DD:EE:02", dbusPath:"/fixture/device2", name:"Headset", connected:false, paired:true, bonded:false, trusted:false, connects:0, disconnects:0, forgets:0,
+       connect:function(){this.connects++;this.connected=true}, disconnect:function(){this.disconnects++;this.connected=false},
+       forget:function(){this.forgets++;this.paired=false;this.bonded=false;this.trusted=false}}
     ]})
   }
 }

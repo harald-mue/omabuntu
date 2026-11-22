@@ -15,6 +15,7 @@ import stat
 import tempfile
 
 import dock_state
+import bar_layout
 
 CLOCKS = {
     'sunday-24h': 'dddd HH:mm', 'sunday-12h': 'dddd h:mm AP',
@@ -27,12 +28,14 @@ DEFAULTS = {'schema_version': 1, 'background': 'opaque', 'hidden': False,
             'clock_format': 'dddd HH:mm', 'battery_percentage': False}
 CHOICES = {'hidden': ('on', 'off'), 'background': ('opaque', 'glassy', 'none'),
            'clock': tuple(CLOCKS), 'battery-percentage': ('on', 'off'),
-           'dock-position': dock_state.POSITIONS, 'dock-autohide': ('on', 'off')}
+           'dock-position': dock_state.POSITIONS, 'dock-autohide': ('on', 'off'),
+           'bar-layout-default': ('restore',), 'bar-media': ('on', 'off'),
+           'bar-indicators': ('on', 'off')}
 ACTIONS = {'omabuntu-appearance:%s:%s' % (key, value): (key, value)
            for key, values in CHOICES.items() for value in values}
 TOKEN = re.compile(r'[0-9]{8}T[0-9]{12}Z-[0-9a-f]{12}\Z')
 MAX_BYTES = 65536
-WIDGET_KEYS = ('clock-settings', 'tray-settings')
+WIDGET_KEYS = ('clock-settings', 'tray-settings', 'bar-layout', 'bar-layout-edit')
 CLOCK_FIELDS = {'weekStartDay', 'birthYear', 'lifeExpectancy', 'formatAlt',
                 'verticalFormat', 'verticalFormatAlt'}
 WEEKDAYS = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')
@@ -45,6 +48,10 @@ def widget_values(key, raw):
     values = json.loads(raw)
     if not isinstance(values, dict):
         raise ValueError('Invalid widget settings')
+    if key == 'bar-layout':
+        return bar_layout.validate(values)
+    if key == 'bar-layout-edit':
+        return bar_layout.validate_edit(values)
     if key == 'clock-settings':
         if set(values) - (CLOCK_FIELDS | {'format'}):
             raise ValueError('Unknown clock setting')
@@ -136,7 +143,8 @@ def session_allowed(environ=None):
 def bar_state():
     root = state_root()
     data = json_file(root / 'current/bar.json')
-    result = dict(DEFAULTS, clock_settings={}, tray_settings={'pinned': [], 'hidden': []})
+    result = dict(DEFAULTS, clock_settings={}, tray_settings={'pinned': [], 'hidden': []},
+                  bar_layout=bar_layout.defaults())
     flag = root / 'toggles/bar-off'
     safe(flag)
     result['hidden'] = flag.is_file()
@@ -149,6 +157,7 @@ def bar_state():
             or type(result['battery_percentage']) is not bool
             or result['clock_format'] not in CLOCKS.values()):
         raise ValueError('Invalid bar preferences')
+    result['bar_layout'] = bar_layout.validate(result['bar_layout'])
     clock = widget_values('clock-settings', json.dumps(result['clock_settings']))
     if 'format' in clock:
         raise ValueError('Clock format must have one authoritative field')
@@ -212,6 +221,8 @@ def guards(items, workspace=None):
                         value = current['bar']['background'] == wanted
                     elif key == 'clock':
                         value = current['bar']['clock_format'] == CLOCKS.get(wanted)
+                    elif key in ('bar-media', 'bar-indicators'):
+                        value = bar_layout.optional_visible(current['bar']['bar_layout'], key) == (wanted == 'on')
                     elif key == 'battery-percentage':
                         value = current['bar']['battery_percentage'] == (wanted == 'on')
                     elif key == 'dock-position':
@@ -261,6 +272,12 @@ def transaction_directory():
     return path
 
 
+def layout_conflict():
+    return {'ok': False, 'status': 'conflict',
+            'message': 'Bar layout changed; edit refused. Retry from the current layout.',
+            'appearance': snapshot()}
+
+
 def change(key, value):
     if not valid_choice(key, value):
         raise ValueError('Unsupported appearance choice')
@@ -268,6 +285,14 @@ def change(key, value):
         raise ValueError('Appearance changes require a Hyprland Wayland session')
     # Validate both preference stores before any write or transaction allocation.
     snapshot()
+    if key == 'bar-layout-edit':
+        edit = widget_values(key, value)
+        if bar_state()['bar_layout'] != edit['expected']:
+            return layout_conflict()
+        if edit['expected'] == edit['layout']:
+            return {'ok': True, 'status': 'unchanged', 'appearance': snapshot()}
+    if key in ('bar-media', 'bar-indicators') and bar_layout.optional_visible(bar_state()['bar_layout'], key) == (value == 'on'):
+        return {'ok': True, 'status': 'unchanged', 'appearance': snapshot()}
     parent = transaction_directory()
     lock = parent / 'operation.lock'
     safe(lock)
@@ -282,9 +307,23 @@ def change(key, value):
         else:
             target = safe(state_root() / 'current/bar.json')
             data = bar_state()
-            if key in WIDGET_KEYS:
+            if key in ('bar-media', 'bar-indicators'):
+                if bar_layout.optional_visible(data['bar_layout'], key) == (value == 'on'):
+                    return {'ok': True, 'status': 'unchanged', 'appearance': snapshot()}
+                data['bar_layout'] = bar_layout.with_optional(data['bar_layout'], key, value == 'on')
+            elif key == 'bar-layout-default':
+                data['bar_layout'] = bar_layout.defaults()
+            elif key in WIDGET_KEYS:
                 patch = widget_values(key, value)
-                if key == 'clock-settings':
+                if key == 'bar-layout-edit':
+                    # Recheck under the cooperating writers' lock; the initial
+                    # read only avoids allocating state for stale/no-op edits.
+                    if data['bar_layout'] != patch['expected']:
+                        return layout_conflict()
+                    data['bar_layout'] = patch['layout']
+                elif key == 'bar-layout':
+                    data['bar_layout'] = patch
+                elif key == 'clock-settings':
                     if 'format' in patch:
                         data['clock_format'] = patch.pop('format')
                     data['clock_settings'] = {**data['clock_settings'], **patch}

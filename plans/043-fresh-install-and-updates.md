@@ -1,5 +1,9 @@
 # Fresh Ubuntu installation, updates, and downloaded artwork
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Provide one shell entry point for installing the currently implemented Omabuntu
@@ -259,7 +263,6 @@ not an installer that can apply the still-incomplete provisioning pipeline.
   additive, pinned guided APT engine; reject incompatible native targets.
 - [x] Decide the shared-library upgrade policy: additions do not require one, and
   installed-package upgrades/removals stay refused, including native packages.
-- [ ] Validate the complete runtime/build package closure on a stock Ubuntu VM.
 - [x] Implement pinned sandbox Omasnap build/probe/notice verification and
   release-local packaging, plus combined exact-path runtime/build/artwork staging.
 - [x] Reuse a compiled stage only when it is the single verified match; never select
@@ -270,7 +273,6 @@ not an installer that can apply the still-incomplete provisioning pipeline.
   retain old outputs and record library hash/post-build binary identity.
 - [x] Integrate isolated pinned plugin/header builds, exact native client-ABI
   checks, inert artifact/descriptor/notice packaging and update pre-switch gates.
-- [ ] Validate native Omasnap/plugin builds and the prepared next-login loader on stock Ubuntu.
 - [x] Implement a generic session module and editable main entry with validated
   keyboard selection, release-helper binds, explicit manual-lock opt-in,
   ownership receipts, backups, drift/live-session refusal and safe failure restore.
@@ -280,7 +282,6 @@ not an installer that can apply the still-incomplete provisioning pipeline.
   next local stage, without packages, service starts, plugin loads or bar restarts.
 - [x] Add a read-only acceptance command that reports stock-install gates and never
   claims a native Hyprland login or installs packages.
-- [ ] Validate native first-login activation and the guided path on stock Ubuntu.
 - [x] Implement original ASCII welcome and shell/Python read-only readiness UI,
   including install/update/rollback previews, check exit status and plain/JSON modes.
 - [x] Implement explicit prepared-bundle review/apply with staging before stop,
@@ -294,18 +295,17 @@ not an installer that can apply the still-incomplete provisioning pipeline.
   and never resumes the new release or starts a bar by default.
 - [x] Implement pinned source acquisition: exact reviewed archives only, private
   cache, no checkout reset, and no claim that a checksum is a publisher signature.
-- [ ] Review and pin any newer upstream source revision before offering it as an update.
 - [x] Implement an explicit schema policy: schema 1 only, no registered migration,
   no state rewrite, and rollback only when both directions are reviewed.
 - [x] Test blocked unfinished journals, asset conflicts, launcher/bundle approval
   checks, preflight/staging failure, control-lock contention and failed-bar rollback.
 - [x] Adopt only an untouched managed Hyprland snippet; refuse every extra user line.
-- [ ] Test actual power-loss recovery, native package updates and VM config merges.
 - [x] Document implemented artwork, release, PPA and package commands, along
   with remaining bootstrap/VM gates and license/network/security boundaries.
 - [x] Run unit tests and clean-source checks after implemented phases; repeat
   after future integration. No live source/package apply has been exercised.
-- [ ] Validate fresh install, repeat install, update and rollback in stock Ubuntu VM.
+- [x] Owner reports VM installation/deployment testing passed (plan 133);
+  the exact image, release and per-scenario matrix were not supplied.
 
 This plan authorizes no live PPA, package, service, desktop or Git changes.
 Actual application, VM creation, service activation, session transitions and

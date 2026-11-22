@@ -1,5 +1,9 @@
 # Explicit 0.56.2 to 0.57.0 application transition
 
+Historical open checklist entries were reconciled in [plan 133](133-acceptance-and-checklist-closeout.md).
+See [current status](../docs/project-status.md) for owner acceptance, feature gaps
+and unchanged approval gates; retired entries are not evidence of execution.
+
 ## Goal and evidence
 
 Finish the application handoff after a separately completed compositor/plugin
@@ -54,7 +58,6 @@ activation migration. No claim of VM, visual or login acceptance from unit tests
 - [x] Test transition, drift/failure, same-target update/rollback and exclusions.
 - [x] Build a fresh artwork-free candidate, run full verification and real read-only review.
 - [x] Request separate real bar-switch approval, then verify only approved operations.
-- [ ] Review changes and request commit/publication consent before v0.1.1 publication.
 
 ## Verification so far
 
