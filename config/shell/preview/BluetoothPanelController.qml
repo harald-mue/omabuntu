@@ -96,10 +96,10 @@ BluetoothActions {
   readonly property var scrollRows: {
     var rows = []
     for (var k = 0; k < knownDevices.length; k++)
-      rows.push({ dev: Model.deviceRow(knownDevices[k]), section: "known", indexInSection: k })
+      rows.push({ dev: root.projectDevice(knownDevices[k]), section: "known", indexInSection: k })
     if (sectionVisible("discovered"))
       for (var d = 0; d < discoveredDevices.length; d++)
-        rows.push({ dev: Model.deviceRow(discoveredDevices[d]), section: "discovered", indexInSection: d })
+        rows.push({ dev: root.projectDevice(discoveredDevices[d]), section: "discovered", indexInSection: d })
     return rows
   }
 
@@ -108,7 +108,7 @@ BluetoothActions {
   readonly property var connectedRows: {
     var rows = []
     for (var i = 0; i < connectedDevices.length; i++)
-      rows.push(Model.deviceRow(connectedDevices[i]))
+      rows.push(root.projectDevice(connectedDevices[i]))
     return rows
   }
 
@@ -116,15 +116,8 @@ BluetoothActions {
   // resolve the backend object here rather than holding a wrapper that can
   // dangle mid-incubation. `devices` is already the raw device array (see the
   // property declaration), so it is iterated directly.
-  function deviceFor(row) {
-    if (!row || !row.dev) return null
-    var addr = row.dev.address || ""
-    var devs = devices || []
-    for (var i = 0; i < devs.length; i++) {
-      if ((devs[i].address || "") === addr) return devs[i]
-    }
-    return null
-  }
+  function deviceFor(row) { return root.resolveRow(row); }
+
 
   // Flat position of the keyboard cursor, or -1 while it sits on the hero or
   // in the connected list (both of which live outside the scroll area).

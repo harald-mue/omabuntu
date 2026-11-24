@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manual, reviewed ALSA profile requests; not installed or exposed through QML.
+"""Reviewed ALSA profile engine and manual CLI; optional source UI uses its API.
 
 Restoration covers the active-profile name only, never complete audio topology.
 No automatic retry, compensation, daemon activation, Bluetooth policy or off action.
@@ -17,6 +17,7 @@ import stat
 
 import appearance_backend as files
 import audio_pactl as pactl
+import audio_recovery
 
 SCOPE = 'user-audio-alsa-profile'
 NOTICE = ('Changes this user\'s shared audio card across concurrent desktops, including GNOME. '
@@ -231,6 +232,7 @@ class Backend:
         if before['card']['active_profile'] == review['profile']:
             return {'status': 'unchanged', 'scope': SCOPE, 'notice': NOTICE}
         with self.store.locked():
+            audio_recovery.Journal(self.store.root.parent).require_resolved()
             history = self.store.history()
             if any(record['status'] in PENDING for _, record, _ in history):
                 raise pactl.AudioError('pending-profile-recovery')
@@ -280,6 +282,7 @@ class Backend:
         pactl.normal_user()
         self.latest(token)  # Do not allocate state for a missing/invalid transaction.
         with self.store.locked():
+            audio_recovery.Journal(self.store.root.parent).require_resolved()
             case, record, before = self.latest(token)
             try:
                 current = self.state(before['card']['name'])

@@ -1,10 +1,20 @@
-# Manual ALSA profile backend (plan 140, source only)
+# Reviewed ALSA profile backend (plan 140; source UI in plan 153)
 
-This is a manual backend, not a new profile panel and not profile parity. It is
-not installed, registered in the command menu, imported by QML or added to the
-user-release payload. Plans 136–140 remain undeployed; Plan 135 is still the last
-verified installation. This request performed no host audio query/change,
-installed-path/PID check, package action, restart or service activation.
+The manual CLI/API and its recovery contract below originated in Plan 140.
+[Plan 153](audio-completion.md) now reuses the engine through a bounded optional
+QML bridge inside the original audio panel, with separate review/Apply, displayed
+card/native-owner proof and recovery rows. Plan 154's local deployment includes
+these modules. Profile writes/restores also check unresolved control receipts under the
+shared profile-operation lock; uncertain controls cannot be bypassed via this
+manual CLI. No replacement profile panel or Bluetooth profile policy is added.
+
+The latest installed release is Plan 154; the optional profile backend/UI is
+installed but remains disconnected until explicit UI consent. Deployment did not
+invoke profile queries or changes. The no-QML/no-payload statements in the
+historical Plan 140 discussion below describe that checkpoint, not the current
+installation. The implementation requests were source-only; Plan 154 separately
+authorized the local deployment and managed-bar-only restart without packages,
+service activation, wallpaper restoration or native audio setters.
 
 ## Why a separate backend
 
@@ -92,7 +102,8 @@ normalized current state, a target profile, explicit shared-user scope/interrupt
 notice and a canonical SHA-256 approval digest. It does not mirror service state
 into a startup preference. Review/inspect do not create transaction storage;
 unchanged apply creates no state either. History only reads existing receipts and
-never connects to audio. QML and the running original shell are unchanged.
+never connects to audio. Plan 153 adds the optional source UI described above;
+the running installed shell remains unchanged by that source request.
 
 Apply requires `--apply-user-audio`, a private bounded review file, its exact
 `--approve-digest`, and the separate connection-risk consent. A successful review

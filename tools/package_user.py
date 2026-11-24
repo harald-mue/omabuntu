@@ -147,7 +147,7 @@ def managed_snippet(data, *, manager):
     return data
 
 
-def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None):
+def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None, bluetooth_build=None):
     if not isinstance(version, str) or not user_install.VERSION.fullmatch(version):
         raise ValueError('Invalid release version')
     monitor_policy = monitor_workspaces.verify(ROOT)
@@ -173,10 +173,11 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
             path.chmod(0o444)
-        for name in ('network_nm.py', 'display_backend.py', 'qrcodegen.py', 'dock_state.py',
+        for name in ('network_nm.py', 'display_backend.py', 'display_profiles.py', 'display_profile_model.py', 'qrcodegen.py', 'dock_state.py',
                      'keybindings_menu.py', 'menu_model.py', 'menu_common.py', 'appearance_backend.py', 'menu_update.py',
                      'native_compatibility.py', 'window_controls.py', 'bar_layout.py',
-                     'indicator_native.py', 'indicator_state.py',
+                     'indicator_native.py', 'indicator_state.py', 'audio_pactl.py', 'audio_profiles.py',
+                     'audio_controls.py', 'audio_events.py', 'audio_artwork.py', 'audio_recovery.py',
                      'theme_backend.py', 'font_backend.py', 'background_backend.py',
                      'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py', 'elsewhen_settings.py',
                      'capture_screenshot.py', 'weather_probe.py', 'omabuntu_hyprland_window_minimize.py', 'plugin_login.py'):
@@ -184,6 +185,14 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
             target.parent.mkdir(exist_ok=True)
             target.write_bytes((ROOT / 'tools' / name).read_bytes())
             target.chmod(0o444)
+        bluetooth = None
+        if bluetooth_build is not None:
+            import build_bluetooth_agent
+            verified = build_bluetooth_agent.verify(bluetooth_build)
+            target = temporary / 'helpers/bluetooth-agent'
+            shutil.copyfile(bluetooth_build, target)
+            target.chmod(0o555)
+            bluetooth = {key: verified[key] for key in ('source_sha256', 'binary_sha256', 'qt')}
         menu_data = ((temporary / 'shell/omabuntu-menu.jsonc', ROOT / 'config/shell/omabuntu-menu.jsonc'),
                      (temporary / 'menu/themes.json', ROOT / 'config/menu/themes.json'))
         for target, source in menu_data:
@@ -255,6 +264,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
             'bootstrap_input_sha256': build_inputs,
             'omasnap_source': screenshot[2]['source_pin'] if screenshot else None,
             'desktop_font': font_pin,
+            'owned_bluetooth_agent': bluetooth,
             'hyprbars_source': plugin['source_pin'] if plugin else None,
             'hyprbars_native_target': plugin['native_target'] if plugin else None,
         }, indent=2) + '\n')
@@ -279,9 +289,10 @@ def main(argv=None):
     parser.add_argument('--version', required=True)
     parser.add_argument('--build-dir', type=Path, required=True,
                         help="Explicit verified directory under this project's work/builds")
+    parser.add_argument('--bluetooth-build', type=Path, help='Explicit verified production QtDBus helper build; no implicit compilation/install')
     args = parser.parse_args(argv)
     os.umask(0o077)
-    prepare(args.version, args.build_dir)
+    prepare(args.version, args.build_dir, bluetooth_build=args.bluetooth_build)
 
 
 if __name__ == '__main__':

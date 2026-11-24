@@ -95,5 +95,13 @@ remains retained; no duplicate process was started or foreign process adopted.
 
 No package/source/target-service, privilege, GNOME/compositor/binding/autostart,
 security/management/corporate-agent, wallpaper, login/session-transition, native
-setter, commit or publication change occurred. Owner verification of actual
-fixed-target interaction and tooltip rendering remains pending.
+setter, commit or publication change occurred.
+
+## Subsequent owner acceptance
+
+The owner explicitly accepted the installed Plan 152 DND/nightlight buttons and
+tooltips, reporting that they work as intended. The fixed-target interaction and
+tooltip-rendering acceptance item is therefore closed. This is owner-reported
+live functional acceptance, not new automated evidence or broader colour,
+security, recovery or unsupported-provider acceptance. Recording this report
+makes no desktop change and does not approve deployment of Plan 153.

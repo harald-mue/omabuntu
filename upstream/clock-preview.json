@@ -209,8 +209,8 @@
       "git_blob_sha1": "e3ae77181fde99723e222a80fad928c9c7c5ef73",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "audio-native-input-frontend-v5",
-      "staged_sha256": "8e4a210967567970cb9f4c0959851a37ba8ccd7116fd420901b7d1e6d8fb8429"
+      "stage_transform": "audio-native-input-frontend-v8",
+      "staged_sha256": "df8adc89830477d21aedafe1c007e5052b6a2b51676e4d6a26d9d485efb55de0"
     },
     "BarTooltip.qml": {
       "path": "shell/plugins/bar/Bar.qml",
@@ -545,8 +545,8 @@
       "git_blob_sha1": "5e9a2ce7bcc5e8e87ffad063a2474228829a3eea",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "bluetooth-surface-v1",
-      "staged_sha256": "fa0be8503706d7423a1afcc00f07418e5429703ccef4ff0ce564ae845fcd99d8"
+      "stage_transform": "bluetooth-agent-surface-v2",
+      "staged_sha256": "356e8c99d9ac18a3afb25da88b8abf1582d20121849de49c01d99941492f0cf0"
     },
     "BluetoothPanelController.qml": {
       "path": "shell/plugins/panels/bluetooth/Panel.qml",
@@ -557,8 +557,8 @@
       "git_blob_sha1": "5e9a2ce7bcc5e8e87ffad063a2474228829a3eea",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "bluetooth-cursor-v1",
-      "staged_sha256": "73a969b76f1c1a22e0c79bd37533c949e9f5d6237f8618c7cdc3f3835ba4dbaa"
+      "stage_transform": "bluetooth-owned-cursor-v2",
+      "staged_sha256": "e296abebc95a237f742ba293e32646fa8b0869cc4f9eba4cf50fbfbb7843b51c"
     },
     "DisplayControlView.qml": {
       "path": "shell/plugins/panels/monitor/Panel.qml",
@@ -569,8 +569,8 @@
       "git_blob_sha1": "a26fbd5b0f889da77cef9b08a15db792e4eda523",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "display-surface-v1",
-      "staged_sha256": "26fca27804ca1742286bfba280bc0795f6611d8388c1e0808674f54fa629dd97"
+      "stage_transform": "display-profiles-surface-v2",
+      "staged_sha256": "53e92ad461b0cb262974fa73925696c175ea95e7d17882982abc9adb5d287499"
     },
     "PowerControlView.qml": {
       "path": "shell/plugins/panels/power/Panel.qml",
@@ -1037,8 +1037,8 @@
       "git_blob_sha1": "b4c9a7d38690628eb47a9b5856a6ab23ce350a21",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "original-media-widget-v1",
-      "staged_sha256": "20d4f16858e313b6e1182500ed4595341bcb4ca376c888cff110d6e462fdbaf7"
+      "stage_transform": "original-media-widget-v2",
+      "staged_sha256": "5131c9e8f3ebe314a385718de4f35d3fe7c9f6f46f1967810d996b397b6aa164"
     },
     "Commons/MediaSelection.qml": {
       "path": "shell/plugins/services/media/Service.qml",
@@ -1049,8 +1049,8 @@
       "git_blob_sha1": "86c5cca36474527fb68a644a39296988434fb653",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "guarded-media-owner-v2",
-      "staged_sha256": "5ae512b99b8b40bed857ae841cdf1a47f836b89edb8bd91713fa5cfa27477c1f"
+      "stage_transform": "guarded-media-owner-v3",
+      "staged_sha256": "a476edbf854d9b21efc8ed4369f53331aa7f672f9c62a4383ebbe0f36e15df6d"
     },
     "BarFullscreenState.qml": {
       "path": "shell/plugins/bar/Bar.qml",
@@ -1099,6 +1099,42 @@
       "source_modifications": [],
       "stage_transform": "original-indicator-ui-v1",
       "staged_sha256": "6dfa7767448baf5c99940801426063309d1d99ae28769a1622cf96349f360153"
+    },
+    "AudioOsdView.qml": {
+      "path": "shell/plugins/osd/Osd.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/osd/Osd.qml",
+      "vendor_path": "vendor/omarchy/shell/plugins/osd/Osd.qml",
+      "bytes": 7720,
+      "sha256": "7ae5b2a17a3da502fb51d09a6113e77efbf3216d61d722969d9dd81367afb676",
+      "git_blob_sha1": "c80c2e5c4e403f09f0b7efdaca32ecf812f7e570",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "original-audio-osd-v1",
+      "staged_sha256": "67e34efecc29e3d5ee68a5671c62f390eb22a78b5814c93e2acd08542a7f13d7"
+    },
+    "Port/OsdModel.js": {
+      "path": "shell/plugins/osd/OsdModel.js",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/plugins/osd/OsdModel.js",
+      "vendor_path": "vendor/omarchy/shell/plugins/osd/OsdModel.js",
+      "bytes": 2853,
+      "sha256": "07ef57284ec7af574a5320450a52b231845adfbe2b3ce18d5c0dbabca8f3ed9d",
+      "git_blob_sha1": "80b617a12dbbaccd7109c8ec1d8d670664448919",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "07ef57284ec7af574a5320450a52b231845adfbe2b3ce18d5c0dbabca8f3ed9d"
+    },
+    "Ui/SizedImage.qml": {
+      "path": "shell/Ui/SizedImage.qml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/ac2690cd7be4f47e4a255f5e2e78d904d436b068/shell/Ui/SizedImage.qml",
+      "vendor_path": "vendor/omarchy/shell/Ui/SizedImage.qml",
+      "bytes": 6032,
+      "sha256": "e7c2a140de06e5aa4a3e7bbf6588428ed3f687b257efa6dded6a63e2c384e0f8",
+      "git_blob_sha1": "5a66f9305d266cadfcc17628a713df33227ab4c4",
+      "license": "MIT",
+      "source_modifications": [],
+      "stage_transform": "none",
+      "staged_sha256": "e7c2a140de06e5aa4a3e7bbf6588428ed3f687b257efa6dded6a63e2c384e0f8"
     }
   },
   "authored": {
@@ -1108,16 +1144,15 @@
     },
     "Commons/Style.qml": {
       "path": "config/shell/preview/Style.qml",
-      "bytes": 4010,
-      "sha256": "fcd6ea4520c10ffb6d5ea75b332a6178b0fb9fdfbd0c84329ef2c2c972d92add"
+      "sha256": "946c2347f256776fc19d3424f18a49b15ecc9bb547fb4b8306ec7d22d0f277ee"
     },
     "Commons/Color.qml": {
       "path": "config/shell/preview/Color.qml",
-      "sha256": "65f5cf61598ec5f49f51af7a4644ba303e7876e1be4b4396f5a969052e2fccbb"
+      "sha256": "8677b078e5e23f97576b3dad15dd1c0dfd876f251b79d9e26a871f9fcbfe133e"
     },
     "Commons/I18n.qml": {
       "path": "config/shell/preview/I18n.qml",
-      "sha256": "fb576aadeb91c8762ca4ea50cddb3129b765c33fd9aae4a940c43d08a913ca67"
+      "sha256": "922ea7617825465c4439044c8d26e102037327eb926d888ad77beb7a3c9dc307"
     },
     "PreviewContent.qml": {
       "path": "config/shell/preview/PreviewContent.qml",
@@ -1133,8 +1168,7 @@
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "bytes": 14439,
-      "sha256": "2789ab06884f47450decee5413ad0d6e5791e3ebc6a100ad50016a855ac62269"
+      "sha256": "0d4dee1a6cdd0b581cacfb10294b0698ba46e30dde5b6a0d4d7493c2de5956ea"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
@@ -1174,28 +1208,23 @@
     },
     "AudioRouting.js": {
       "path": "config/shell/preview/AudioRouting.js",
-      "bytes": 6010,
-      "sha256": "3aceebb32035a99b69474e93ed91439463ab263439760b752c6aa3440d1ce89a"
+      "sha256": "a57ec3c79858a3b53e54f24f2d35129bdd7518422dd805aa50d506eb9762376b"
     },
     "MediaIdentity.js": {
       "path": "config/shell/preview/MediaIdentity.js",
-      "bytes": 1659,
       "sha256": "e14045d26f9ef1bfe5ca3dc65198a4a8380a352be3a67f33f79eaa716b89ce8a"
     },
     "AudioPresentation.js": {
       "path": "config/shell/preview/AudioPresentation.js",
-      "bytes": 4485,
-      "sha256": "19af080c6640ebc52a491d9123c70179a684d84491ab79194d02a7bfe8d62614"
+      "sha256": "47bf068fe24aa7e6f09253e6f605b741102c264152ad411d9f5dcc533e83d7e5"
     },
     "AudioOutputProvider.qml": {
       "path": "config/shell/preview/AudioOutputProvider.qml",
-      "bytes": 5851,
-      "sha256": "e801bd5b9c3b851bf6cc130f681081e0a2bc618f8dceb58df3825e0b3bc61061"
+      "sha256": "848472e99fb68f80840cf5ca88ec7917132bff8200be0731020894818c572f64"
     },
     "AudioPanelController.qml": {
       "path": "config/shell/preview/AudioPanelController.qml",
-      "bytes": 12217,
-      "sha256": "5d0bb58dc309cbea7ed4aacb84072b379040c5f607aea54909e5bd25c9068706"
+      "sha256": "70353ea324899f6f9764a6f78ea16ba33a97c34ea7a1f1596869be224accd200"
     },
     "NetworkPanelController.qml": {
       "path": "config/shell/preview/NetworkPanelController.qml",
@@ -1207,11 +1236,11 @@
     },
     "BluetoothActions.qml": {
       "path": "config/shell/preview/BluetoothActions.qml",
-      "sha256": "b5ea894d4539cb66d4cd50eb428589722bb516d588dd943f5fc9b6c2a97096db"
+      "sha256": "3723897576fe7fbeb2fec52a849ac25c34b5f2196359c5699bf86adff040c291"
     },
     "DisplayPanelController.qml": {
       "path": "config/shell/preview/DisplayPanelController.qml",
-      "sha256": "aa4da5c2a9896dc58cd39a4bce4aa1a45fe05ccc8dd9927837645a586ac81422"
+      "sha256": "283ed34270237c35583f27e642ee8ab25e775de187759b1b936425f9c1576bb4"
     },
     "PowerPanelController.qml": {
       "path": "config/shell/preview/PowerPanelController.qml",
@@ -1283,17 +1312,51 @@
     },
     "MediaPresentation.js": {
       "path": "config/shell/preview/MediaPresentation.js",
-      "bytes": 1197,
       "sha256": "0ab19c8224fdaf184ccc69af4261a37bfed02353f7f78ad39da99d5575c8d482"
     },
     "AudioInput.js": {
       "path": "config/shell/preview/AudioInput.js",
-      "bytes": 2086,
       "sha256": "a29c9a67e7a402b861f8048e09b41bdae4e460a2cddc3c4f1dd85e79a4abc4b1"
+    },
+    "AudioNativeState.qml": {
+      "path": "config/shell/preview/AudioNativeState.qml",
+      "sha256": "538e6394c3465bf1ca56639c6a3c829d0e11a2c0ab9488e801d03c56b77f323a"
+    },
+    "AudioNativeControls.qml": {
+      "path": "config/shell/preview/AudioNativeControls.qml",
+      "sha256": "22a05ad39a859effb73321a521d07dcea26c97e62f00c2f2bc2f9a8e76ddc20a"
+    },
+    "AudioFeedback.qml": {
+      "path": "config/shell/preview/AudioFeedback.qml",
+      "sha256": "558297112ebae344a33a9cd575e1d8771c5e87e077100b38645373916ad3ad7a"
+    },
+    "MediaArtwork.qml": {
+      "path": "config/shell/preview/MediaArtwork.qml",
+      "sha256": "491633eb5dbd80cf5200d551facdbda02f43a9bf49cd026bf5ab69dba24524dc"
+    },
+    "AudioUntyped.js": {
+      "path": "config/shell/preview/AudioUntyped.js",
+      "sha256": "f064919aac7a559023f4c2f4f45cc8508d8dcd9d1885f1724c9461819ab6eeba"
+    },
+    "BluetoothSession.qml": {
+      "path": "config/shell/preview/BluetoothSession.qml",
+      "sha256": "c4a45e7f062c7867c2621a85d024a31fe17efeb5a6596ecde0d025f344767a90"
+    },
+    "BluetoothPairingPrompt.qml": {
+      "path": "config/shell/preview/BluetoothPairingPrompt.qml",
+      "sha256": "6f365e687a5cc463bce9b82df6d7979b24a0557fda5ef3e4142b0737328e7e56"
+    },
+    "DisplayProfilesState.qml": {
+      "path": "config/shell/preview/DisplayProfilesState.qml",
+      "sha256": "312bd4a176b568eec50ec148076eb35603519899ce4d2f4f438938f51c64b0b8"
+    },
+    "DisplayProfilesView.qml": {
+      "path": "config/shell/preview/DisplayProfilesView.qml",
+      "sha256": "f867c207004a1f4c3fe93f88cc765bb37cb3ff7754204c78b04561c758432445"
     }
   },
   "module_maps": {
-    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\nPanel 1.0 Panel.qml\nPanelController 1.0 PanelController.qml\nOverlayWindow 1.0 OverlayWindow.qml\nSpeedTestOverlay 1.0 SpeedTestOverlay.qml\nBarIndicator 1.0 BarIndicator.qml\n",
+    "Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.0 WidgetButton.qml\nOpticalGlyph 1.0 OpticalGlyph.qml\nPopupCard 1.0 PopupCard.qml\nBarIconButton 1.0 BarIconButton.qml\nBarIconContent 1.0 BarIconContent.qml\nIconContentBounds 1.0 IconContentBounds.qml\nButton 1.0 Button.qml\nBorderSurface 1.0 BorderSurface.qml\nBorderOverlay 1.0 BorderOverlay.qml\nPanelSlider 1.0 PanelSlider.qml\nKeyboardPanel 1.0 KeyboardPanel.qml\nPanelKeyCatcher 1.0 PanelKeyCatcher.qml\nCursorSurface 1.0 CursorSurface.qml\nToggleSwitch 1.0 ToggleSwitch.qml\nPanelToolTip 1.0 PanelToolTip.qml\nPanelSeparator 1.0 PanelSeparator.qml\nPanelSectionHeader 1.0 PanelSectionHeader.qml\nPanelActionButton 1.0 PanelActionButton.qml\nTextField 1.0 TextField.qml\nPanel 1.0 Panel.qml\nPanelController 1.0 PanelController.qml\nOverlayWindow 1.0 OverlayWindow.qml\nSpeedTestOverlay 1.0 SpeedTestOverlay.qml\nBarIndicator 1.0 BarIndicator.qml\nSizedImage 1.0 SizedImage.qml\n",
     "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\nsingleton ElsewhenSettings 1.0 ElsewhenSettings.qml\nsingleton MediaSelection 1.0 MediaSelection.qml\nsingleton Border 1.0 Border.qml\nsingleton TrialDesktopState 1.0 TrialDesktopState.qml\nsingleton BluetoothDiscovery 1.0 BluetoothDiscovery.qml\nsingleton Util 1.0 Util.qml\nsingleton InputDevices 1.0 InputDevices.qml\nsingleton InputMethodState 1.0 InputMethodState.qml\n",
     "Elsewhen/qmldir": "ArcText 1.0 ArcText.qml\nAvatar 1.0 Avatar.qml\nCityMatches 1.0 CityMatches.qml\nCityRow 1.0 CityRow.qml\nCitySearch 1.0 CitySearch.qml\nDaylightStrip 1.0 DaylightStrip.qml\nElsewhenPanel 1.0 ElsewhenPanel.qml\nGlobe 1.0 Globe.qml\nGlobeFooter 1.0 GlobeFooter.qml\nHeroTitle 1.0 HeroTitle.qml\nMiniGlobe 1.0 MiniGlobe.qml\nMoonDot 1.0 MoonDot.qml\n",
     "Weather/qmldir": "WeatherPanel 1.0 WeatherPanel.qml\nWeatherWidget 1.0 WeatherWidget.qml\n",
@@ -1327,12 +1390,14 @@
     "Plan 142: source-derived original per-output fullscreen observer and one shared event-driven read refresh. Existing stable top surface selects an empty input region under fullscreen/hide; suppression cancels owned drags without persistence and dominates full drag input. No manual fade/peek, popup policy, dispatch, configuration, deployment or native input/focus/security acceptance.",
     "Plan 143 source-only original shared hover tally/120ms leave hysteresis and frozen center-box edge: BarPeekState derives unchanged MIT Bar.qml properties/functions/Timer. original-horizontal-peek-v5 restores ancestor hover and edge sync with explicit suppression-first per-output hide/fullscreen cancellation and idempotent owner handoff. Trusted API exposes the independent original reveal/suppression flags, not new indicator visuals. No geometry/reservation/mask/focus/default changes, host query, native pointer/pixel acceptance or deployment; no arbitrary plugin loading or new asset import.",
     "Plan 145 source-only original Indicators/BarIndicator UI: unchanged MIT parents checked against stable tree/blobs. Preserve active/inactive blocks, fixed-edge growth, mirror/clip/opacity and transient 120ms hover hold. Remove ShellIpc and unused helper parsing; replace arbitrary indicator URLs with required prebound trusted Components, filter unadmitted IDs and keep defaults empty. No TrialPanel/registry/layout integration, native status owner, command, service activation, security policy, fake live status or desktop deployment; actual original UI exercised only with synthetic contained statuses. Seven native providers, vertical/notch/native pointer/pixel/security acceptance remain excluded.",
-    "Plan 151 source-only: stableControls opts only the two known native indicators into the existing original ordered/single block, preserving slots and dimming inactive controls instead of original active-first regrouping. Generic original defaults/geometry/hover remain unchanged. Last observed delegates survive confirmed action/readback with a separate write fence; busy/blocked states gate presses rather than hover. Original tooltip text follows observed state while hovered. Four selected English bar labels come from the same pinned MIT default/i18n/en/shell.json catalog (SHA-256 c34e291f8309073442ed9d2cfa971877b04c1bd4eaea9462f2f3906fce758584); the catalog is not staged. No installed/native input/pixel/setter acceptance or deployment claim."
+    "Plan 151 source-only: stableControls opts only the two known native indicators into the existing original ordered/single block, preserving slots and dimming inactive controls instead of original active-first regrouping. Generic original defaults/geometry/hover remain unchanged. Last observed delegates survive confirmed action/readback with a separate write fence; busy/blocked states gate presses rather than hover. Original tooltip text follows observed state while hovered. Four selected English bar labels come from the same pinned MIT default/i18n/en/shell.json catalog (SHA-256 c34e291f8309073442ed9d2cfa971877b04c1bd4eaea9462f2f3906fce758584); the catalog is not staged. No installed/native input/pixel/setter acceptance or deployment claim.",
+    "Plan 153: unchanged licensed OSD/OsdModel/SizedImage parents are tree/blob verified; deterministic extraction preserves original measured content with a nonvisual in-process owner. Existing original audio/media surfaces gain closed profile/recovery cursor rows, explicit-query local pulse bridge, proof-bound untyped source controls, bounded subscription invalidation, shared monitoring and metadata-backed DSP proofs. Card/native-owner/scope/digest fences and shared profile/control locks retain uncertainty without replay. Artwork reaches only owned bounded private cache hashes, never raw MPRIS URLs. Mixed asynchronous DSP/untyped bridge master, remote art, daemon/package/binding changes and native acceptance remain excluded. All changes are source-only; current installed Plan 152 is not updated."
   ],
   "limits": [
     "Derived original horizontal frame/pool with a closed Component registry, not full Bar.qml startup. The sealed preview label stays read-only. The live trial calendar is the derived original popup without IPC, upstream shell.json writes, or the privileged timezone picker; admitted preferences/layout use the reviewed local transaction store.",
     "Checker uses established Bubblewrap isolation; private software offscreen QtQuick Window only, no host display/compositor/GPU/network/buses.",
     "No real Wayland start, desktop configuration/service replacement, deployment, authentication, lock/idle/suspend, packages, privilege or publication acceptance.",
-    "Plan 078 began source-component alignment, not full-shell, pixel, native or next-login acceptance. Plan 134 adds closed registry/layout and original widget gesture/feedback source. Arbitrary plugins, bar-edge relocation, nested tray/vertical/notch/fullscreen-peek policies, full theme services, notification/idle/lock services, new external endpoints and provisioning remain excluded. New native input/visual/deployment acceptance is not claimed. Session-lifetime components do not acquire a timeout; feedback animation timers are not lifetime expiry."
+    "Plan 078 began source-component alignment, not full-shell, pixel, native or next-login acceptance. Plan 134 adds closed registry/layout and original widget gesture/feedback source. Arbitrary plugins, bar-edge relocation, nested tray/vertical/notch/fullscreen-peek policies, full theme services, notification/idle/lock services, new external endpoints and provisioning remain excluded. New native input/visual/deployment acceptance is not claimed. Session-lifetime components do not acquire a timeout; feedback animation timers are not lifetime expiry.",
+    "Plan 153 audio completion source: explicit-query transactional ALSA profiles/recovery, proof-bound pulse virtual-source gain/mute/master and bounded subscription invalidation, shared native/monitoring/observed OSD owner, original measured OSD/SizedImage parents and bounded owned local-cache PNG/JPEG art only. Optional pactl helpers are packaged for future deployments, never installed or invoked by this source request. Unknown/ambiguous topology stays disabled; no profile/volume mutation on open/refresh, replay, automatic receipt acknowledgement, daemon management, remote art fetch, recording or native acceptance claim."
   ]
 }

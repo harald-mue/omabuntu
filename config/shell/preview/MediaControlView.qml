@@ -1,5 +1,5 @@
 // Derived original media widget; full upstream MIT notice in LICENSE.
-// Primitive targets, guarded native actions, no artwork/OSD/startup.
+// Primitive targets, guarded actions and admitted local-cache artwork only.
 import QtQuick
 import Quickshell
 import qs.Ui
@@ -144,11 +144,19 @@ BarWidget {
           color: Style.normalFillFor(root.bar.foreground, Commons.Color.accent)
           borderSpec: Border.controlSpec("normal", root.bar.foreground, Commons.Color.accent)
 
-          // Artwork loader excluded: no local/remote URL access.
+          // Decode the art at the size it is drawn, not the size the player
+          // serves it at. The popup is built on every monitor at startup.
+          SizedImage {
+            anchors.fill: parent
+            anchors.margins: Style.space(2)
+            crop: true
+            url: root.mediaService ? root.mediaService.artSource : ""
+            visible: url != ""
+          }
 
           Text {
             anchors.centerIn: parent
-            visible: true
+            visible: !root.mediaService || root.mediaService.artSource === ""
             text: "󰝚"
             color: root.bar.foreground
             font.family: root.bar.fontFamily

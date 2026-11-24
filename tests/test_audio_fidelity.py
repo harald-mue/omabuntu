@@ -19,7 +19,7 @@ class AudioFidelityTests(unittest.TestCase):
         self.assertEqual(self.output, (ROOT / "config/shell/preview/AudioOutputView.qml").read_text())
         files, meta = preview.verified_sources(ROOT)
         self.assertEqual(files["AudioOutputView.qml"].decode(), self.output)
-        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-native-input-frontend-v5")
+        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-native-input-frontend-v8")
         self.assertNotIn("AudioOutputView.qml", meta["authored"])
 
     def test_original_hero_is_byte_identical(self):
@@ -55,12 +55,18 @@ class AudioFidelityTests(unittest.TestCase):
         # Same reviewed replacements the extraction makes: drag-identity guard,
         # Style.alpha for the upstream Util.alpha helper, provider-side peak.
         original = original.replace("                  onMoved: function(v) { root.setInputVolume(v) }",
-            "                  onDraggingChanged: root.dragSourceTarget = dragging ? root.source : null\n"
-            "                  onMoved: function(v) { root.setInputVolume(v) }")
+            "                  onDraggingChanged: if (dragging) root.beginInputDrag()\n"
+            "                  onMoved: function(v) { if (!dragging) root.inputDragCancelledState = false; root.setInputVolume(v) }\n"
+            "                  onReleased: function(v) { root.finishInputDrag(v) }\n"
+            "                  onEnabledChanged: if (!enabled) root.cancelInputDrag()\n"
+            "                  Connections {\n"
+            "                    target: root\n"
+            "                    function onInputDragCancelled() { inputSlider.dragging = false; inputSlider.liveValue = inputSlider.value }\n"
+            "                  }")
         original = original.replace("Util.alpha(root.bar.foreground, 0.18)",
                                      "Style.alpha(root.bar.foreground, 0.18)")
         original = original.replace("inputPeakMonitor.peak", "root.inputPeak")
-        original = frontend.replace(original, "enabled: !!root.source", "enabled: root.inputControlAvailable")
+        original = frontend.replace(original, "enabled: !!root.source", "enabled: root.inputWriteAvailable")
         self.assertIn(original, self.output)
         self.assertIn("root.inputPeak", self.output)
         self.assertIn("Style.alpha(root.bar.foreground, 0.18)", self.output)

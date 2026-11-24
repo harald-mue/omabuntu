@@ -42,10 +42,10 @@ BluetoothPanelController {
         if (dy !== 0) root.moveCursor(dy)
         else if (dx !== 0) root.moveCursorH(dx)
       }
-      onActivateRequested: if (root.cursorActive) root.activateCursor()
+      onActivateRequested: if ((!root.session || !root.session.pending) && root.cursorActive) root.activateCursor()
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
-      onDeleteRequested: if (root.cursorActive) root.deleteSelected()
+      onDeleteRequested: if ((!root.session || !root.session.pending) && root.cursorActive) root.deleteSelected()
       onTextKey: function(t) {
         if (t === "b" || t === "B") root.toggleBluetooth()
       }
@@ -55,6 +55,13 @@ BluetoothPanelController {
         anchors.fill: parent
         spacing: Style.space(14)
 
+        BluetoothPairingPrompt {
+          width: parent.width
+          session: root.session
+          owner: root
+          foreground: root.bar.foreground
+          fontFamily: root.bar.fontFamily
+        }
         // ---------- Hero: Bluetooth icon · status ----------
         Item {
           width: parent.width

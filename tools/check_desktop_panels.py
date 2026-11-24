@@ -377,7 +377,7 @@ ShellRoot {
 '''
 
 
-def run(root, build):
+def run(root, build, *, probe=None, extra_files=None, markers=None):
     files, _ = preview.verified_sources(root)
     _, runtime, _ = check_runtime.verify_stage(root, build)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')
@@ -389,7 +389,7 @@ def run(root, build):
         path.parent.mkdir(parents=True, exist_ok=True)
         if name == 'Ui/KeyboardPanel.qml':
             data = audio_port_fixtures.KEYBOARD_SURFACE.replace('Math.min(cap,value+28)', 'Math.min(cap || 1000,value+28)').encode()
-        if name == 'BluetoothActions.qml':
+        if name in ('BluetoothActions.qml', 'BluetoothSession.qml'):
             data = data.replace(b'import Quickshell.Bluetooth', b'import "FixtureBluetooth"')
         if name == 'PowerPanelController.qml':
             data = data.replace(b'import Quickshell.Services.UPower', b'import "FixturePower"')
@@ -449,7 +449,15 @@ QtObject {
     (fake / 'PowerProfiles.qml').write_text('pragma Singleton\nimport QtQml\nQtObject { property int profile: 1; property bool hasPerformanceProfile: true }')
     (fake / 'PowerProfile.qml').write_text('pragma Singleton\nimport QtQml\nQtObject { enum Profile { PowerSaver, Balanced, Performance } }')
     (fake / 'UPowerDeviceState.qml').write_text('pragma Singleton\nimport QtQml\nQtObject { enum State { Unknown, Charging, Discharging, Empty, FullyCharged, PendingCharge } }')
-    (case / 'probe/shell.qml').write_text(PROBE)
+    for name, (content, mode) in (extra_files or {}).items():
+        relative = Path(name)
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('Fixture files must remain under the private probe')
+        target = case / 'probe' / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content)
+        target.chmod(mode)
+    (case / 'probe/shell.qml').write_text(PROBE if probe is None else probe)
     (case / 'probe/fonts.conf').write_text('<fontconfig><dir>/usr/share/fonts</dir></fontconfig>')
     command = check_runtime.sandbox_command(runtime, case, [check_runtime.PREFIX + '/bin/quickshell', '--no-color', '--path', '/probe/shell.qml'])
     index = command.index('QML_IMPORT_PATH')
@@ -462,9 +470,9 @@ QtObject {
         result = subprocess.CompletedProcess(command, 124, output.decode(errors='replace'), '\nProbe timed out\n')
     text = result.stdout + result.stderr
     (case / 'output.log').write_text(text)
-    ok = (result.returncode == 0 and 'OMABUNTU_DESKTOP_COMPILE_OK' in text
-          and 'OMABUNTU_BATTERY_GEOMETRY_OK' in text
-          and not any(marker in text for marker in ('DESKTOP_COMPILE_FAILED', 'DESKTOP_CREATE_FAILED', 'TypeError:', 'ReferenceError:', 'Cannot assign', 'Unable to assign', 'Binding loop')))
+    markers = ('OMABUNTU_DESKTOP_COMPILE_OK', 'OMABUNTU_BATTERY_GEOMETRY_OK') if markers is None else markers
+    ok = (result.returncode == 0 and all(marker in text for marker in markers)
+          and not any(marker in text for marker in ('DESKTOP_COMPILE_FAILED', 'DESKTOP_CREATE_FAILED', 'TypeError:', 'ReferenceError:', 'Cannot assign', 'Unable to assign', 'Binding loop', ' WARN ')))
     report = {'status': 'isolated-compile-passed' if ok else ('timeout' if result.returncode == 124 else 'failed'), 'returncode': result.returncode,
               'limits': 'Compilation and original panel construction with synthetic layer ownership, BlueZ and UPower. Battery icon/percentage allocation, measured content bounds and adjacent Row placement at 1/63/100 percent, mock action routing, shared discovery leases, dock provenance, the derived calendar grid, late workspace-state loading, fullscreen restore scheduling, the native drag event sequence, addressed retile policy, serialized claims and workspace-mode-switch suppression are tested. No native device actions, popup/focus or visual acceptance.'}
     (case / 'report.json').write_text(json.dumps(report, indent=2) + '\n')

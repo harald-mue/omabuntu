@@ -32,6 +32,8 @@ def derive_audio(data):
     panel = between(text, "  KeyboardPanel {\n", "          // ---- Per-app streams ----\n")
     keys = between(panel, "      onTextKey: function(t) {\n", "      ScrollView {\n")
     panel = replace(panel, keys, '''      onTextKey: function(t) {
+        // Hidden normal-page controls cannot acquire advanced-page keys.
+        if (root.advancedAudio) return
         // 'm' operates on the current section or that individual stream only.
         if ((t === "m" || t === "M") && root.cursorActive) {
           if (root.focusSection === "streams") {
@@ -51,10 +53,16 @@ def derive_audio(data):
                     'text: root.outputControlAvailable ? Commons.I18n.formatNumber(Math.round((outputSlider.dragging ? outputSlider.liveValue : root.outputVolume) * 100)) + "%" : "—"')
     # The original input slider needs both a captured target and live authority.
     panel = replace(panel, '                  enabled: !!root.source',
-                    '                  enabled: root.inputControlAvailable')
+                    '                  enabled: root.inputWriteAvailable')
     panel = replace(panel, "                  onMoved: function(v) { root.setInputVolume(v) }",
-                    "                  onDraggingChanged: root.dragSourceTarget = dragging ? root.source : null\n"
-                    "                  onMoved: function(v) { root.setInputVolume(v) }")
+                    "                  onDraggingChanged: if (dragging) root.beginInputDrag()\n"
+                    "                  onMoved: function(v) { if (!dragging) root.inputDragCancelledState = false; root.setInputVolume(v) }\n"
+                    "                  onReleased: function(v) { root.finishInputDrag(v) }\n"
+                    "                  onEnabledChanged: if (!enabled) root.cancelInputDrag()\n"
+                    "                  Connections {\n"
+                    "                    target: root\n"
+                    "                    function onInputDragCancelled() { inputSlider.dragging = false; inputSlider.liveValue = inputSlider.value }\n"
+                    "                  }")
     # Upstream Commons/Util.alpha is the same helper as Style.alpha here, and
     # the peak monitor runs in the provider: the controller exposes its peak
     # as root.inputPeak, so the meter markup stays byte-identical otherwise.
@@ -63,8 +71,45 @@ def derive_audio(data):
     panel = replace(panel, "inputPeakMonitor.peak", "root.inputPeak")
     panel += between(text, "          // ---- Per-app streams ----\n",
                      "        }\n      }\n    }\n  }\n\n  // ---- Reusable inline components ----\n")
+    # New capability rows join the existing cursor; m must not act on an
+    # unrelated output while the cursor is on profile/recovery actions.
+    panel = replace(panel, 'else root.toggleOutputMute()',
+                    'else if (root.focusSection === "output" || root.focusSection === "header") root.toggleOutputMute()')
+    panel = replace(panel, "panel.fittedContentHeight(panel.loadedContentHeight, Style.space(560))",
+                    "panel.fittedContentHeight(panel.loadedContentHeight)")
+    panel = replace(panel, "panelColumn.implicitHeight > height ? ScrollBar.AsNeeded",
+                    "panelColumn.implicitHeight > availableHeight ? ScrollBar.AsNeeded")
+    panel = replace(panel, "value: panelColumn.implicitHeight > scrollArea.height",
+                    "value: panelColumn.implicitHeight > scrollArea.availableHeight")
+    # Preserve the original normal-page markup inside one visibility wrapper.
+    panel = replace(panel, "          // ---------- Hero: speaker icon · title/status ----------",
+                    "          Column {\n"
+                    "            id: normalAudioColumn\n"
+                    "            objectName: \"audioNormalPage\"\n"
+                    "            visible: !root.advancedAudio\n"
+                    "            width: parent.width\n"
+                    "            spacing: Style.space(14)\n"
+                    "          // ---------- Hero: speaker icon · title/status ----------")
+    panel = replace(panel, "        clip: true\n",
+                    "        clip: true\n"
+                    "        // Declare the extent of the nested pages; keep fallback scrolling reachable.\n"
+                    "        contentHeight: panelColumn.implicitHeight\n"
+                    "        contentWidth: availableWidth\n"
+                    "        // Balanced clearance keeps content centered even while the bar fades.\n"
+                    "        leftPadding: contentHeight > availableHeight\n"
+                    "          ? ScrollBar.vertical.width + Style.space(10) : 0\n"
+                    "        rightPadding: leftPadding\n")
+    # Close the original normal-page wrapper before the advanced-page entry.
+    panel += '          }\n'
     # Close the exact upstream Column, ScrollView, key catcher and panel.
-    panel += '''          Text {
+    panel += '''          AudioNativeControls {
+            width: parent.width
+            bridge: "bridge" in root.backend ? root.backend.bridge : null
+            controller: root
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+          }
+          Text {
             visible: root.errorText !== ""
             width: parent.width
             textFormat: Text.PlainText

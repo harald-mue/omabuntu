@@ -33,16 +33,30 @@ function virtualSink(node) {
   if (name.indexOf("alsa_output.") === 0 || name.indexOf("bluez_output.") === 0) return false;
   if (name === "easyeffects_sink" || name.indexOf("effect_input.") === 0
       || name.indexOf("omarchy_speaker_tuning") === 0) return true;
-  var flag = (node.properties || {})["node.virtual"];
-  return flag === true || flag === "true" || flag === "1";
+  var props = node.properties || {};
+  var flag = props["node.virtual"];
+  return flag === true || flag === "true" || flag === "1"
+    || props["media.class"] === "Audio/Sink/Virtual"
+    || !!props["node.link-group"] || !!props["node.group"];
 }
 
 // Exact/preferred matches win over the original effect_input prefix fallback.
 // Matching is routing presentation policy, never a security identity proof.
-function sourceRank(name, sourceName) {
+function association(output, source) {
+  if (!output || !source || !output.ready || !source.ready) return null;
+  var a=output.properties || {}, b=source.properties || {};
+  for(var i=0;i<2;i++) {
+    var field=i===0?"node.link-group":"node.group";
+    if(typeof a[field]==="string" && a[field].length>0 && a[field].length<=256 && a[field]===b[field])
+      return [field,a[field]];
+  }
+  return null;
+}
+function sourceRank(name, sourceName, output, source) {
   if (typeof name !== "string" || !name || typeof sourceName !== "string") return 0;
-  var output = name.replace(/^effect_input\./, "effect_output.");
-  if (sourceName === output || (output === name && sourceName.indexOf(name) === 0)) return 2;
+  if (association(output, source)) return 3;
+  var outputName = name.replace(/^effect_input\./, "effect_output.");
+  if (sourceName === outputName || (outputName === name && sourceName.indexOf(name) === 0)) return 2;
   if (name === "easyeffects_sink" && sourceName.indexOf("ee_") === 0) return 2;
   return sourceName.indexOf(name) === 0 ? 1 : 0;
 }
@@ -51,7 +65,9 @@ function sourceRank(name, sourceName) {
 function sources(nodes, sinks) {
   return nodes.filter(function(node) {
     return !!node && sinks.some(function(output) {
-      return virtualSink(output) && sourceRank(output.name, node.name) > 0;
+      return virtualSink(output) && (sourceRank(output.name, node.name, output, node) > 0
+        || (node.isStream === true
+          && !!((output.properties || {})["node.link-group"] || (output.properties || {})["node.group"])));
     });
   });
 }
@@ -91,7 +107,7 @@ function resolve(nodes, links, selected, authority) {
       // The original EasyEffects 8 port branch admits only hardware outputs.
       if (current.name === "easyeffects_sink" && link.source.name.indexOf("ee_") === 0
           && link.target.name.indexOf("alsa_output.") !== 0 && link.target.name.indexOf("bluez_output.") !== 0) continue;
-      var candidateRank = sourceRank(current.name, link.source.name);
+      var candidateRank = sourceRank(current.name, link.source.name, current, link.source);
       if (!candidateRank || candidateRank < rank) continue;
       if (candidateRank > rank) { matches = []; rank = candidateRank; }
       matches.push(link);
@@ -105,7 +121,7 @@ function resolve(nodes, links, selected, authority) {
       if (!sourceKey || !targetKey) return record("unready", selectedKey, null, []);
       if (target && target !== edge.target) return record("ambiguous", selectedKey, null, []);
       target = edge.target;
-      var proof = JSON.stringify([sourceKey, targetKey]);
+      var proof = JSON.stringify([sourceKey, targetKey, association(current, edge.source)]);
       if (edges.indexOf(proof) === -1) edges.push(proof);
     }
     edges.sort();steps.push(edges);current = target;

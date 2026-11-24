@@ -526,6 +526,7 @@ class Installation:
                    OMABUNTU_CLOCK_TRIAL=json.dumps(GRANT), QS_DISABLE_CRASH_HANDLER='1',
                    OMABUNTU_NETWORK_HELPER=str(release / 'helpers/network_nm.py'),
                    OMABUNTU_DISPLAY_HELPER=str(release / 'helpers/display_backend.py'),
+                   OMABUNTU_DISPLAY_PROFILES_HELPER=str(release / 'helpers/display_profiles.py'),
                    OMABUNTU_DOCK_HELPER=str(release / 'helpers/dock_state.py'),
                    OMABUNTU_KEYBINDINGS_HELPER=str(release / 'helpers/keybindings_menu.py'),
                    OMABUNTU_MENU_HELPER=str(release / 'helpers/menu_model.py'),
@@ -536,6 +537,9 @@ class Installation:
                    OMABUNTU_WEATHER_HELPER=str(release / 'helpers/weather_probe.py'),
                    OMABUNTU_ELSEWHEN_DIR=str(release / 'shell/Elsewhen'),
                    OMABUNTU_STATE_HOME=str(self.state), PYTHONDONTWRITEBYTECODE='1')
+        bluetooth_agent = release / 'helpers/bluetooth-agent'
+        if bluetooth_agent.is_file() and not bluetooth_agent.is_symlink() and os.access(bluetooth_agent, os.X_OK):
+            env['OMABUNTU_BLUETOOTH_HELPER'] = str(bluetooth_agent)
         bundled_capture = release / 'runtime/bin/omasnap'
         if bundled_capture.is_file() and not bundled_capture.is_symlink():
             env['OMABUNTU_OMASNAP'] = str(bundled_capture)

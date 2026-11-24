@@ -33,7 +33,7 @@ AudioPanelController {
     open: root.opened
     focusTarget: panel.loadedContent
     contentWidth: panel.fittedContentWidth(Style.space(380))
-    contentHeight: panel.fittedContentHeight(panel.loadedContentHeight, Style.space(560))
+    contentHeight: panel.fittedContentHeight(panel.loadedContentHeight)
 
     content: PanelKeyCatcher {
       id: keyCatcher
@@ -49,12 +49,14 @@ AudioPanelController {
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
+        // Hidden normal-page controls cannot acquire advanced-page keys.
+        if (root.advancedAudio) return
         // 'm' operates on the current section or that individual stream only.
         if ((t === "m" || t === "M") && root.cursorActive) {
           if (root.focusSection === "streams") {
             if (root.selectedIndex >= 0) root.toggleStreamMute(root.displayAudioStreams[root.selectedIndex])
           } else if (root.focusSection === "input") root.toggleInputMute()
-          else root.toggleOutputMute()
+          else if (root.focusSection === "output" || root.focusSection === "header") root.toggleOutputMute()
         }
       }
 
@@ -62,12 +64,19 @@ AudioPanelController {
         id: scrollArea
         anchors.fill: parent
         clip: true
+        // Declare the extent of the nested pages; keep fallback scrolling reachable.
+        contentHeight: panelColumn.implicitHeight
+        contentWidth: availableWidth
+        // Balanced clearance keeps content centered even while the bar fades.
+        leftPadding: contentHeight > availableHeight
+          ? ScrollBar.vertical.width + Style.space(10) : 0
+        rightPadding: leftPadding
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-        ScrollBar.vertical.policy: panelColumn.implicitHeight > height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+        ScrollBar.vertical.policy: panelColumn.implicitHeight > availableHeight ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
         Binding {
           target: scrollArea.contentItem
           property: "interactive"
-          value: panelColumn.implicitHeight > scrollArea.height
+          value: panelColumn.implicitHeight > scrollArea.availableHeight
         }
 
         Column {
@@ -75,6 +84,12 @@ AudioPanelController {
           width: scrollArea.availableWidth
           spacing: Style.space(14)
 
+          Column {
+            id: normalAudioColumn
+            objectName: "audioNormalPage"
+            visible: !root.advancedAudio
+            width: parent.width
+            spacing: Style.space(14)
           // ---------- Hero: speaker icon · title/status ----------
           Item {
             id: heroItem
@@ -307,10 +322,16 @@ AudioPanelController {
                   step: 0.05
                   value: root.inputVolume
                   opacity: root.inputMuted ? 0.5 : 1.0
-                  enabled: root.inputControlAvailable
+                  enabled: root.inputWriteAvailable
 
-                  onDraggingChanged: root.dragSourceTarget = dragging ? root.source : null
-                  onMoved: function(v) { root.setInputVolume(v) }
+                  onDraggingChanged: if (dragging) root.beginInputDrag()
+                  onMoved: function(v) { if (!dragging) root.inputDragCancelledState = false; root.setInputVolume(v) }
+                  onReleased: function(v) { root.finishInputDrag(v) }
+                  onEnabledChanged: if (!enabled) root.cancelInputDrag()
+                  Connections {
+                    target: root
+                    function onInputDragCancelled() { inputSlider.dragging = false; inputSlider.liveValue = inputSlider.value }
+                  }
                   onRightClicked: root.toggleInputMute()
                 }
 
@@ -380,6 +401,14 @@ AudioPanelController {
                 rowIndex: index
               }
             }
+          }
+          }
+          AudioNativeControls {
+            width: parent.width
+            bridge: "bridge" in root.backend ? root.backend.bridge : null
+            controller: root
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
           }
           Text {
             visible: root.errorText !== ""

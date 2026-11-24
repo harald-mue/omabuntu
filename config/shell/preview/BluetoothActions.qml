@@ -1,22 +1,47 @@
 import QtQuick
 import Quickshell.Bluetooth
 import qs.Commons
+import "Port/BluetoothModel.js" as DeviceModel
 
 // Original pending-action semantics, with bounded native BlueZ invocations.
 // API state confirms completion, not invocation. No structured operation-error
 // signal exists in the pinned API; deadlines report uncertainty, not rejection.
-// No automatic audio routing, rfkill, service restart or pairing-agent setup.
+// Optional shared owned-agent actions are separate from the legacy fallback.
+// No automatic trust, audio routing, rfkill, service restart or default-agent takeover.
 DesktopPanelController {
   id: actions
   readonly property var adapter: Bluetooth.defaultAdapter
   readonly property var devices: adapter && adapter.devices ? adapter.devices.values : []
+  property var session: null
+  property string rowOwner: Date.now().toString(16) + Math.random().toString(16).slice(2)
+  property var rowIdentities: new WeakMap()
+  property var rowCounter: ({value:0})
+  function projectDevice(device) {
+    if (!resolveDevice(device)) return null;
+    if (!rowIdentities.has(device)) rowIdentities.set(device, ++rowCounter.value);
+    return Object.freeze(Object.assign({}, DeviceModel.deviceRow(device), {control:Object.freeze({
+      owner:rowOwner, generation:rowIdentities.get(device), path:device.dbusPath, adapter:adapter.dbusPath})}));
+  }
+  function resolveRow(row) {
+    if (!row || !row.dev || !row.dev.control || row.dev.control.owner !== rowOwner
+        || !adapter || row.dev.control.adapter !== adapter.dbusPath) return null;
+    for (var i=0;i<devices.length;i++) {
+      var device=devices[i];
+      if (device.address === row.dev.address && device.dbusPath === row.dev.control.path
+          && rowIdentities.get(device) === row.dev.control.generation) return device;
+    }
+    return null;
+  }
   property bool ownsDiscovery: false
   property var pendingRecords: ({})
   property string errorText: ""
   onOpenedChanged: {
     cursorActive = false;
     if (opened) { BluetoothDiscovery.acquire(actions, adapter); ownsDiscovery = true; }
-    else { BluetoothDiscovery.release(actions); ownsDiscovery = false; }
+    else {
+      if (session && session.pending && session.prompt) session.cancel();
+      BluetoothDiscovery.release(actions); ownsDiscovery = false;
+    }
   }
   onAdapterChanged: {
     if (Object.keys(pendingRecords).length) errorText = "Bluetooth adapter changed; pending actions were not replayed";
@@ -33,8 +58,18 @@ DesktopPanelController {
       if (actions.opened) BluetoothDiscovery.acquire(actions, actions.adapter);
     }
   }
-  function toggleBluetooth() { if (adapter) adapter.enabled = !adapter.enabled; }
-  function pendingAction(address) { return pendingRecords[address] ? pendingRecords[address].action : ""; }
+  Connections {
+    target: actions.session
+    function onErrorTextChanged() { actions.errorText = actions.session.errorText; }
+  }
+  function toggleBluetooth() {
+    if (session && session.pending) { errorText = "Cancel the current Bluetooth request before changing the adapter"; return; }
+    if (adapter) adapter.enabled = !adapter.enabled;
+  }
+  function pendingAction(address) {
+    if (typeof session !== "undefined" && session && session.pending && session.pending.address === address) return session.pending.action;
+    return pendingRecords[address] ? pendingRecords[address].action : "";
+  }
   function resolveDevice(device) {
     if (!device || !adapter || !device.address || !device.dbusPath || !adapter.dbusPath) return null;
     // Initial calls must carry the actual current object, not a retained wrapper
@@ -43,6 +78,16 @@ DesktopPanelController {
   }
   function beginDeviceAction(device, action) {
     if (["connecting", "disconnecting", "forgetting"].indexOf(action) < 0) return false;
+    if (typeof session !== "undefined" && session && session.configured) {
+      device = resolveDevice(device);
+      if (!device) { errorText = "Bluetooth device is no longer available"; return false; }
+      return session.begin(device, adapter, action);
+    }
+    // Legacy paired-device controls remain available in bundles without the
+    // optional helper. Unpaired actions require the owned-agent capability.
+    if (typeof session !== "undefined" && session && action === "connecting" && device && !device.paired && !device.bonded) {
+      errorText = "Owned Bluetooth pairing helper unavailable; no agent or package installed automatically"; return false;
+    }
     syncPendingActions();
     device = resolveDevice(device);
     if (!device) { errorText = "Bluetooth device is no longer available"; return false; }

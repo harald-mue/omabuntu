@@ -75,6 +75,12 @@ Variants {
   property BarFullscreenState fullscreenRefresh: BarFullscreenState { refreshEvents: true }
 
   property BarPeekState peekState: BarPeekState {}
+  property DisplayProfilesState displayProfiles: DisplayProfilesState {
+    enabled: !bars.barHidden && bars.hasAudioWidget("omarchy.monitor")
+  }
+  property BluetoothSession bluetoothSession: BluetoothSession {
+    enabled: !bars.barHidden && bars.hasAudioWidget("omarchy.bluetooth")
+  }
 
   // One native owner, only after explicit optional-widget visibility consent.
   property IndicatorState indicatorState: IndicatorState {
@@ -82,6 +88,31 @@ Variants {
       return bars.appearance.bar.bar_layout[region].indexOf("omarchy.indicators") >= 0
     })
   }
+
+  function hasAudioWidget(id) {
+    if (!appearance || !appearance.loaded) return id === "omarchy.audio"
+    return Object.keys(appearance.bar.bar_layout || {}).some(function(region) {
+      return bars.appearance.bar.bar_layout[region].indexOf(id) >= 0
+    })
+  }
+  property AudioNativeState audioNative: AudioNativeState {
+    enabled: !bars.barHidden && bars.hasAudioWidget("omarchy.audio")
+  }
+  property AudioFeedback audioFeedback: AudioFeedback {
+    enabled: !bars.barHidden && (bars.hasAudioWidget("omarchy.audio") || bars.hasAudioWidget("omarchy.media"))
+  }
+  property AudioOutputProvider audioProvider: AudioOutputProvider {
+    bridge: bars.audioNative
+    feedback: bars.audioFeedback
+  }
+  property AudioOsdView audioOsd: AudioOsdView { feedback: bars.audioFeedback }
+  property MediaArtwork artwork: MediaArtwork {
+    enabled: !bars.barHidden && bars.hasAudioWidget("omarchy.media")
+    url: Commons.MediaSelection.activePlayer ? String(Commons.MediaSelection.activePlayer.trackArtUrl || "") : ""
+    identity: JSON.stringify(Commons.MediaSelection.state.active)
+  }
+  property Binding mediaFeedbackBinding: Binding { target: Commons.MediaSelection; property: "feedback"; value: bars.audioFeedback }
+  property Binding mediaArtworkBinding: Binding { target: Commons.MediaSelection; property: "artwork"; value: bars.artwork }
 
   model: Quickshell.screens
   PanelWindow {
@@ -230,7 +261,6 @@ Variants {
       fontFamily: clockBar.fontFamily
     }
     BarTooltip { host: clockTips }
-    AudioOutputProvider { id: audioProvider }
     Component {
       id: menuComponent
       MenuButton { bar: clockBar; openMenu: bars.openMenu }
@@ -265,7 +295,7 @@ Variants {
     }
     Component {
       id: bluetoothComponent
-      BluetoothControlView { bar: clockBar }
+      BluetoothControlView { bar: clockBar; session: bars.bluetoothSession }
     }
     Component {
       id: networkComponent
@@ -273,7 +303,7 @@ Variants {
     }
     Component {
       id: audioComponent
-      AudioOutputView { bar: clockBar; backend: audioProvider }
+      AudioOutputView { bar: clockBar; backend: bars.audioProvider }
     }
     Component {
       id: mediaComponent
@@ -295,7 +325,7 @@ Variants {
     }
     Component {
       id: displayComponent
-      DisplayControlView { bar: clockBar }
+      DisplayControlView { bar: clockBar; profiles: bars.displayProfiles }
     }
     Component {
       id: powerComponent

@@ -61,6 +61,22 @@ QtObject {
     onFileChanged: reload()
   }
 
+  // Shell-local text size only; no GTK/GNOME/application font mutation.
+  property int textSize: 12
+  function applyTextSize(raw) {
+    var text=String(raw||"").trim()
+    if (/^(9|10|11|12|14|16|20)$/.test(text)) textSize=Number(text)
+    else if(text==="")textSize=12
+  }
+  property FileView textSizeFile: FileView {
+    path: (Quickshell.env("OMABUNTU_STATE_HOME") || Quickshell.env("HOME") + "/.local/state/omabuntu") + "/current/text-size.txt"
+    watchChanges: true
+    printErrors: false
+    onLoaded: root.applyTextSize(text())
+    onLoadFailed: root.textSize=12
+    onFileChanged: reload()
+  }
+
   readonly property var shellValues: Object.freeze({})
   readonly property QtObject bar: QtObject {
     readonly property color text: root.foreground

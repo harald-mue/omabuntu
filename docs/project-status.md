@@ -72,11 +72,14 @@ without wallpaper restoration. Existing preferences/global buttons, all prior
 native-action receipts and authoritative native before/after state/ownership are
 unchanged; no native setter, new warning or unresolved journal remains. Plan 150
 is the immediate retained fallback and accepts the selected indicator ID without
-a visibility rollback. Native visual/tooltip/pointer acceptance is still pending.
+a visibility rollback. The owner subsequently explicitly accepted the installed
+Plan 152 DND/nightlight buttons and tooltips as working as intended. Their
+fixed-target interaction and tooltip-rendering acceptance item is closed.
 
 Stay-awake, reminders, recording and remote providers are not enabled; passwordless
-sudo remains excluded. Native glyph/pointer/colour/setter/security acceptance
-remains with the owner. Query readiness and contained tests do not establish it.
+sudo remains excluded. The reported button/tooltip acceptance does not establish
+broader colour/setter/security, recovery or unsupported-provider acceptance.
+Query readiness and contained tests do not establish those properties either.
 
 ## Active expansion after acceptance
 
@@ -104,7 +107,9 @@ installs completed source updates from Plans 136–139 and 141–143, retaining 
 only the owned session-lifetime bar restarted, without wallpaper restoration.
 Integrity/startup/recovery actions and unchanged preferences/global buttons were
 verified. Plan 140's optional manual ALSA profile backend is not shipped or run.
-No native interactive acceptance is inferred. A/B remain partial and C/D/E remain outstanding.
+No native interactive acceptance is inferred. This was the Plan 144 checkpoint;
+Plan 153 below subsequently completes the admitted B source scope. A/C/D/E and
+new native acceptance/deployment gates remain separate.
 The owner's prior everyday/VM acceptance does not automatically accept new code.
 
 ## Owner observations after Plan 144
@@ -117,7 +122,7 @@ Plan 145 adds the missing icon fields to both Show/Hide Media Controls; Plan 146
 now installs them. No screenshot or machine-specific capture is imported into the
 repository.
 
-## Latest local installation (plan 146)
+## Historical indicator-UI installation checkpoint (plan 146)
 
 The approved five-path update installs the menu icon fix, original indicator UI
 files and their Ui type registration. Only the owned session-lifetime bar restarted,
@@ -199,86 +204,133 @@ pixel parity with every upstream layout.
 
 ### Audio completeness
 
-Output/input selection, volume, mute and microphone peak meter already work.
-Per-application stream controls from plan 134 are now installed locally under
-plan 135; native acceptance of these new controls remains open. Remaining differences include device/profile controls,
-virtual/untyped-source fallback, comprehensive virtual-to-physical sink resolution
-and the original OSD paths.
-[Plan 137](../plans/137-original-media-selection-and-audio-labels.md) now restores
-original reactive active-player selection, MPRIS-aware stream labels and active
-row presentation. A single shared owner keeps history consistent across outputs;
-only frozen primitive metadata reaches rows. Plan 138 extends it with the
-original optional media widget/popup and explicit generation-bound transport.
-Current identity/capability checks reject missing, stale/recycled or ambiguous
-targets without fallback; source selection changes the in-memory preference only.
-Artwork/OSD/volume keys/external helpers remain excluded. Native request issuance
-is not playback acceptance or a DBus unique-owner compare-and-swap, and full
-asynchronous server-error/focus/input/pixel acceptance remains open. Plans 137/138
-are deployed through Plan 144, not natively accepted.
-[Plan 136](../plans/136-remaining-original-shell-integrations.md) now restores the
-original two-channel master semantics with serial/default preflight and explicit
-output/microphone scope. Plan 144 now deploys it: unlike historical Plan 135,
-the hero/right-click master affects both channels. Native acceptance remains open.
-[Plan 139](../plans/139-native-audio-volume-routing.md) now separates
-selected output from the loudness target for recognized DSP/EasyEffects endpoint
-routes. Output gain/mute and combined master requests revalidate captured native
-identity/generation/route proofs; ambiguous, unready or missing routes never fall
-back to DSP gain. Existing original controls remain, with disabled gain and an
-explicit unknown percentage when unresolved. Routing observations are not native
-link-health, hardware identity, server-transaction or hotplug acceptance. Idle
-EasyEffects config fallback, application-name inference, unrecognized custom DSP,
-profile UI and untyped sources remain open. The pinned native QML API has no profile
-switching contract; no profile stub or replacement panel was added. Source-only
-[plan 140](../plans/140-guarded-alsa-profile-backend.md) adds a functioning manual
-[ALSA profile backend](audio-profile-backend.md) through an optional, separately
-supplied Ubuntu pactl executable. It has strict running-local-server/card identity,
-digest review, private before/prepared receipts and explicit profile-only recovery,
-not shell/menu/installer wiring or full topology rollback. Ambiguous/partial/stale
-state refuses; uncertain native requests never automatically retry or compensate.
-Connecting has an explicitly consented socket-activation race risk, not an absolute
-no-activation guarantee. No host audio command/query/change, deployment, package,
-restart or activation was performed by that backend request, and Plan 144 excludes
-that optional backend.
-[Plan 141](../plans/141-native-microphone-ownership.md) strengthens the existing
-original microphone surface with frozen serial/native-object-generation/provider
-proofs, actual-default/readiness/unique-membership guards for local gain/mute,
-and guarded preference-only input selection. The master validates the input proof
-before either setter; unsupported present defaults are not treated as absent.
-Missing authority disables the original input slider, and synchronous failures
-report uncertainty without retry or compensation. No untyped input setter/helper,
-new tracker/peak/recording policy or new panel is admitted. Plan 144 deploys
-these shell integrations, excluding Plan 140; native protocol/hardware/recovery/
-policy acceptance, untyped fallback
-and a profile surface remain open.
+**Plan 153 completes the admitted B-audio source contracts, not deployment or
+native acceptance.** See [audio completion and explicit exclusions](audio-completion.md)
+and [plan 153](../plans/153-complete-audio-integration.md). Existing original typed
+output/input/stream controls, master mute, media selection/transport and recognized
+routing remain; there is no replacement audio panel.
 
-Implementing these would require extending the original surfaces and reviewed
-PipeWire/WirePlumber actions, handling disappearing devices and explaining each
-behavior change. Native service-owned state must not be duplicated blindly into
-an Omabuntu JSON preference file.
+The new source adds in-panel ALSA profile review/Apply/profile-only recovery,
+current-card/native-owner/scope proofs, optional local pulse observation and
+virtual-input gain/mute with private before/prepared/readback/uncertainty receipts.
+Profile/control writers share a lock and cannot bypass unresolved preparation.
+Metadata-backed custom DSP routes require unambiguous native links and retain
+association in their route proof. Unknown, absent, recycled and ambiguous targets
+do not get a fabricated fallback.
+
+One nonvisual owner serves all outputs and reference-counts panel monitoring.
+The original measured OSD/model and SizedImage slot are restored through closed
+feedback and local-cache image admission. Profile/recovery rows join original
+keyboard navigation. Plan 154 locally installs the optional helpers; bridge queries
+are off until explicit UI consent, including transport-activation risk. Missing
+dependencies/providers, malformed results, event loss and uncertainty disable
+optional writes instead of installing, starting, retrying or compensating.
+
+Remote artwork/arbitrary file URLs, Bluetooth/network profile policy, unproved
+mixed virtual-input/DSP combined master, graph creation/rewiring, full topology
+rollback, new bindings, package/daemon/security changes remain explicitly excluded.
+The Plan 153 implementation was source-only. The separately approved
+[Plan 154 deployment](../plans/154-local-audio-completion-deployment.md) now installs
+exactly 23 manifested shell/audio-helper/provenance changes, with all 150 shell
+seals verified and no new warnings or unresolved deployment/update journals.
+Only the owned session-lifetime bar was restarted. Runtime/manager/menu/unrelated
+helpers/assets, preferences and native receipts remain unchanged; wallpaper
+restoration stayed disabled. Plan 152 is the verified immediate fallback.
+
+The subsequently approved [Plan 155](../plans/155-audio-advanced-page-and-scrollbar-gutter.md)
+UI correction is now installed: the technical block is behind **Advanced audio…**
+on a separate page with **Back to audio**, and overflowing audio content reserves
+a themed inner gap before the vertical scrollbar. Only three sealed shell files
+and provenance changed; helpers/runtime/menu/assets remain unchanged. The managed
+bar restarted without wallpaper restoration, new warnings or open journals;
+Plan 154 is the immediate fallback. All 150 seals, 1,587 units and 43 contained
+audio cases pass. Owner visual/audio acceptance remains separate.
+
+The owner rejected Plan 155 visual spacing and clipped navigation. The approved
+[Plan 156 correction](../plans/156-audio-panel-height-and-navigation-polish.md)
+is now installed: natural content fits available screen height without the extra
+560-unit cap, nested scroll extent is explicit, overflow clearance is balanced,
+and advanced/back uses original icon buttons. Twelve-device contained fitting
+and constrained last-action reachability checks pass, alongside 1,588 units and
+43 audio cases. Only two shell files and provenance changed; Plan 155 remains
+the immediate fallback. The owner subsequently explicitly accepted the corrected
+Plan 156 audio view visually. That layout confirmation is closed; the new audio
+functional live matrix remains separate and pending.
+
+[Plan 157](../plans/157-audio-stream-labels-and-heading.md) now installs a label-only
+refinement: APPLICATION AUDIO replaces the raw audio.sources key, and duplicate
+application names include a server-local Stream #serial plus supplied bounded
+media descriptors when available. These are not participant identities and no
+browser/meeting inventory is collected. Rows and controls stay independent;
+layout and its owner acceptance remain unchanged. All 150 seals, 1,590 units and
+43 isolated audio cases pass, with no new warnings/open journals. Only two shell
+files and provenance changed; Plan 156 is the immediate fallback. Owner
+confirmation of the new labels remains separate from broader live audio checks.
+
+The optional bridge remains disconnected until explicit UI consent. Deployment
+issued no optional audio query/subscription/setter/profile change, package/service
+action, binding/autostart change, commit or publication. Existing owner everyday
+acceptance is preserved, not generalized into new profile/call/hotplug/native
+input/pixel/OSD-coexistence/security acceptance.
 
 ### Bluetooth and native policy integration
 
-Pair/connect/disconnect/forget and owned discovery exist. The full original
-status/error behavior and an owned pairing-agent integration are not complete.
-Plan 136 adds bounded connect/disconnect/forget tracking, observed
-pairing follow-up, duplicate rejection and adapter/device disappearance handling.
-The pinned native API exposes no structured operation-error signal; invocation
-exceptions/deadlines report uncertainty rather than claiming success. This is
-deployed through Plan 144, but does not supply an owned authentication agent.
-Radio retention differs: the Ubuntu adapter uses BlueZ Powered, while upstream
-uses a persistent rfkill-oriented helper. Automatic Bluetooth-to-default-audio
-routing is also not ported.
+**Plan 158 completes the admitted C source integration; owner-approved Plan 159
+now installs it locally, without claiming hardware/security acceptance.** Original panel/layout, typed observations and
+shared discovery remain. A shared authored QtCore/QtDBus agent supplies transient
+original-toolkit PIN/passkey/confirmation/authorization/display dialogs,
+structured asynchronous connect/disconnect/forget results, owned cancellation,
+source/owner/row/scope fencing and explicit uncertainty acknowledgement without
+replay. It never requests default-agent takeover, installs packages, activates
+BlueZ or writes trust. Unsupported service authorization refuses. The helper
+starts only on an explicit device action, not component/panel startup.
 
-Persistent radio policy or automatic routing would require a separate Ubuntu
-ownership/recovery design and approval; the working device panel does not
-implicitly authorize rfkill, service, trust or policy changes.
+1,597 units, 22 private-bus native scenarios, seven actual contained QML/Process/
+prompt cases, desktop/clock and audio/frame/tooltip/clean-source regressions pass.
+The source-check bundle verifies all 152 seals, exact helper bytes, manifest and
+test-build rejection. Plan 159 installs exactly ten manifested changes derived
+from Plan 157: six shell files, the production helper, manager/updater helper-path
+exports and provenance. The managed session-lifetime bar alone restarted with
+wallpaper restoration disabled; all installed seals match, zero new warnings or
+unresolved journals, preferences/native/audio receipts preserved. Plan 157 is
+the verified immediate fallback. The Bluetooth helper is not running: no live
+agent registration, pairing or other native Bluetooth action was issued by the
+deployment. New authentication/device behavior remains owner-unverified. See
+[owned Bluetooth completion](bluetooth-completion.md).
+
+Radio retention still deliberately uses BlueZ Powered, not persistent rfkill.
+Default-agent/incoming takeover, automatic trust/reconnect, persistent radio or
+connection/profile policy, PAN/file transfer and automatic default-audio routing
+are explicitly excluded, not hidden unfinished C promises. They require separate
+ownership/recovery/security scope; source completion does not authorize them.
 
 ### Displays, power and input methods
 
-Brightness and runtime scale work. Persistent per-output scale/layout settings,
-output enable/disable, topology editing and text-size controls are not offered.
-Supporting them would require conflict-aware native configuration updates,
-per-path backups and safe recovery when outputs disappear or geometry overlaps.
+Brightness and runtime scale remain installed and owner-accepted. **Plan 160 now
+implements D in source; owner-approved Plan 161 now installs it locally**: named persistent output profiles,
+advertised modes/positions/transforms/scales, guarded enable/disable, saved-layout
+review/apply/keep/restore, durable independent confirmation recovery, previous
+layout drafts and original shell-local text-size controls. One shared owner
+supports explicitly approved previously kept exact-topology login/hotplug
+reapplication, not an external-writer override loop or new autostart/service.
+
+1,624 units, seven real-process isolated fake-IPC recovery/startup/hotplug cases,
+actual contained original-popup/profile/Process/text-readback controls and audio/
+frame/tooltip/desktop/clock/clean-source regressions pass. A private source-check
+bundle verifies all 154 seals, exact helper/manager bytes, manifest and runtime
+preflight, retaining the Bluetooth helper. Plan 161 installs a narrow thirteen-
+file derivative: seven shell files, three display helpers, manager/updater export
+and provenance. Fresh 1,625 units (28 focused profile cases), seven private IPC
+scenarios, QML and preflight pass. Legacy current-state permission compatibility
+is corrected without chmod. All 154 installed seals match; zero new warnings or
+open journals; settings/receipts/runtime/assets/menu/audio/Bluetooth preserved.
+The bar alone restarted with session lifetime and wallpaper restoration disabled;
+Plan 159 is immediate fallback. Read-only before/after geometry and installed
+status RPC pass; profile/text paths remain absent and automation is off. Native
+device/login/hotplug/
+pixel/recovery/security acceptance remains separate. Advanced color/VRR/mirroring,
+full monitor-rule or window/workspace placement rollback and GNOME/global app
+text sizing are explicit exclusions. See [monitor profiles](display-profiles.md).
 
 The power panel uses Ubuntu's existing power-profiles-daemon. Upstream's automatic
 AC/battery policy is not installed, and unsupported cycle/charge-limit readings

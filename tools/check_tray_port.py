@@ -93,6 +93,7 @@ def run_checks(root, build_dir, suite="tray"):
               "checker_sha256": runtime.builder.digest(Path(__file__)),
               "network_fixtures_sha256": runtime.builder.digest(root / "tools/network_port_fixtures.py"),
               "audio_fixtures_sha256": runtime.builder.digest(root / "tools/audio_port_fixtures.py"),
+              "audio_completion_fixtures_sha256": runtime.builder.digest(root / "tools/audio_completion_fixtures.py"),
               "media_extraction_sha256": runtime.builder.digest(root / "tools/media_frontend.py"),
               "tooltip_fixtures_sha256": runtime.builder.digest(root / "tools/tooltip_port_fixtures.py"),
               "tooltip_extraction_sha256": runtime.builder.digest(root / "tools/tooltip_port.py"),
@@ -150,7 +151,9 @@ def run_checks(root, build_dir, suite="tray"):
                         if data.count(witness) != 1:
                             raise runtime.builder.BuildError("Media service witness changed")
                         data = data.replace(witness, ('import "../Fixture' + service + '"\n').encode())
-                if suite == "audio" and relative == "AudioOutputProvider.qml":
+                if suite in ("audio", "frame") and relative == "AudioOsdView.qml":
+                    data = audio.completion.overlay_surface(data)
+                if suite in ("audio", "frame") and relative == "AudioOutputProvider.qml":
                     witness = b"import Quickshell.Services.Pipewire\n"
                     if data.count(witness) != 1:
                         raise runtime.builder.BuildError("Audio provider service witness changed")
@@ -162,6 +165,7 @@ def run_checks(root, build_dir, suite="tray"):
                         raise runtime.builder.BuildError("Tray service witness changed")
                     data = data.replace(witness, b'import "../FixtureTray"\n')
                 path.write_bytes(data)
+            audio.completion.prepare(case, name if suite == "audio" else "")
             fake = case / "probe/FixtureTray"
             fake.mkdir()
             (fake / "qmldir").write_text("singleton SystemTray 1.0 SystemTray.qml\nsingleton Status 1.0 Status.qml\n")

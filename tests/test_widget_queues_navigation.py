@@ -65,7 +65,7 @@ assert.equal(calls[2][2],'set-autohide');
     def test_display_mutations_survive_status_and_precede_next_poll(self):
         self.adapter('config/shell/preview/DisplayPanelController.qml',
                      ['request', 'pump', 'applyState', 'setBrightness', 'setScale'], '''
-const root={helper:'/fixture/display_backend.py',queue:[],inFlight:[],lastState:null,finishing:false,
+const root={profiles:null,helper:'/fixture/display_backend.py',queue:[],inFlight:[],lastState:null,finishing:false,
  displays:[],focusedMonitor:'fixture-a',monitorScale:'1',brightnessAvailable:true,brightnessPercent:10,errorText:''};
 ''', '''
 root.request('status',[]);
@@ -87,7 +87,7 @@ assert.equal(root.queue[0][0],'status');
     def test_display_scale_requests_keep_their_original_output(self):
         code = functions('config/shell/preview/DisplayPanelController.qml', ['request', 'pump', 'setScale'])
         self.run_js('''
-let helper='/fixture/display_backend.py',queue=[],inFlight=[],finishing=false,errorText='';
+let profiles=null,helper='/fixture/display_backend.py',queue=[],inFlight=[],finishing=false,errorText='';
 let focusedMonitor='fixture-a',monitorScale='1',backend={running:true,exec:()=>{}};
 ''' + code + '''
 setScale('1.25');focusedMonitor='fixture-b';setScale('2');

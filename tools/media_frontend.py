@@ -38,6 +38,9 @@ Item {
   property int playSerial: 0
   readonly property var transport: Identity.createAuthority()
   property string errorText: ""
+  property QtObject feedback: null
+  property QtObject artwork: null
+  readonly property string artSource: artwork ? artwork.source : ""
   // One shared observer owns playing order across outputs. Bind playback nodes
   // before reading their properties; native objects stay behind this boundary.
   readonly property var playbackStreams: {
@@ -61,11 +64,12 @@ Item {
 def dispatch_branches(source):
     action = block(source, '  function runAction(action, showFeedback, targetKey) {')
     core = between(action, '    if (action === "next") {\n', '    if (handled && key) preferredPlayerKey = key\n')
-    # Only feedback labels/icons are removed; native conditions/calls remain.
+    # Preserve original feedback icons and native conditions/calls; labels
+    # become explicit requested-action text rather than acceptance claims.
     labels = [line for line in core.splitlines() if line.strip().startswith(('actionLabel =', 'iconName ='))]
     if len(labels) != 10:
         raise ValueError('Original media dispatch feedback witnesses differ')
-    return '\n'.join(line for line in core.splitlines() if line not in labels) + '\n'
+    return '\n'.join(line for line in core.splitlines() if not line.strip().startswith('actionLabel =')) + '\n'
 
 
 def derive_dispatch(source):
@@ -82,12 +86,16 @@ def derive_dispatch(source):
   }
   function runAction(action, showFeedback, targetKey) {
     var player = transport.resolve(players, targetKey)
-    if (showFeedback !== false || !player || !player.canControl || !MediaModel.canHandleAction(player, action)) {
+    if ((showFeedback !== undefined && typeof showFeedback !== "boolean")
+        || (showFeedback !== false && (typeof feedback === "undefined" || !feedback))
+        || !player || !player.canControl || !MediaModel.canHandleAction(player, action)) {
       errorText = "Media target changed or action is unavailable"
       return false
     }
     var key = playerKey(player)
+    var feedbackTitle = String(player.trackTitle || "")
     var handled = false
+    var iconName = "media"
     try {
 ''' + dispatch_branches(source) + '''    } catch (error) {
       errorText = "Media request outcome is uncertain; inspect playback before retrying"
@@ -95,6 +103,7 @@ def derive_dispatch(source):
     }
     if (handled && transport.resolve(players, targetKey) === player) preferredPlayerKey = key
     errorText = handled ? "" : "Media action is unavailable"
+    if (handled && showFeedback !== false && feedback) feedback.media(action, feedbackTitle, iconName)
     return handled // Request issued, not asynchronous server acceptance.
   }
 '''
@@ -108,10 +117,11 @@ def derive_widget(data):
     text = replace(text, 'mediaService ? mediaService.sourcePlayers : []', 'mediaService ? mediaService.state.players : []')
     text = replace(text, '!root.bar.barHidden', '!("barHidden" in root.bar && root.bar.barHidden)')
     art = block(text, '          SizedImage {\n')
-    text = replace(text, '''          // Decode the art at the size it is drawn, not the size the player
-          // serves it at. The popup is built on every monitor at startup.
-''' + art, '          // Artwork loader excluded: no local/remote URL access.')
-    text = replace(text, 'visible: !root.activePlayer || !root.activePlayer.trackArtUrl', 'visible: true')
+    safe_art = replace(art, 'url: root.activePlayer && root.activePlayer.trackArtUrl ? root.activePlayer.trackArtUrl : ""',
+                       'url: root.mediaService ? root.mediaService.artSource : ""')
+    text = replace(text, art, safe_art)
+    text = replace(text, 'visible: !root.activePlayer || !root.activePlayer.trackArtUrl',
+                   'visible: !root.mediaService || root.mediaService.artSource === ""')
     text = replace(text, '''root.mediaService.playerKey(root.activePlayer) === root.mediaService.playerKey(player)''',
                    'root.mediaService.sameTarget(root.activePlayer.transportKey, player.transportKey)')
     target = 'root.mediaService.playerKey(root.activePlayer)'
@@ -160,7 +170,7 @@ def derive_widget(data):
 
       PanelSeparator {
         visible: root.sourcePlayers.length > 1''')
-    if any(token in text for token in ('SizedImage {', 'firstPartyServiceFor(', 'trackArtUrl', 'execDetached', 'Process {')):
+    if any(token in text for token in ('firstPartyServiceFor(', 'trackArtUrl', 'execDetached', 'Process {')):
         raise ValueError('Excluded media widget path remains')
     return ('// Derived original media widget; full upstream MIT notice in LICENSE.\n'
-            '// Primitive targets, guarded native actions, no artwork/OSD/startup.\n' + text).encode()
+            '// Primitive targets, guarded actions and admitted local-cache artwork only.\n' + text).encode()

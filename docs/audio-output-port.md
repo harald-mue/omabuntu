@@ -5,7 +5,19 @@ individual buttons and a slider was not sufficient. The current output frontend
 is now **derived directly from original audio/Panel.qml**, not independently
 laid out. This still is **not the complete original audio panel or shell**.
 
-## Current local installation (plan 144)
+## Latest source integration (plan 153)
+
+[Plan 153 audio completion](audio-completion.md) implements profile review/apply/
+recovery, proof-bound untyped inputs, event invalidation, metadata-backed custom
+DSP routes, shared ownership, original OSD and admitted local-cache artwork.
+The separately approved [Plan 154](../plans/154-local-audio-completion-deployment.md)
+now installs these sources and optional helpers, with no automatic bridge query/
+native grant. Installation is **not native audio acceptance**; the owner live
+matrix remains open and Plan 152 is the retained immediate fallback.
+Later sections retain their historical per-plan boundaries: their excluded/open
+claims describe those checkpoints, not the new admitted source contracts.
+
+## Installed audio baseline (plan 144, retained through plan 152)
 
 Plan 144 deploys completed Plans 136–139 and 141–143 with verified startup,
 release integrity, recovery actions and unchanged preferences. The original hero
@@ -56,7 +68,8 @@ staged through the narrow controller/provider boundary. Plan 137 separately
 restores a shared, initially read-only extraction of original media selection and
 primitive MPRIS labels/active marks. Plan 138 extends that owner with explicit,
 generation-guarded transport for the optional original media widget, not the
-audio panel. Album-art loading remains excluded.
+audio panel. Plan 138 excluded album art; Plan 153 restores only the admitted
+local-cache slot described above.
 Original Panel/PanelController startup and full registry remain excluded.
 
 ## Interaction and explicit deviations
@@ -87,9 +100,9 @@ Original Panel/PanelController startup and full registry remain excluded.
   `source.audio`; the peak meter is the native `PwNodePeakMonitor`, enabled
   only while the panel is open, exactly like upstream's opened gate. Keyboard
   cursor navigation covers the input section per the upstream section model.
-- Untyped (virtual) sources remain excluded: upstream routes them through its
-  process wrapper and a default-helper; neither is admitted. All capture
-  devices on this machine are typed ALSA nodes (work/audio-input-diagnosis).
+- The installed baseline excludes untyped virtual sources and the upstream
+  process wrapper. Plan 153 source now uses a separate explicit-query,
+  generation/proof-bound adapter; it does not import that wrapper or wpctl.
 - Plan 134 adds the original per-app playback-stream section, installed locally
   through [plan 135](../plans/135-local-original-shell-installation.md);
   profiles, media transport and original OSD remain outside this slice.

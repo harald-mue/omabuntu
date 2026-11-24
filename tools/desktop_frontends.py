@@ -15,6 +15,18 @@ def surface(data, name):
     if name == "Bluetooth":
         # Qt 6.10 Text implicitHeight can depend on the explicit height binding;
         # Column already omits invisible children, so no zero-height binding.
+        body = replace(body, '        // ---------- Hero: Bluetooth icon · status ----------', '''        BluetoothPairingPrompt {
+          width: parent.width
+          session: root.session
+          owner: root
+          foreground: root.bar.foreground
+          fontFamily: root.bar.fontFamily
+        }
+        // ---------- Hero: Bluetooth icon · status ----------''')
+        body = replace(body, 'onActivateRequested: if (root.cursorActive) root.activateCursor()',
+                       'onActivateRequested: if ((!root.session || !root.session.pending) && root.cursorActive) root.activateCursor()')
+        body = replace(body, 'onDeleteRequested: if (root.cursorActive) root.deleteSelected()',
+                       'onDeleteRequested: if ((!root.session || !root.session.pending) && root.cursorActive) root.deleteSelected()')
         body = replace(body, '              PanelSectionHeader {\n                visible: sectionTitle !== ""\n                height: visible ? implicitHeight : 0', '              PanelSectionHeader {\n                visible: sectionTitle !== ""')
         body = replace(body, 'visible: root.connectedDevices.length === 0 && root.scrollRows.length === 0', 'visible: root.errorText !== "" || (root.connectedDevices.length === 0 && root.scrollRows.length === 0)')
         body = replace(body, 'text: !root.adapter ? Commons.I18n.t("bluetooth.noBluetoothAdapter")', 'text: root.errorText !== "" ? root.errorText : !root.adapter ? Commons.I18n.t("bluetooth.noBluetoothAdapter")')
@@ -23,11 +35,9 @@ def surface(data, name):
         wheel = between(button, "    onWheelMoved: function(delta) {\n", "\n  }\n")
         body = replace(body, wheel, "    onWheelMoved: function(delta) { root.wheel(delta) }")
         body = replace(body, "                  brightnessDebounce.stop()\n", "")
-        # Global font-size/theme writes are not a display backend operation.
-        a = "          // ---------- Text size ----------\n"
-        b = "          // ---------- Scale ----------\n"
-        body = replace(body, between(body, a, b), "")
-        body = replace(body, 'readonly property bool canToggle: display && (!display.enabled || root.enabledDisplayCount > 1)', 'readonly property bool canToggle: false // Output inventory is read-only in this trial.')
+        # Retain original text-size surface; the backend deliberately scopes it
+        # to this shell rather than mutating GNOME/GTK/global font settings.
+        body = replace(body, 'readonly property bool canToggle: display && (!display.enabled || root.enabledDisplayCount > 1)', 'readonly property bool canToggle: !!root.profiles // Opens reviewed profile editing; never a direct toggle.')
         body = replace(body, '          Item {\n            width: parent.width\n            height: Style.space(4)\n          }', '''          Text {
             width: parent.width
             visible: root.errorText !== ""
@@ -38,6 +48,35 @@ def surface(data, name):
             font.family: root.bar.fontFamily
             font.pixelSize: Style.font.bodySmall
           }''')
+        body = replace(body, '          // ---------- Hero: display icon · title/status ----------', '''          Button {
+            width: parent.width
+            text: root.profilePage ? "Back to display" : "Monitor profiles"
+            iconText: root.profilePage ? "󰁍" : "󰍹"
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+            focusable: true
+            visible: !!root.profiles
+            onClicked: { root.profilePage=!root.profilePage;if(root.profilePage)root.profiles.refresh() }
+          }
+          DisplayProfilesView {
+            width: parent.width
+            visible: root.profilePage
+            owner: root.profiles
+            bar: root.bar
+            onBack: root.profilePage=false
+          }
+          Column {
+            width: parent.width
+            spacing: Style.space(14)
+            visible: !root.profilePage
+          // ---------- Hero: display icon · title/status ----------''')
+        body = replace(body, '          PanelSeparator {\n            visible: root.displays.length > 1', '          PanelSeparator {\n            visible: root.displays.length > 1')
+        end = "      }\n    }\n  }\n\n  component ScalePill: Button {"
+        body = replace(body, end, "        } // Original normal-page column.\n"+end)
+        body = replace(body, 'onActivateRequested: if (root.cursorActive)', 'onActivateRequested: if (!root.profilePage && root.cursorActive)')
+        body = replace(body, '        if (!root.cursorActive) { root.cursorActive = true; return }', '        if (root.profilePage) return\n        if (!root.cursorActive) { root.cursorActive = true; return }')
+        body = replace(body, 'contentHeight: panel.fittedContentHeight(panel.loadedContentHeight, Style.space(560))', 'contentHeight: panel.fittedContentHeight(panel.loadedContentHeight)')
+        body = replace(body, '        clip: true', '        clip: true\n        contentHeight: panelColumn.implicitHeight\n        contentWidth: availableWidth')
     for forbidden in ("Process {", "execDetached", "ShellIpc", "omarchy-", "Util."):
         if forbidden in body:
             raise ValueError("Unsafe desktop surface: " + forbidden)
@@ -70,6 +109,9 @@ def bluetooth_controller(data):
     text = data.decode()
     logic = between(text, '  readonly property var deviceGroups:', '  function audioSinks() {')
     logic = replace(logic, '  readonly property var deviceGroups:', '  readonly property var deviceGroups:')
+    logic = logic.replace('Model.deviceRow(', 'root.projectDevice(')
+    resolver = block(logic, '  function deviceFor(row) {')
+    logic = replace(logic, resolver, '  function deviceFor(row) { return root.resolveRow(row); }\n')
     cursor = between(text, '  function moveCursor(delta) {', '  onOpenedChanged: {')
     cursor = cursor.replace('  // \'x\' forgets remembered devices. For connected devices this first\n  // disconnects, then removes the BlueZ pairing record via omarchy-bluetooth-device.\n', '')
     return ('// Derived pure grouping/cursor logic from Omarchy Bluetooth Panel, MIT.\n'

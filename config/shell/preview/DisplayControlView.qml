@@ -28,7 +28,7 @@ DisplayPanelController {
     open: root.opened
     focusTarget: panel.loadedContent
     contentWidth: panel.fittedContentWidth(Style.space(380))
-    contentHeight: panel.fittedContentHeight(panel.loadedContentHeight, Style.space(560))
+    contentHeight: panel.fittedContentHeight(panel.loadedContentHeight)
 
     content: PanelKeyCatcher {
       id: keyCatcher
@@ -36,6 +36,7 @@ DisplayPanelController {
       implicitHeight: panelColumn.implicitHeight
       anchors.fill: parent
       onMoveRequested: function(dx, dy) {
+        if (root.profilePage) return
         if (!root.cursorActive) { root.cursorActive = true; return }
         if (dy !== 0) root.moveCursor(dy)
         else if (dx !== 0) {
@@ -44,7 +45,7 @@ DisplayPanelController {
           else if (root.focusSection === "scale") root.moveCursorH(dx)
         }
       }
-      onActivateRequested: if (root.cursorActive) root.activateCursor()
+      onActivateRequested: if (!root.profilePage && root.cursorActive) root.activateCursor()
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
 
@@ -52,6 +53,8 @@ DisplayPanelController {
         id: scrollArea
         anchors.fill: parent
         clip: true
+        contentHeight: panelColumn.implicitHeight
+        contentWidth: availableWidth
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         ScrollBar.vertical.policy: panelColumn.implicitHeight > height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
         Binding {
@@ -65,6 +68,27 @@ DisplayPanelController {
           width: scrollArea.availableWidth
           spacing: Style.space(14)
 
+          Button {
+            width: parent.width
+            text: root.profilePage ? "Back to display" : "Monitor profiles"
+            iconText: root.profilePage ? "󰁍" : "󰍹"
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+            focusable: true
+            visible: !!root.profiles
+            onClicked: { root.profilePage=!root.profilePage;if(root.profilePage)root.profiles.refresh() }
+          }
+          DisplayProfilesView {
+            width: parent.width
+            visible: root.profilePage
+            owner: root.profiles
+            bar: root.bar
+            onBack: root.profilePage=false
+          }
+          Column {
+            width: parent.width
+            spacing: Style.space(14)
+            visible: !root.profilePage
           // ---------- Hero: display icon · title/status ----------
           Item {
             width: parent.width
@@ -194,6 +218,78 @@ DisplayPanelController {
             }
           }
 
+          // ---------- Text size ----------
+          PanelSeparator {
+            foreground: root.bar.foreground
+          }
+
+          Column {
+            width: parent.width
+            spacing: Style.space(6)
+
+            Item {
+              width: parent.width
+              implicitHeight: Math.max(textSizeHeader.implicitHeight, textSizePx.implicitHeight)
+
+              PanelSectionHeader {
+                id: textSizeHeader
+                text: Commons.I18n.t("monitor.textSize")
+                foreground: root.bar.foreground
+                fontFamily: root.bar.fontFamily
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+              }
+
+              Text {
+                id: textSizePx
+                textFormat: Text.PlainText
+                text: Commons.I18n.formatNumber(textSizeSlider.dragging
+                       ? root.textSizeStops[Math.round(textSizeSlider.liveValue)]
+                       : root.displayedTextPx()) + "px"
+                color: Qt.darker(root.bar.foreground, 1.4)
+                font.family: root.bar.fontFamily
+                font.pixelSize: Style.font.caption
+                font.bold: true
+                anchors.right: parent.right
+                anchors.rightMargin: Style.space(6)
+                anchors.verticalCenter: parent.verticalCenter
+              }
+            }
+
+            CursorSurface {
+              id: textSizeRow
+              width: parent.width
+              height: textSizeSlider.implicitHeight + Style.spacing.controlGap
+              hasCursor: root.cursorActive && root.focusSection === "textsize" && root.selectedIndex === -1
+              onHasCursorChanged: if (hasCursor) root.ensureCursorVisible(textSizeRow)
+              foreground: root.bar.foreground
+              outline: true
+
+              PanelSlider {
+                id: textSizeSlider
+                bar: root.bar
+                anchors.fill: parent
+                anchors.leftMargin: Style.space(6)
+                anchors.rightMargin: Style.space(6)
+                minimum: 0
+                maximum: root.textSizeStops.length - 1
+                step: 1
+                integer: true
+                tickCount: root.textSizeStops.length
+                value: root.currentTextIndex()
+                onReleased: function(v) { root.setTextSize(root.textSizeStops[Math.round(v)]) }
+              }
+
+              HoverHandler {
+                onHoveredChanged: if (hovered && !root.reflowingText) {
+                  root.cursorActive = true
+                  root.focusSection = "textsize"
+                  root.selectedIndex = -1
+                }
+              }
+            }
+          }
+
           // ---------- Scale ----------
           PanelSeparator {
             foreground: root.bar.foreground
@@ -301,6 +397,7 @@ DisplayPanelController {
             font.pixelSize: Style.font.bodySmall
           }
         }
+        } // Original normal-page column.
       }
     }
   }
@@ -336,7 +433,7 @@ DisplayPanelController {
     required property int rowIndex
 
     readonly property bool isFocused: display && display.focused
-    readonly property bool canToggle: false // Output inventory is read-only in this trial.
+    readonly property bool canToggle: !!root.profiles // Opens reviewed profile editing; never a direct toggle.
 
     hasCursor: root.cursorActive && root.focusSection === "monitors" && root.selectedIndex === rowIndex
     onHasCursorChanged: if (hasCursor) root.ensureCursorVisible(monitorRow)

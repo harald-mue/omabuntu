@@ -143,10 +143,10 @@ class InputIntegrationContracts(unittest.TestCase):
 
     def test_original_slider_has_only_availability_seam_and_stale_row_resolver_is_guarded(self):
         files, meta = preview.verified_sources(ROOT)
-        self.assertIn(b'enabled: root.inputControlAvailable', files['AudioOutputView.qml'])
+        self.assertIn(b'enabled: root.inputWriteAvailable', files['AudioOutputView.qml'])
         self.assertIn(b'Routing.sameKey(inputs[j].control, key.control)', files['AudioPanelController.qml'])
         self.assertIn(b'Microphone controls unavailable', files['AudioPanelController.qml'])
-        self.assertEqual(meta['upstream']['AudioOutputView.qml']['stage_transform'], 'audio-native-input-frontend-v5')
+        self.assertEqual(meta['upstream']['AudioOutputView.qml']['stage_transform'], 'audio-native-input-frontend-v8')
 
     def test_actual_provider_fixtures_reject_unexpected_warnings(self):
         for name in ('input-direct', 'input-churn', 'input-guards', 'input-uncertain'):

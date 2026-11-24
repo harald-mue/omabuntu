@@ -20,7 +20,7 @@ No original Style, Color, translations service or shell startup is activated.
 
 ## Ubuntu boundaries and explicit deviations
 
-- **Bluetooth:** native Quickshell BlueZ adapter/device objects power the radio,
+- **Bluetooth (installed legacy checkpoint):** native Quickshell BlueZ adapter/device objects power the radio,
   connect, disconnect, pair and forget. The upstream primitive-only device-row
   projection and grouping are retained. A shared discovery lease prevents one
   trial bar from stopping another bar's scan and never adopts a preexisting
@@ -41,6 +41,18 @@ No original Style, Color, translations service or shell startup is activated.
   Path-based polling does not establish detection of every same-path ABA restart.
   Fake-device checks run the actual action functions and isolated original UI;
   no radio, device, service or installed release was changed by Plan 136.
+  **Plan 158 source completion** now adds one shared optional owned agent,
+  original-toolkit PIN/passkey/confirmation/display/service prompts, structured
+  operation errors/readback, explicit cancellation/uncertainty and primitive
+  row generations. Original grouping/layout/discovery are retained; no default
+  agent, trust, radio/routing policy or service is taken over. Seven real
+  contained QML/Process cases and 22 private-bus native cases pass, and the
+  production-helper package/152 seals are verified. Owner-approved Plan 159 now
+  installs the narrow derivative with a wallpaper-disabled managed-bar restart,
+  zero new warnings and Plan 157 fallback; no agent/native action is activated.
+  New behavior remains unverified on real devices, not hardware/security
+  acceptance. See
+  [owned Bluetooth completion and exclusions](bluetooth-completion.md).
 - **Brightness:** `tools/display_backend.py` reads the laptop's actual backlight
   and calls logind's system-bus session `auto` `SetBrightness`. No sysfs writes,
   brightnessctl dependency, Arch helper or brightness OSD. Slider release and
@@ -51,8 +63,21 @@ No original Style, Color, translations service or shell startup is activated.
   other active output. Unsafe requests fail with a panel error, not a layout
   rearrangement. No config writes or reload. Output inventory is read-only;
   monitor disabling, topology editing, global font-size changes and text-size
-  controls are explicitly excluded. Brightness/scale writes are click-driven;
-  panel startup and polling only read status.
+  controls are excluded from this **installed legacy checkpoint**. Brightness/
+  scale writes are click-driven; panel startup/polling only read status.
+  Plan 160 source now adds a distinct same-popup profile page with persistent
+  per-output layout/mode/scale/transform/enabled state, explicit digest-reviewed
+  Apply/Keep/Restore, independent guarded recovery and opt-in exact-topology
+  login/hotplug reapplication. Original text-size controls are restored only for
+  shell-local styling, not GNOME/GTK/global font settings. The older scale helper
+  cooperates with profile locks/pending recovery. The verified 154-seal package
+  is a source checkpoint; owner-approved Plan 161 now installs the narrow
+  thirteen-file derivative with 154 matching seals and a wallpaper-disabled
+  managed-bar restart. Legacy current-directory compatibility is corrected
+  without permission changes. Installed read-only status and geometry checks
+  pass; no profile/text state or automation was activated; Plan 159 is fallback. New
+  behavior is not native display/recovery acceptance; exact connector-rule merge
+  and wildcard-default limitations are documented in [monitor profiles](display-profiles.md).
 - **Power:** native UPower supplies battery percentage, capacity, charge rate
   and estimated time. Quickshell's native `PowerProfiles` interface talks to
   Ubuntu's existing power-profiles-daemon, avoiding a powerprofilesctl subprocess

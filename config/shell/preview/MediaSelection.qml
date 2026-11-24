@@ -17,6 +17,9 @@ Item {
   property int playSerial: 0
   readonly property var transport: Identity.createAuthority()
   property string errorText: ""
+  property QtObject feedback: null
+  property QtObject artwork: null
+  readonly property string artSource: artwork ? artwork.source : ""
   // One shared observer owns playing order across outputs. Bind playback nodes
   // before reading their properties; native objects stay behind this boundary.
   readonly property var playbackStreams: {
@@ -162,24 +165,31 @@ Item {
   }
   function runAction(action, showFeedback, targetKey) {
     var player = transport.resolve(players, targetKey)
-    if (showFeedback !== false || !player || !player.canControl || !MediaModel.canHandleAction(player, action)) {
+    if ((showFeedback !== undefined && typeof showFeedback !== "boolean")
+        || (showFeedback !== false && (typeof feedback === "undefined" || !feedback))
+        || !player || !player.canControl || !MediaModel.canHandleAction(player, action)) {
       errorText = "Media target changed or action is unavailable"
       return false
     }
     var key = playerKey(player)
+    var feedbackTitle = String(player.trackTitle || "")
     var handled = false
+    var iconName = "media"
     try {
     if (action === "next") {
+      iconName = "media-next"
       if (player && player.canGoNext) {
         player.next()
         handled = true
       }
     } else if (action === "previous") {
+      iconName = "media-previous"
       if (player && player.canGoPrevious) {
         player.previous()
         handled = true
       }
     } else if (action === "play") {
+      iconName = "media-play"
       if (player && player.canPlay) {
         player.play()
         handled = true
@@ -188,6 +198,7 @@ Item {
         handled = true
       }
     } else if (action === "pause") {
+      iconName = "media-pause"
       if (player && player.canPause) {
         player.pause()
         handled = true
@@ -196,6 +207,7 @@ Item {
         handled = true
       }
     } else if (action === "playPause") {
+      iconName = player && player.isPlaying ? "media-pause" : "media-play"
       if (player && player.isPlaying && player.canPause) {
         player.pause()
         handled = true
@@ -214,6 +226,7 @@ Item {
     }
     if (handled && transport.resolve(players, targetKey) === player) preferredPlayerKey = key
     errorText = handled ? "" : "Media action is unavailable"
+    if (handled && showFeedback !== false && feedback) feedback.media(action, feedbackTitle, iconName)
     return handled // Request issued, not asynchronous server acceptance.
   }
 

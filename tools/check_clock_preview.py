@@ -16,6 +16,7 @@ import zlib
 
 import audit_widgets
 import audio_frontend
+import audio_feedback_frontend
 import media_frontend
 import check_runtime
 import tooltip_port
@@ -141,9 +142,9 @@ DESKTOP_UPSTREAM = {
     "Port/DockModel.js": "shell/plugins/dock/DockModel.js",
 }
 DESKTOP_TRANSFORMS = {
-    "BluetoothControlView.qml": ("bluetooth-surface-v1", desktop_frontends.bluetooth),
-    "BluetoothPanelController.qml": ("bluetooth-cursor-v1", desktop_frontends.bluetooth_controller),
-    "DisplayControlView.qml": ("display-surface-v1", desktop_frontends.display),
+    "BluetoothControlView.qml": ("bluetooth-agent-surface-v2", desktop_frontends.bluetooth),
+    "BluetoothPanelController.qml": ("bluetooth-owned-cursor-v2", desktop_frontends.bluetooth_controller),
+    "DisplayControlView.qml": ("display-profiles-surface-v2", desktop_frontends.display),
     "PowerControlView.qml": ("power-surface-v1", desktop_frontends.power),
     "DockWindow.qml": ("floating-dock-window-v2", desktop_frontends.dock),
 }
@@ -165,7 +166,7 @@ AUTHORED = {name: "config/shell/preview/" + source for name, source in (
     ("MediaIdentity.js", "MediaIdentity.js"),
     ("AudioOutputProvider.qml", "AudioOutputProvider.qml"), ("AudioPanelController.qml", "AudioPanelController.qml"),
     ("NetworkPanelController.qml", "NetworkPanelController.qml"))}
-for name in ("DesktopPanelController", "BluetoothActions", "DisplayPanelController", "PowerPanelController", "FloatingDock"):
+for name in ("DisplayProfilesState", "DisplayProfilesView", "BluetoothSession", "BluetoothPairingPrompt", "DesktopPanelController", "BluetoothActions", "DisplayPanelController", "PowerPanelController", "FloatingDock"):
     AUTHORED[name + ".qml"] = "config/shell/preview/" + name + ".qml"
 AUTHORED["Commons/ElsewhenSettings.qml"] = "config/shell/preview/ElsewhenSettings.qml"
 AUTHORED["Commons/TrialDesktopState.qml"] = "config/shell/preview/TrialDesktopState.qml"
@@ -176,6 +177,12 @@ AUTHORED["NetworkSpeedController.qml"] = "config/shell/preview/NetworkSpeedContr
 AUTHORED["DockState.qml"] = "config/shell/preview/DockState.qml"
 AUTHORED["AppearanceState.qml"] = "config/shell/preview/AppearanceState.qml"
 AUTHORED["IndicatorState.qml"] = "config/shell/preview/IndicatorState.qml"
+for name in ("AudioNativeState", "AudioNativeControls", "AudioFeedback", "MediaArtwork"):
+    AUTHORED[name + ".qml"] = "config/shell/preview/" + name + ".qml"
+AUTHORED["AudioUntyped.js"] = "config/shell/preview/AudioUntyped.js"
+UPSTREAM.update({"AudioOsdView.qml": "shell/plugins/osd/Osd.qml",
+                 "Port/OsdModel.js": "shell/plugins/osd/OsdModel.js",
+                 "Ui/SizedImage.qml": "shell/Ui/SizedImage.qml"})
 AUTHORED["CommandMenu.qml"] = "config/shell/preview/CommandMenu.qml"
 AUTHORED["LaunchFeedback.qml"] = "config/shell/preview/LaunchFeedback.qml"
 AUTHORED["ImagePicker.qml"] = "config/shell/preview/ImagePicker.qml"
@@ -188,7 +195,7 @@ MAPS = {"Ui/qmldir": "module qs.Ui\nBarWidget 1.0 BarWidget.qml\nWidgetButton 1.
         "Commons/qmldir": "module qs.Commons\nsingleton Style 1.0 Style.qml\nsingleton Color 1.0 Color.qml\nsingleton I18n 1.0 I18n.qml\n"}
 MAPS["Ui/qmldir"] += "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "PopupCard", "BarIconButton", "BarIconContent", "IconContentBounds", "Button", "BorderSurface", "BorderOverlay", "PanelSlider", "KeyboardPanel", "PanelKeyCatcher",
-    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField", "Panel", "PanelController", "OverlayWindow", "SpeedTestOverlay", "BarIndicator"))
+    "CursorSurface", "ToggleSwitch", "PanelToolTip", "PanelSeparator", "PanelSectionHeader", "PanelActionButton", "TextField", "Panel", "PanelController", "OverlayWindow", "SpeedTestOverlay", "BarIndicator", "SizedImage"))
 MAPS["Elsewhen/qmldir"] = "".join(name + " 1.0 " + name + ".qml\n" for name in (
     "ArcText", "Avatar", "CityMatches", "CityRow", "CitySearch", "DaylightStrip",
     "ElsewhenPanel", "Globe", "GlobeFooter", "HeroTitle", "MiniGlobe", "MoonDot"))
@@ -256,9 +263,10 @@ def verified_sources(root):
     for target, source_path in UPSTREAM.items():
         record = meta["upstream"][target]
         vendor = "vendor/omarchy/" + source_path
-        transform = {"ClockLabel.qml": "readonly-clock-v1", "AudioOutputView.qml": "audio-native-input-frontend-v5",
-                     "Commons/MediaSelection.qml": "guarded-media-owner-v2",
-                     "MediaControlView.qml": "original-media-widget-v1",
+        transform = {"ClockLabel.qml": "readonly-clock-v1", "AudioOutputView.qml": "audio-native-input-frontend-v8",
+                     "AudioOsdView.qml": "original-audio-osd-v1",
+                     "Commons/MediaSelection.qml": "guarded-media-owner-v3",
+                     "MediaControlView.qml": "original-media-widget-v2",
                      "CalendarPanel.qml": "clock-calendar-v2", "ClockControlView.qml": "clock-calendar-host-v2",
                      "Ui/KeyboardPanel.qml": "ondemand-keyboard-panel-v1",
                      "BarTooltip.qml": "bar-tooltip-window-v1", "BarTooltipHost.qml": "bar-tooltip-host-v1",
@@ -291,9 +299,10 @@ def verified_sources(root):
         if (record.get("bytes") != len(data) or record.get("sha256") != hashlib.sha256(data).hexdigest()
                 or record.get("git_blob_sha1") != blob):
             raise builder.BuildError("Upstream clock-preview source changed")
-        transforms = {"readonly-clock-v1": derive_clock, "audio-native-input-frontend-v5": audio_frontend.derive_audio,
-                      "guarded-media-owner-v2": media_frontend.derive_selection,
-                      "original-media-widget-v1": media_frontend.derive_widget,
+        transforms = {"readonly-clock-v1": derive_clock, "audio-native-input-frontend-v8": audio_frontend.derive_audio,
+                      "original-audio-osd-v1": audio_feedback_frontend.derive_osd,
+                      "guarded-media-owner-v3": media_frontend.derive_selection,
+                      "original-media-widget-v2": media_frontend.derive_widget,
                       "ondemand-keyboard-panel-v1": audio_frontend.derive_keyboard,
                       "bar-tooltip-window-v1": tooltip_port.derive_window, "bar-tooltip-host-v1": tooltip_port.derive_host,
                       "original-horizontal-peek-v5": bar_frame.derive_frame,
@@ -317,7 +326,7 @@ def verified_sources(root):
             raise builder.BuildError("Generated network destination mirror differs")
         if target in DESKTOP_TRANSFORMS and files[target] != audit_widgets.bounded(root, "config/shell/preview/" + target, 65536):
             raise builder.BuildError("Generated desktop frontend mirror differs")
-        if target in ("AudioOutputView.qml", "Commons/MediaSelection.qml", "MediaControlView.qml"):
+        if target in ("AudioOutputView.qml", "Commons/MediaSelection.qml", "MediaControlView.qml", "AudioOsdView.qml"):
             mirror = "config/shell/preview/" + target.rsplit("/", 1)[-1]
             if files[target] != audit_widgets.bounded(root, mirror, 65536):
                 kind = "audio" if target == "AudioOutputView.qml" else "media"

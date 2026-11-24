@@ -1,5 +1,9 @@
 """Playback-stream source contracts; actual JS/QML runs in isolated fixtures."""
 from pathlib import Path
+import json
+import re
+import shutil
+import subprocess
 import sys
 import unittest
 
@@ -68,11 +72,56 @@ class AudioStreamTests(unittest.TestCase):
             self.assertTrue(fixtures.classify(name, 0, good))
             self.assertFalse(fixtures.classify(name, 0, good + 'WARN unexpected\n'))
 
+    @unittest.skipUnless(shutil.which('node'), 'Node needed for label projection checks')
+    def test_duplicate_metadata_is_bounded_stable_and_never_participant_grouping(self):
+        def js(path):
+            return re.sub(r'^\.(?:pragma|import).*\n', '', path.read_text(), flags=re.M)
+        program = '''const assert=require('assert'),vm=require('vm');
+const Model=vm.runInNewContext(MODEL+';({streamLabel,streamRepresentsPlayer})');
+const Actions=vm.runInNewContext(ACTIONS+';({playbackStream,streamSerial})');
+const P=vm.runInNewContext(PRESENTATION+';({streamSnapshot})',{Model,Actions});
+function stream(id,extra={}){return {id,name:'browser-'+id,ready:true,isSink:true,isStream:true,
+ description:'Microsoft Edge',properties:Object.assign({'object.serial':String(100+id),'application.name':'Microsoft Edge'},extra),
+ audio:{volume:.5,muted:false}}}
+const a=stream(1,{'media.name':'WebRTC playback'}),b=stream(2,{'media.name':'WebRTC playback'});
+let rows=P.streamSnapshot(true,[a,b]).streams;
+assert.strictEqual(rows.length,2);assert.strictEqual(rows[0].label,'Microsoft Edge · Stream #101 · WebRTC playback');
+assert.strictEqual(rows[1].label,'Microsoft Edge · Stream #102 · WebRTC playback');
+assert.strictEqual(P.streamSnapshot(true,[b,a]).streams[1].label,rows[0].label);
+assert.strictEqual(P.streamSnapshot(true,[a]).streams[0].label,'Microsoft Edge');
+assert(Object.isFrozen(rows[0]));assert.strictEqual(rows[0].properties,undefined);
+a.properties['media.name']='';b.properties['media.name']={secret:'never stringify'};
+rows=P.streamSnapshot(true,[a,b]).streams;assert.strictEqual(rows[0].label,'Microsoft Edge · Stream #101');
+assert.strictEqual(rows[1].label,'Microsoft Edge · Stream #102');
+a.properties['media.name']='bad'+String.fromCharCode(10)+'title';a.properties['media.role']='Communication';
+assert.strictEqual(P.streamSnapshot(true,[a,b]).streams[0].label,'Microsoft Edge · Stream #101 · Communication');
+a.properties['media.name']='X'.repeat(513);
+assert(!P.streamSnapshot(true,[a,b]).streams[0].label.includes('XXX'));
+a.properties['media.name']='Z'.repeat(200);
+assert(P.streamSnapshot(true,[a,b]).streams[0].label.endsWith('Z'.repeat(96)));
+a.properties['media.name']='spoof'+String.fromCharCode(0x202e);
+assert(!P.streamSnapshot(true,[a,b]).streams[0].label.includes('spoof'));
+const unbound=stream(3);unbound.ready=false;Object.defineProperty(unbound,'properties',{get(){throw Error('unbound metadata read')}});
+assert.strictEqual(P.streamSnapshot(true,[a,b,unbound]).streams.length,2);
+b.properties['object.serial']='999';assert(P.streamSnapshot(true,[a,b]).streams[1].label.includes('Stream #999'));
+console.log('stream-labels-ok');'''
+        for token, data in (('MODEL', js(ROOT/'vendor/omarchy/shell/plugins/panels/audio/Model.js')),
+                            ('ACTIONS', js(ROOT/'config/shell/preview/AudioActions.js')),
+                            ('PRESENTATION', js(ROOT/'config/shell/preview/AudioPresentation.js'))):
+            program = program.replace(token, json.dumps(data), 1)
+        result = subprocess.run(['node', '-e', program], capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), 'stream-labels-ok')
+
+    def test_stream_heading_has_a_real_english_catalog_entry(self):
+        self.assertIn('"audio.sources": "APPLICATION AUDIO"', self.source('I18n.qml'))
+        self.assertIn('textFormat: Text.PlainText', self.source('AudioOutputView.qml'))
+
     def test_stream_source_is_sealed_and_vendor_parent_is_unchanged(self):
         files, meta = preview.verified_sources(ROOT)
         self.assertEqual(files['AudioOutputView.qml'].decode(), self.source('AudioOutputView.qml'))
         self.assertEqual(meta['upstream']['AudioOutputView.qml']['stage_transform'],
-                         'audio-native-input-frontend-v5')
+                         'audio-native-input-frontend-v8')
         self.assertEqual(meta['upstream']['AudioOutputView.qml']['source_modifications'], [])
 
 

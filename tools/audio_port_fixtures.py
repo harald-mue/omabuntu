@@ -1,5 +1,6 @@
 """Fixed audio-output probes with fake nodes, never native PipeWire."""
 import re
+import audio_completion_fixtures as completion
 
 CASES = ("no-output", "glyphs", "controls", "selection", "bounds", "churn", "navigation",
          "streams", "stream-guards", "stream-navigation", "stream-drag",
@@ -7,7 +8,7 @@ CASES = ("no-output", "glyphs", "controls", "selection", "bounds", "churn", "nav
          "media-labels", "media-selection", "media-idle", "media-churn",
          "media-transport", "media-guards", "media-widget", "media-widget-churn",
          "route-direct", "route-dsp", "route-churn", "route-unknown",
-         "input-direct", "input-churn", "input-guards", "input-uncertain", "negative")
+         "input-direct", "input-churn", "input-guards", "input-uncertain", "negative") + completion.CASES
 
 MPRIS_SINGLETON = '''pragma Singleton
 import QtQml
@@ -109,7 +110,7 @@ Item {
   height: contentHeight
   visible: open
   function fittedContentWidth(value) { return Math.min(800,value); }
-  function fittedContentHeight(value,cap) { return Math.min(cap,value+28); }
+  function fittedContentHeight(value,cap) { return Math.min(cap > 0 ? cap : 900,value+28); }
   function ensureContent() { contentRequested=true;return loader.item; }
   function close() { if(owner)owner.close(); }
   onOpenChanged: {
@@ -123,6 +124,8 @@ MARKER = "OMABUNTU_AUDIO_FIXTURE_OK"
 
 
 def fixture(name):
+    if name in completion.CASES:
+        return completion.fixture(name)
     if name not in CASES:
         raise ValueError("Unknown audio fixture")
     return '''//@ pragma IgnoreSystemSettings
@@ -608,6 +611,17 @@ ShellRoot {
           view.setStreamVolume(key,8);require(stream.audio.volume===1.5 && stream.audio.muted,"original stream amplification limit; no unmute");
           view.setStreamVolume(key,-8);require(stream.audio.volume===0,"stream lower bound");
           for(var bad of [NaN,Infinity,"0.5",true,null])require(!Actions.setStreamVolume(nodes,key,bad),"invalid stream gain refused");
+          var browser=[]
+          for(var s=0;s<5;s++)browser.push({id:10+s,name:"fixture-browser-"+s,ready:true,isSink:true,isStream:true,
+            properties:{"object.serial":String(2001+s),"application.name":"Microsoft Edge","media.name":"WebRTC playback"},
+            audio:{volume:.5,muted:false}})
+          test.nodes=[a,b].concat(browser);backend.sync()
+          require(view.displayAudioStreams.length===5,"duplicate applications remain independently addressed streams")
+          var browserRows=view.displayAudioStreams
+          require(browserRows.every(function(row,index){return row.label==="Microsoft Edge · Stream #"+(2001+index)+" · WebRTC playback"}),"duplicate labels show native stream IDs and only supplied metadata")
+          require(findItem(view.panelWindow.loadedContent,function(item){return item.text==="APPLICATION AUDIO"})!==null,"application audio heading resolves instead of exposing translation key")
+          view.setStreamVolume(browserRows[2],.8)
+          require(browser.every(function(node,index){return node.audio.volume===(index===2?.8:.5)})&&a.audio.volume===.42,"duplicate application gain remains stream-local; never a participant or group control")
         }
         if(mode==="stream-guards") {
           var capture=Object.assign({},stream,{isSink:false});

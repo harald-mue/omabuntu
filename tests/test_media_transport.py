@@ -31,7 +31,7 @@ class MediaTransportTests(unittest.TestCase):
         self.assertEqual(record['git_blob_sha1'], 'b4c9a7d38690628eb47a9b5856a6ab23ce350a21')
         self.assertEqual(record['license'], 'MIT')
         self.assertEqual(record['source_modifications'], [])
-        self.assertEqual(record['stage_transform'], 'original-media-widget-v1')
+        self.assertEqual(record['stage_transform'], 'original-media-widget-v2')
         self.assertEqual(files['MediaControlView.qml'].decode(), self.read('MediaControlView.qml'))
         self.assertEqual(files['MediaIdentity.js'].decode(), self.read('MediaIdentity.js'))
 
@@ -47,14 +47,16 @@ class MediaTransportTests(unittest.TestCase):
         self.assertIn('Request issued, not asynchronous server acceptance', owner)
         self.assertNotIn('playerForAction(', owner)
 
-    def test_widget_preserves_original_layout_without_native_objects_or_artwork(self):
+    def test_widget_preserves_original_layout_with_only_admitted_artwork(self):
         widget = self.read('MediaControlView.qml')
         self.assertEqual(media_frontend.derive_widget(self.parent('BarWidget.qml')).decode(), widget)
         for witness in ('Row {', 'NumberAnimation on x', 'PopupCard {', 'id: column',
                         'id: sourceList', 'id: sourceRow', 'iconText: "󰒭"',
                         'root.mediaService.sameTarget(', 'sourceRow.player.transportKey'):
             self.assertIn(witness, widget)
-        for excluded in ('SizedImage {', 'trackArtUrl', 'firstPartyServiceFor(', 'Quickshell.Services.Mpris', 'Process {'):
+        self.assertIn('SizedImage {', widget)
+        self.assertIn('url: root.mediaService ? root.mediaService.artSource : ""', widget)
+        for excluded in ('trackArtUrl', 'firstPartyServiceFor(', 'Quickshell.Services.Mpris', 'Process {'):
             self.assertNotIn(excluded, widget)
         self.assertIn('onHasMediaChanged: if (!hasMedia) close()', widget)
         self.assertIn('function onBarHiddenChanged()', widget)

@@ -71,8 +71,10 @@ class DesktopPanelTests(unittest.TestCase):
 
     def test_display_does_not_offer_global_font_or_output_writes(self):
         text = (ROOT / 'config/shell/preview/DisplayControlView.qml').read_text()
-        self.assertNotIn('// ---------- Text size ----------', text)
-        self.assertIn('readonly property bool canToggle: false', text)
+        self.assertIn('// ---------- Text size ----------', text)
+        self.assertIn('readonly property bool canToggle: !!root.profiles', text)
+        self.assertIn('DisplayProfilesView {', text)
+        self.assertNotIn('gsettings', text)
         self.assertIn('root.errorText', text)
 
     def test_scale_program_changes_only_named_scale(self):

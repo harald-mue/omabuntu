@@ -65,7 +65,7 @@ def scale_program(monitors, output, scale):
         if (max(x, ox) < min(x + width / scale, ox + ow / oscale)
                 and max(y, oy) < min(y + height / scale, oy + oh / oscale)):
             raise ValueError('Scale would overlap another output; layout left unchanged')
-    # Fields verified against Hyprland v0.56.2 LuaBindingsConfigRules.cpp.
+    # Fields/merge verified against Hyprland 0.57.0 LuaBindingsConfigRules.cpp.
     # A partial rule preserves the existing mode, position, transform and colors.
     return 'hl.monitor({ output = ' + json.dumps(output) + ', scale = ' + str(scale) + ' }); return "ok"'
 
@@ -111,10 +111,17 @@ def main(argv=None):
         scale = float(args.values[1])
         if not math.isfinite(scale):
             raise ValueError('Invalid scale')
-        program = scale_program(state['displays'], args.values[0], scale)
-        save_previous(state)
-        if run(['hyprctl', 'eval', program]).strip() != 'ok':
-            raise ValueError('Runtime scale was not acknowledged')
+        # Cooperate with profile confirmation/recovery and automation; never let
+        # the older scale slider bypass a pending profile transaction.
+        import display_profiles
+        profiles = display_profiles.Profiles()
+        with profiles.lock():
+            profiles.idle()
+            state = status()
+            program = scale_program(state['displays'], args.values[0], scale)
+            save_previous(state)
+            if run(['hyprctl', 'eval', program]).strip() != 'ok':
+                raise ValueError('Runtime scale was not acknowledged')
     elif args.values:
         raise ValueError('Status takes no arguments')
     print(json.dumps(status() if args.action != 'status' else state))

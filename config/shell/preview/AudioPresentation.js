@@ -62,6 +62,20 @@ function inputSnapshot(ready, nodes, source) {
   return Object.freeze({ready:!!ready, current:current, inputs:Object.freeze(rows)});
 }
 
+// Keep descriptors bounded and literal; never interpret browser/meeting metadata.
+function streamDescriptor(node, label) {
+  var p = node.properties || {};
+  var values = [p["media.name"], node.description, p["media.role"]];
+  for (var i = 0; i < values.length; ++i) {
+    var value = values[i];
+    if (typeof value !== "string" || value.length > 512
+        || /[\x00-\x1f\x7f\u202a-\u202e\u2066-\u2069]/.test(value)) continue;
+    value = value.trim().replace(/\s+/g, " ");
+    if (value && value.toLowerCase() !== label.trim().toLowerCase()) return value.slice(0, 96);
+  }
+  return "";
+}
+
 // Read bound streams only; unbound properties must never be dereferenced.
 // No native object or arbitrary property dictionary reaches a visual delegate.
 function streamSnapshot(ready, nodes, media) {
@@ -73,10 +87,19 @@ function streamSnapshot(ready, nodes, media) {
     if (Actions.playbackStream(node) && node.ready && Actions.streamSerial(node)
         && Number.isInteger(node.id) && typeof node.name === "string" && node.name) eligible.push(node);
   }
-  var rows = eligible.map(function(node) {
+  var labels = eligible.map(function(node) { return String(Model.streamLabel(node, players, eligible) || "Stream"); });
+  var counts = Object.create(null);
+  labels.forEach(function(label) { var key = label.trim().toLowerCase(); counts[key] = (counts[key] || 0) + 1; });
+  var rows = eligible.map(function(node, index) {
+    var label = labels[index];
+    if (counts[label.trim().toLowerCase()] > 1) {
+      var detail = streamDescriptor(node, label);
+      // A current server-local stream ID, NOT a person or meeting participant.
+      label += " · Stream #" + Actions.streamSerial(node) + (detail ? " · " + detail : "");
+    }
     var volume = Number(node.audio.volume);
     return Object.freeze({id:node.id, name:node.name, serial:Actions.streamSerial(node),
-      label:String(Model.streamLabel(node, players, eligible) || "Stream"),
+      label:label,
       active:!!Model.streamRepresentsPlayer(node, active, players, eligible),
       volume:isFinite(volume) ? volume : 0, muted:!!node.audio.muted});
   });

@@ -142,8 +142,12 @@ when only a bounded slice has been implemented. No commit without approval.
   - [x] Verify stale-write rejection and shared pending-edit failure recovery.
   - [x] Restore reviewed original widget pointer/ghost/removal source and recovery action.
   - [ ] Restore remaining theme/service owners and separately review unported layout variants.
-- [ ] Implement C reviewed Bluetooth ownership/error and optional policy adapters.
-- [ ] Implement D reversible persistent display configuration.
+- [x] Implement C reviewed Bluetooth ownership/error (Plan 158 source complete;
+  optional trust/radio/routing/profile policies explicitly excluded, deployment
+  and native authentication acceptance remain separate unperformed gates).
+- [x] Implement D reversible persistent display configuration (Plan 160 source
+  complete; Plan 161 locally installed with automation off and layout unchanged;
+  native display/login/hotplug/recovery acceptance remains separate and pending).
 - [ ] Implement the agreed E optional integrations after dependency/license review.
 - [x] Update provenance/docs and run complete unit and clean-source checks.
 

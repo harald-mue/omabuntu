@@ -7,6 +7,13 @@ import qs.Commons
 DesktopPanelController {
   id: root
   property var displays: []
+  property var profiles: null
+  property bool profilePage: false
+  readonly property var textSizeStops: [9,10,11,12,14,16,20]
+  function currentTextIndex() { return textSizeStops.indexOf(Style.font.baseSize) }
+  function displayedTextPx() { return Style.font.baseSize }
+  function setTextSize(value) { if(profiles&&!profiles.busy&&!profiles.data.pending)profiles.textSize(value) }
+  function adjustTextSize(delta) { setTextSize(textSizeStops[Math.max(0,Math.min(textSizeStops.length-1,currentTextIndex()+delta))]) }
   property int brightnessPercent: 0
   property bool brightnessAvailable: false
   property string focusedMonitor: ""
@@ -23,11 +30,17 @@ DesktopPanelController {
   readonly property bool reflowingText: false
   readonly property var scaleValues: ["1", "1.25", "1.5", "1.6", "2", "3", "4"]
   readonly property int enabledDisplayCount: displays.filter(function(d) { return d.enabled; }).length
-  onOpenedChanged: if (opened) request("status", [])
+  onOpenedChanged: { profilePage=false;if (opened) request("status", []) }
   Component.onCompleted: request("status", [])
+  Connections {
+    target: root.profiles
+    function onBusyChanged() { if(root.profiles.busy)root.queue=root.queue.filter(function(item){return item[0]!=="scale"}) }
+    function onDataChanged() { if(root.profiles.data.pending)root.queue=root.queue.filter(function(item){return item[0]!=="scale"}) }
+  }
   function request(kind, args) {
     if (!helper.endsWith("/display_backend.py") || helper.indexOf(" ") >= 0) { errorText = "Display helper is unavailable"; return; }
     if (["status", "brightness", "scale"].indexOf(kind) < 0) return;
+    if(kind==="scale"&&profiles&&(profiles.busy||profiles.data.pending)) {errorText="A monitor profile transaction is pending";return}
     var item = [kind].concat(args)
     var remaining = queue.filter(function(old) {
       return old[0] !== kind || (kind === "scale" && old[1] !== item[1])
@@ -67,12 +80,13 @@ DesktopPanelController {
   function brightnessName(percent) { return Math.round(percent) + "%"; }
   function effectiveScale(value) { return Number(value); }
   function activeScaleIndex() { return scaleValues.indexOf(monitorScale); }
-  function setScale(value) { monitorScale = String(value); request("scale", [focusedMonitor, String(value)]); }
-  function toggleDisplay(name, enabled) {} // Read-only output inventory; no disabling.
+  function setScale(value) { if(profiles&&(profiles.busy||profiles.data.pending))return;monitorScale = String(value); request("scale", [focusedMonitor, String(value)]); }
+  function toggleDisplay(name, enabled) { profilePage=true;if(profiles)profiles.refresh() } // Enable/disable requires the reviewed profile transaction.
   // Cursor/section logic derived from the pinned Omarchy monitor/Panel.qml (MIT).
   readonly property var visibleSections: {
     var list = []
     if (brightnessAvailable) list.push("brightness")
+    if(profiles)list.push("textsize")
     list.push("scale")
     if (displays.length > 1) list.push("monitors")
     return list

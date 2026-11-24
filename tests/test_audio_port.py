@@ -17,8 +17,8 @@ class AudioPortTests(unittest.TestCase):
             self.assertEqual(meta["upstream"][target]["stage_transform"], "none")
 
     def test_typed_sources_admitted_without_helper_or_process_route(self):
-        # Plan 001: typed capture devices are native PipeWire; the upstream
-        # helper and the wpctl/pactl untyped route stay excluded everywhere.
+        # Typed controls remain native; the optional proof-bound untyped bridge
+        # is a separate owner, never an upstream shell-command dispatch seam.
         for name in ("AudioOutputProvider.qml", "AudioOutputView.qml", "AudioActions.js", "AudioPresentation.js"):
             text = (ROOT / "config/shell/preview" / name).read_text()
             for forbidden in ("Process {", "execDetached", "wpctl", "pactl", "Quickshell.Io", "UntypedInput", "omarchy-"):
@@ -26,7 +26,8 @@ class AudioPortTests(unittest.TestCase):
 
     def test_provider_input_boundary_is_native_and_gated(self):
         text = (ROOT / "config/shell/preview/AudioOutputProvider.qml").read_text()
-        self.assertIn("!node.isSink && !node.isStream && node.audio", text)
+        self.assertIn("!node.isSink && !node.isStream", text)
+        self.assertIn("Untyped.merge(Input.snapshot(", text)
         self.assertIn('!== "quickshell"', text)
         self.assertEqual(text.count("Pipewire.preferredDefaultAudioSource = node"), 1)
         self.assertIn("function chooseInput(key)", text)
@@ -52,7 +53,8 @@ class AudioPortTests(unittest.TestCase):
         text = (ROOT / "config/shell/preview/AudioOutputProvider.qml").read_text()
         self.assertIn("PwObjectTracker", text)
         self.assertNotIn("Component.onCompleted", text)
-        self.assertNotIn("onStateChanged", text)
+        self.assertIn('onStateChanged: if(feedback)feedback.observe("output",state.current)', text)
+        self.assertNotIn("onCompleted:", text)
         self.assertEqual(text.count("Pipewire.preferredDefaultAudioSink = node"), 1)
         self.assertIn("function chooseOutput(key)", text)
         self.assertEqual(text.count("Pipewire.preferredDefaultAudioSource = node"), 1)
@@ -69,7 +71,7 @@ class AudioPortTests(unittest.TestCase):
         self.assertIn("wheelRemainder / 120", controller)
 
     def test_fixed_fixtures_are_not_native_audio(self):
-        self.assertEqual(len(fixtures.CASES), 32)
+        self.assertEqual(len(fixtures.CASES), 43)
         with self.assertRaises(ValueError):
             fixtures.fixture("play-test-sound")
         text = fixtures.fixture("controls")

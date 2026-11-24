@@ -83,8 +83,9 @@ class IndicatorIntegrationTests(unittest.TestCase):
             bar_layout.with_optional(original, 'recording', True)
         source = (ROOT / 'tools/package_user.py').read_text()
         self.assertIn("'indicator_native.py', 'indicator_state.py'", source)
-        self.assertNotIn("'audio_profiles.py'", source)
-        self.assertNotIn("'audio_pactl.py'", source)
+        self.assertIn("'audio_profiles.py'", source)
+        self.assertIn("'audio_controls.py'", source)
+        self.assertIn("'audio_pactl.py'", source)
         files, _ = check_clock_preview.verified_sources(ROOT)
         for name in ('DndIndicator.qml', 'NightLightIndicator.qml', 'IndicatorState.qml'):
             self.assertIn(name, files)

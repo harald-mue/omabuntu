@@ -44,7 +44,7 @@ class MediaSelectionTests(unittest.TestCase):
         for target in ('Port/MediaModel.js', 'Commons/MediaSelection.qml'):
             self.assertEqual(meta['upstream'][target]['license'], 'MIT')
             self.assertEqual(meta['upstream'][target]['source_modifications'], [])
-        self.assertEqual(meta['upstream']['Commons/MediaSelection.qml']['stage_transform'], 'guarded-media-owner-v2')
+        self.assertEqual(meta['upstream']['Commons/MediaSelection.qml']['stage_transform'], 'guarded-media-owner-v3')
 
     def test_extraction_fails_closed_on_missing_or_duplicate_witnesses(self):
         original = self.parent()

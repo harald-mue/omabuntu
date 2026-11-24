@@ -30,6 +30,7 @@ class ClockPreviewTests(unittest.TestCase):
                  "config/shell/preview/AudioOutputView.qml",
                  "config/shell/preview/MediaSelection.qml",
                  "config/shell/preview/MediaControlView.qml",
+                 "config/shell/preview/AudioOsdView.qml",
                  "config/shell/preview/NetworkControlView.qml",
                  "config/shell/preview/WorkspaceSwitcher.qml",
                  "config/shell/preview/MonitorWorkspaces.qml",
@@ -166,9 +167,8 @@ class ClockPreviewTests(unittest.TestCase):
                     self.assertNotIn(forbidden, text)
                 continue
             if name.endswith("Color.qml"):
-                # The palette and font singletons watch exactly the two reviewed
-                # state files (theme colors, applied font family).
-                self.assertEqual(text.count("property FileView"), 2)
+                # Palette, family and shell-local text-size are reviewed inputs.
+                self.assertEqual(text.count("property FileView"), 3)
                 self.assertIn("theme.json", text)
                 self.assertIn("font.txt", text)
                 for forbidden in ("Process", "execDetached", "ShellIpc", "hyprctl"):
@@ -210,6 +210,20 @@ class ClockPreviewTests(unittest.TestCase):
                 for forbidden in ("ShellIpc", "execDetached", "hyprctl", "sudo", "systemctl", "notify-send"):
                     self.assertNotIn(forbidden, text)
                 continue
+            if name.endswith("AudioNativeState.qml"):
+                self.assertIn("property bool granted: false", text)
+                self.assertIn('"--allow-local-socket-activation-risk"', text)
+                self.assertEqual(text.count("property Process"), 2)
+                for forbidden in ("ShellIpc", "execDetached", "sudo", "systemctl", "pactl set-"):
+                    self.assertNotIn(forbidden, text)
+                continue
+            if name.endswith("MediaArtwork.qml"):
+                self.assertEqual(text.count("property Process"), 1)
+                self.assertIn('"--allow-local-artwork"', text)
+                self.assertIn("interval:4000", text)
+                for forbidden in ("execDetached", "ShellIpc", "http://", "https://"):
+                    self.assertNotIn(forbidden, text)
+                continue
             if name.endswith("AppearanceState.qml"):
                 self.assertEqual(text.count("Process {"), 1)
                 self.assertIn("OMABUNTU_MENU_HELPER", text)
@@ -241,6 +255,23 @@ class ClockPreviewTests(unittest.TestCase):
                 self.assertEqual(text.count("Timer {"), 1)
                 self.assertIn("interval: 400", text)
                 for forbidden in ("execDetached", "hyprctl", "omarchy-", "sudo", "FileView"):
+                    self.assertNotIn(forbidden, text)
+                continue
+            if name.endswith("DisplayProfilesState.qml"):
+                self.assertEqual(text.count("property Process"), 2)
+                self.assertIn("OMABUNTU_DISPLAY_PROFILES_HELPER", text)
+                self.assertIn("--allow-session-automation", text)
+                self.assertNotIn("execDetached", text)
+                self.assertNotIn("sudo", text)
+                continue
+            if name.endswith("BluetoothSession.qml"):
+                self.assertEqual(text.count("property Process"), 1)
+                self.assertIn("OMABUNTU_BLUETOOTH_HELPER", text)
+                self.assertIn("--allow-owned-agent", text)
+                self.assertIn("--allow-system-bus-connection-risk", text)
+                self.assertIn("pending=Object.freeze", text)
+                self.assertIn("if (ready && rpc.running) issue()", text)
+                for forbidden in ("execDetached", "ShellIpc", "sudo", "FileView", "RequestDefaultAgent"):
                     self.assertNotIn(forbidden, text)
                 continue
             if name.endswith("TrialDesktopState.qml"):

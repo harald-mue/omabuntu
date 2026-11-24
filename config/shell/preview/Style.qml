@@ -8,7 +8,7 @@ import qs.Commons
 QtObject {
   readonly property int cornerRadius: 8
   readonly property int gapsOut: 10
-  readonly property real fontScale: 1
+  readonly property real fontScale: Color.textSize / 12
   readonly property color hoverFill: Qt.rgba(0.792, 0.800, 0.800, 0.08)
   // Omarchy 4.5.0 Commons/Style.qml ease-out curve (MIT).
   readonly property var easeOut: [0.23, 1.0, 0.32, 1.0, 1.0, 1.0]
@@ -24,14 +24,15 @@ QtObject {
   readonly property real selectedBorderAlpha: 0
   readonly property QtObject font: QtObject {
     readonly property string family: Color.fontFamily
-    readonly property int body: 12
-    readonly property int bodySmall: 11
-    readonly property int subtitle: 13
-    readonly property int caption: 10
-    readonly property int title: 14
-    readonly property int display: 24
-    readonly property int displayLarge: 32
-    readonly property int heading: 18
+    readonly property int baseSize: Color.textSize
+    readonly property int body: Math.round(12 * Color.textSize / 12)
+    readonly property int bodySmall: Math.round(11 * Color.textSize / 12)
+    readonly property int subtitle: Math.round(13 * Color.textSize / 12)
+    readonly property int caption: Math.round(10 * Color.textSize / 12)
+    readonly property int title: Math.round(14 * Color.textSize / 12)
+    readonly property int display: Math.round(24 * Color.textSize / 12)
+    readonly property int displayLarge: Math.round(32 * Color.textSize / 12)
+    readonly property int heading: Math.round(18 * Color.textSize / 12)
     readonly property int icon: 14
     readonly property int iconLarge: 18
   }

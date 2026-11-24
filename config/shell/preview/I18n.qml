@@ -110,7 +110,7 @@ QtObject {
                   "power.timeLeft": "Time left",
                   "power.timeToFull": "Time to full",
                   "audio.title": "Audio", "audio.output": "OUTPUT",
-                  "audio.input": "INPUT",
+                  "audio.input": "INPUT", "audio.sources": "APPLICATION AUDIO",
                   "audio.mute": "Mute", "audio.unmute": "Unmute",
                   "audio.level.muted": "Muted", "audio.level.silenced": "Silenced",
                   "audio.level.concertHall": "Concert hall", "audio.level.partyMode": "Party mode",
