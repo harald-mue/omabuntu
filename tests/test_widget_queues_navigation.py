@@ -65,7 +65,7 @@ assert.equal(calls[2][2],'set-autohide');
     def test_display_mutations_survive_status_and_precede_next_poll(self):
         self.adapter('config/shell/preview/DisplayPanelController.qml',
                      ['request', 'pump', 'applyState', 'setBrightness', 'setScale'], '''
-const root={profiles:null,helper:'/fixture/display_backend.py',queue:[],inFlight:[],lastState:null,finishing:false,
+const root={controlKey:'',helper:'/fixture/display_backend.py',queue:[],inFlight:[],lastState:null,finishing:false,
  displays:[],focusedMonitor:'fixture-a',monitorScale:'1',brightnessAvailable:true,brightnessPercent:10,errorText:''};
 ''', '''
 root.request('status',[]);
@@ -87,7 +87,7 @@ assert.equal(root.queue[0][0],'status');
     def test_display_scale_requests_keep_their_original_output(self):
         code = functions('config/shell/preview/DisplayPanelController.qml', ['request', 'pump', 'setScale'])
         self.run_js('''
-let profiles=null,helper='/fixture/display_backend.py',queue=[],inFlight=[],finishing=false,errorText='';
+let helper='/fixture/display_backend.py',queue=[],inFlight=[],finishing=false,errorText='';
 let focusedMonitor='fixture-a',monitorScale='1',backend={running:true,exec:()=>{}};
 ''' + code + '''
 setScale('1.25');focusedMonitor='fixture-b';setScale('2');
@@ -131,19 +131,21 @@ assert.equal(a.switchPanelFrom(bt,1),false);
 assert.equal(a.switchPanelFrom(item('unknown'),1),false);
 ''')
 
-    def test_display_cursor_uses_original_section_navigation_without_text_size(self):
+    def test_display_cursor_uses_original_section_navigation_with_text_size(self):
         code = functions('config/shell/preview/DisplayPanelController.qml',
                          ['sectionCount', 'sectionIsSingleRow', 'sectionFirstIndex', 'moveCursor', 'moveCursorH'])
         self.run_js('''
-let visibleSections=['brightness','scale','monitors'],focusSection='brightness',selectedIndex=-1;
+let visibleSections=['brightness','textsize','scale','monitors'],focusSection='brightness',selectedIndex=-1;
 let scaleValues=['1','1.25','2'],displays=[{name:'a'},{name:'b'}];
 ''' + code + '''
+moveCursor(1);assert.equal(focusSection,'textsize');assert.equal(selectedIndex,-1);
 moveCursor(1);assert.equal(focusSection,'scale');assert.equal(selectedIndex,0);
 moveCursorH(1);assert.equal(selectedIndex,1);
 moveCursor(1);assert.equal(focusSection,'monitors');assert.equal(selectedIndex,0);
 moveCursor(1);assert.equal(selectedIndex,1);
 moveCursor(-1);assert.equal(selectedIndex,0);
 moveCursor(-1);assert.equal(focusSection,'scale');assert.equal(selectedIndex,0);
+moveCursor(-1);assert.equal(focusSection,'textsize');assert.equal(selectedIndex,-1);
 moveCursor(-1);assert.equal(focusSection,'brightness');assert.equal(selectedIndex,-1);
 ''')
 

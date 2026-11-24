@@ -37,7 +37,7 @@ def surface(data, name):
         body = replace(body, "                  brightnessDebounce.stop()\n", "")
         # Retain original text-size surface; the backend deliberately scopes it
         # to this shell rather than mutating GNOME/GTK/global font settings.
-        body = replace(body, 'readonly property bool canToggle: display && (!display.enabled || root.enabledDisplayCount > 1)', 'readonly property bool canToggle: !!root.profiles // Opens reviewed profile editing; never a direct toggle.')
+        body = replace(body, 'readonly property bool canToggle: display && (!display.enabled || root.enabledDisplayCount > 1)', 'readonly property bool canToggle: display && !root.controlsBusy && root.controlKey !== "" && (!display.enabled || root.enabledDisplayCount > 1)')
         body = replace(body, '          Item {\n            width: parent.width\n            height: Style.space(4)\n          }', '''          Text {
             width: parent.width
             visible: root.errorText !== ""
@@ -48,33 +48,6 @@ def surface(data, name):
             font.family: root.bar.fontFamily
             font.pixelSize: Style.font.bodySmall
           }''')
-        body = replace(body, '          // ---------- Hero: display icon · title/status ----------', '''          Button {
-            width: parent.width
-            text: root.profilePage ? "Back to display" : "Monitor profiles"
-            iconText: root.profilePage ? "󰁍" : "󰍹"
-            foreground: root.bar.foreground
-            fontFamily: root.bar.fontFamily
-            focusable: true
-            visible: !!root.profiles
-            onClicked: { root.profilePage=!root.profilePage;if(root.profilePage)root.profiles.refresh() }
-          }
-          DisplayProfilesView {
-            width: parent.width
-            visible: root.profilePage
-            owner: root.profiles
-            bar: root.bar
-            onBack: root.profilePage=false
-          }
-          Column {
-            width: parent.width
-            spacing: Style.space(14)
-            visible: !root.profilePage
-          // ---------- Hero: display icon · title/status ----------''')
-        body = replace(body, '          PanelSeparator {\n            visible: root.displays.length > 1', '          PanelSeparator {\n            visible: root.displays.length > 1')
-        end = "      }\n    }\n  }\n\n  component ScalePill: Button {"
-        body = replace(body, end, "        } // Original normal-page column.\n"+end)
-        body = replace(body, 'onActivateRequested: if (root.cursorActive)', 'onActivateRequested: if (!root.profilePage && root.cursorActive)')
-        body = replace(body, '        if (!root.cursorActive) { root.cursorActive = true; return }', '        if (root.profilePage) return\n        if (!root.cursorActive) { root.cursorActive = true; return }')
         body = replace(body, 'contentHeight: panel.fittedContentHeight(panel.loadedContentHeight, Style.space(560))', 'contentHeight: panel.fittedContentHeight(panel.loadedContentHeight)')
         body = replace(body, '        clip: true', '        clip: true\n        contentHeight: panelColumn.implicitHeight\n        contentWidth: availableWidth')
     for forbidden in ("Process {", "execDetached", "ShellIpc", "omarchy-", "Util."):

@@ -75,9 +75,6 @@ Variants {
   property BarFullscreenState fullscreenRefresh: BarFullscreenState { refreshEvents: true }
 
   property BarPeekState peekState: BarPeekState {}
-  property DisplayProfilesState displayProfiles: DisplayProfilesState {
-    enabled: !bars.barHidden && bars.hasAudioWidget("omarchy.monitor")
-  }
   property BluetoothSession bluetoothSession: BluetoothSession {
     enabled: !bars.barHidden && bars.hasAudioWidget("omarchy.bluetooth")
   }
@@ -325,7 +322,7 @@ Variants {
     }
     Component {
       id: displayComponent
-      DisplayControlView { bar: clockBar; profiles: bars.displayProfiles }
+      DisplayControlView { bar: clockBar }
     }
     Component {
       id: powerComponent

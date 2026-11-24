@@ -190,7 +190,7 @@ class ClockPreviewTests(unittest.TestCase):
             if name.endswith("DisplayPanelController.qml"):
                 self.assertEqual(text.count("Process {"), 1)
                 self.assertIn("OMABUNTU_DISPLAY_HELPER", text)
-                self.assertIn('["status", "brightness", "scale"]', text)
+                self.assertIn('["status", "brightness", "scale", "text", "toggle"]', text)
                 for forbidden in ("execDetached", "hyprctl", "busctl", "omarchy-", "sudo", "FileView"):
                     self.assertNotIn(forbidden, text)
                 continue

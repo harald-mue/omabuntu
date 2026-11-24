@@ -1,20 +1,58 @@
-# Persistent reversible monitor profiles (D)
+# Monitor controls and withdrawn profile integration
 
-Plan 160 implements D; owner-approved **Plan 161 now installs it locally** as a
-narrow derivative with a wallpaper-disabled managed-bar-only session restart.
-Plan 159 is the verified immediate fallback. Monitor layout, text size, existing
-configuration/preferences/permissions and automatic behavior are unchanged: no
-profile was saved/applied and automation was not enabled. Source
-completion and fake-IPC/offscreen tests are not real display, login, hotplug,
-visual, pointer, recovery or security acceptance.
+## Current correction (Plan 162)
 
-## Contracts and ownership
+The owner rejected the Plan 161 profile interface: duplicate Back navigation,
+a permanent technical paragraph and capture refusing an existing layout gap.
+The profile page and shared profile/automation owner have been removed from the
+normal shell. This is a withdrawal, not a claim that profile capture now accepts
+that layout. Named profiles and their review/apply/keep/automation workflow were
+Omabuntu-authored extensions, **not original Omarchy monitor-panel behavior**.
+
+The single original-derived popup again exposes brightness, shell-local text
+size, runtime scale and direct output rows. An output click or keyboard activation
+switches that output, not a navigation page. Last-active-output protection is
+retained. A fresh owner/topology observation, shared pending-recovery fence,
+private durable before/outcome records and bounded readback guard output changes;
+there is no replay or automatic compensation. Existing gaps are not normalized or
+rejected by status/output switches. Disabling an output can move windows and
+workspaces, as in the original; re-enabling does not promise placement recovery.
+An exact connector rule merges existing fields; a new rule may use defaults
+rather than inherit a wildcard rule. This is not full configuration rollback.
+
+The text-size slider uses the normal display helper without starting a profile
+owner/watcher. Unlike the upstream CLI, it deliberately does not change GTK/GNOME
+or application text. Startup, opening and polling remain read-only. Legacy profile
+code and private data are retained dormant for recovery/history, not exposed in
+the popup or started automatically. No legacy transaction/data is cleared.
+
+Automated checks cover the source-derived surface, contained actual-QML pointer/
+keyboard signal paths, text-file creation/readback and fake-native refusal/outcome
+cases. They are not physical display, pointer, visual, login, hotplug, recovery
+or security acceptance. See Plan 162 and the current project status for deployment
+verification; Plans 160–161 below describe the withdrawn implementation.
+
+Plan 162 is now installed locally as
+`original-shell-162-20261124T064224.047865Z`: exactly three shell files, the display
+helper and provenance changed. All 154 installed shell seals and helper/manifest
+bytes match; runtime preflight, 1,640 units, contained original controls, desktop,
+audio/frame/tooltip/clock and clean-source checks pass. The owned session-lifetime
+bar alone restarted with wallpaper restoration disabled and zero new warnings.
+Read-only before/after checks confirm unchanged monitor geometry and text state;
+settings, native/audio receipts and dormant profile state are preserved, with no
+open update/deployment/display transactions. The installed read-only status works.
+Plan 161 remains the verified immediate fallback; Plan 159 is also retained and
+verified. No live output/brightness/scale/text setter, profile action or watcher
+was run for verification/deployment. Corrected owner visual/native acceptance is
+still separate.
+
+## Historical profile contracts and ownership (Plans 160–161)
 
 The original MIT monitor Panel at Omarchy v4.5.0
 `ac2690cd7be4f47e4a255f5e2e78d904d436b068` remains the visible parent. Its text-size
-surface is restored through a narrow Ubuntu controller; a separate explicit
-profile-management page lives in the same popup. It does not replace the normal
-brightness/scale/device panel. No new upstream code/assets or dependencies are
+surface was restored through a narrow Ubuntu controller; an authored
+profile-management page was added to the same popup. That page also redirected
+original output switches into profile editing. Plan 162 removes both changes. No new upstream code/assets or dependencies are
 imported. Python standard library implements the backend and orchestration.
 
 The runtime gate is Hyprland **0.57.0**, reviewed against pinned source
@@ -44,11 +82,12 @@ or configuration rollback system. Reported active mirroring, advanced color,
 Unknown wildcard rules and unreported future color policy cannot be proven
 preserved. Do not treat geometry recovery as full HDR/VRR/ICC/rule recovery.
 
-## Profiles and original UI
+## Historical profiles and authored UI
 
-One nonvisual `DisplayProfilesState.qml` owns the helper and optional watcher
-across outputs. `DisplayProfilesView.qml` provides original licensed toolkit
-controls inside the original popup:
+The withdrawn integration instantiated one nonvisual `DisplayProfilesState.qml`
+for the helper and optional watcher across outputs. Its `DisplayProfilesView.qml`
+used original licensed toolkit controls, but its page/layout/workflow were authored
+for Omabuntu, not extracted from Omarchy. It offered:
 
 1. **Capture** a named current layout or select an existing profile.
 2. Edit per-output width, height, advertised refresh, scale, X/Y and transform;

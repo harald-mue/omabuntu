@@ -69,11 +69,20 @@ class DesktopPanelTests(unittest.TestCase):
         self.assertNotIn('tiledLayout', dock)
         self.assertNotIn('tiledLayout', dock)
 
-    def test_display_does_not_offer_global_font_or_output_writes(self):
+    def test_display_restores_original_controls_without_profile_navigation(self):
         text = (ROOT / 'config/shell/preview/DisplayControlView.qml').read_text()
         self.assertIn('// ---------- Text size ----------', text)
-        self.assertIn('readonly property bool canToggle: !!root.profiles', text)
-        self.assertIn('DisplayProfilesView {', text)
+        self.assertIn('root.enabledDisplayCount > 1', text)
+        self.assertIn('root.controlKey !== ""', text)
+        self.assertIn('root.toggleDisplay(monitorRow.display.name, monitorRow.display.enabled)', text)
+        for excluded in ('DisplayProfilesView', 'Monitor profiles', 'profilePage', 'Back to display'):
+            self.assertNotIn(excluded, text)
+        shell = (ROOT / 'config/shell/preview/TrialPanel.qml').read_text()
+        self.assertNotIn('DisplayProfilesState', shell)
+        self.assertNotIn('displayProfiles', shell)
+        controller = (ROOT / 'config/shell/preview/DisplayPanelController.qml').read_text()
+        self.assertNotIn('root.profiles', controller)
+        self.assertIn('request("text", [String(value)])', controller)
         self.assertNotIn('gsettings', text)
         self.assertIn('root.errorText', text)
 

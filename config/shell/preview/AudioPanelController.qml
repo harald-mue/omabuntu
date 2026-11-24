@@ -15,8 +15,11 @@ Item {
   property var panelWindow: null
   property var profileControls: null
   property bool opened: false
+  // The authored Advanced audio surface is disabled, not a user preference.
+  readonly property bool advancedAudioAvailable: false
   property bool advancedAudio: false
   onAdvancedAudioChanged: {
+    if (advancedAudio && !advancedAudioAvailable) { advancedAudio = false; return; }
     dragTarget = null; cancelInputDrag(); cursorActive = false;
     focusSection = advancedAudio ? "profiles" : "output";
     selectedIndex = advancedAudio ? 0 : -1;
@@ -177,7 +180,7 @@ Item {
     if (section === "output") return displayAudioSinks.length;
     if (section === "input") return displayAudioSources.length;
     if (section === "streams") return displayAudioStreams.length;
-    if (section === "profiles") return profileControls ? profileControls.actions.length : 0;
+    if (section === "profiles") return advancedAudioAvailable && profileControls ? profileControls.actions.length : 0;
     return 0;
   }
   function sectionVisible(section) {
@@ -185,7 +188,7 @@ Item {
     if (section === "output") return true;
     if (section === "input") return displayAudioSources.length > 0 || !!source;
     if (section === "streams") return displayAudioStreams.length > 0;
-    if (section === "profiles") return !!profileControls && profileControls.actions.length > 0;
+    if (section === "profiles") return advancedAudioAvailable && !!profileControls && profileControls.actions.length > 0;
     return false;
   }
   function sectionHasSlider(section) {
@@ -265,7 +268,7 @@ Item {
   function activateCursor() {
     if (advancedAudio && focusSection !== "profiles") return;
     if (focusSection === "profiles") {
-      if (profileControls) profileControls.activate(selectedIndex);
+      if (advancedAudioAvailable && profileControls) profileControls.activate(selectedIndex);
       return;
     }
     if (focusSection === "header") { toggleAllMuted(); return; }

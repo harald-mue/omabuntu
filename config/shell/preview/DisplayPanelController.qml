@@ -7,12 +7,26 @@ import qs.Commons
 DesktopPanelController {
   id: root
   property var displays: []
-  property var profiles: null
-  property bool profilePage: false
+  property string controlKey: ""
+  // Read-only polling must not dim/flicker output rows or consume a click.
+  readonly property bool controlsBusy: finishing || (backend.running && inFlight[0] !== "status")
+    || queue.some(function(item) { return item[0] !== "status" })
   readonly property var textSizeStops: [9,10,11,12,14,16,20]
-  function currentTextIndex() { return textSizeStops.indexOf(Style.font.baseSize) }
-  function displayedTextPx() { return Style.font.baseSize }
-  function setTextSize(value) { if(profiles&&!profiles.busy&&!profiles.data.pending)profiles.textSize(value) }
+  property int textSizePreviewIndex: -1
+  function nearestTextStop(value) {
+    var best = 0
+    for (var i = 1; i < textSizeStops.length; i++)
+      if (Math.abs(textSizeStops[i] - value) < Math.abs(textSizeStops[best] - value)) best = i
+    return best
+  }
+  function currentTextIndex() { return textSizePreviewIndex >= 0 ? textSizePreviewIndex : nearestTextStop(Style.font.baseSize) }
+  function displayedTextPx() { return textSizeStops[currentTextIndex()] }
+  function setTextSize(value) {
+    if (textSizeStops.indexOf(value) < 0) return
+    textSizePreviewIndex = textSizeStops.indexOf(value)
+    markReflowing()
+    request("text", [String(value)])
+  }
   function adjustTextSize(delta) { setTextSize(textSizeStops[Math.max(0,Math.min(textSizeStops.length-1,currentTextIndex()+delta))]) }
   property int brightnessPercent: 0
   property bool brightnessAvailable: false
@@ -27,20 +41,23 @@ DesktopPanelController {
   property var inFlight: []
   property var lastState: null
   property bool finishing: false
-  readonly property bool reflowingText: false
+  property bool reflowingText: false
+  function markReflowing() { reflowingText = true; reflowSettle.restart() }
+  Timer { id: reflowSettle; interval: 300; onTriggered: root.reflowingText = false }
+  Connections {
+    target: Style.font
+    function onBaseSizeChanged() {
+      root.markReflowing()
+      if (root.textSizePreviewIndex === root.nearestTextStop(Style.font.baseSize)) root.textSizePreviewIndex = -1
+    }
+  }
   readonly property var scaleValues: ["1", "1.25", "1.5", "1.6", "2", "3", "4"]
   readonly property int enabledDisplayCount: displays.filter(function(d) { return d.enabled; }).length
-  onOpenedChanged: { profilePage=false;if (opened) request("status", []) }
+  onOpenedChanged: if (opened) request("status", [])
   Component.onCompleted: request("status", [])
-  Connections {
-    target: root.profiles
-    function onBusyChanged() { if(root.profiles.busy)root.queue=root.queue.filter(function(item){return item[0]!=="scale"}) }
-    function onDataChanged() { if(root.profiles.data.pending)root.queue=root.queue.filter(function(item){return item[0]!=="scale"}) }
-  }
   function request(kind, args) {
     if (!helper.endsWith("/display_backend.py") || helper.indexOf(" ") >= 0) { errorText = "Display helper is unavailable"; return; }
-    if (["status", "brightness", "scale"].indexOf(kind) < 0) return;
-    if(kind==="scale"&&profiles&&(profiles.busy||profiles.data.pending)) {errorText="A monitor profile transaction is pending";return}
+    if (["status", "brightness", "scale", "text", "toggle"].indexOf(kind) < 0) return;
     var item = [kind].concat(args)
     var remaining = queue.filter(function(old) {
       return old[0] !== kind || (kind === "scale" && old[1] !== item[1])
@@ -56,6 +73,7 @@ DesktopPanelController {
     backend.exec(["python3", helper].concat(inFlight))
   }
   function applyState(data) {
+    controlKey = data.control_key || ""
     displays = data.displays.map(function(d) { return { name: d.name, enabled: !d.disabled, focused: !!d.focused }; })
     for (var i = 0; i < data.displays.length; i++) if (data.displays[i].focused) {
       focusedMonitor = data.displays[i].name
@@ -80,13 +98,18 @@ DesktopPanelController {
   function brightnessName(percent) { return Math.round(percent) + "%"; }
   function effectiveScale(value) { return Number(value); }
   function activeScaleIndex() { return scaleValues.indexOf(monitorScale); }
-  function setScale(value) { if(profiles&&(profiles.busy||profiles.data.pending))return;monitorScale = String(value); request("scale", [focusedMonitor, String(value)]); }
-  function toggleDisplay(name, enabled) { profilePage=true;if(profiles)profiles.refresh() } // Enable/disable requires the reviewed profile transaction.
+  function setScale(value) { monitorScale = String(value); request("scale", [focusedMonitor, String(value)]); }
+  function toggleDisplay(name, enabled) {
+    var matches = displays.filter(function(d) { return d.name === name && d.enabled === enabled })
+    if (controlsBusy || controlKey === "" || matches.length !== 1) { errorText = "Display state changed or is busy; refresh and try again"; return }
+    if (enabled && enabledDisplayCount <= 1) return
+    request("toggle", [name, enabled ? "true" : "false", controlKey])
+  }
   // Cursor/section logic derived from the pinned Omarchy monitor/Panel.qml (MIT).
   readonly property var visibleSections: {
     var list = []
     if (brightnessAvailable) list.push("brightness")
-    if(profiles)list.push("textsize")
+    list.push("textsize")
     list.push("scale")
     if (displays.length > 1) list.push("monitors")
     return list
@@ -151,7 +174,13 @@ DesktopPanelController {
     selectedIndex = next
   }
 
-  function activateCursor() { if (focusSection === "scale") setScale(scaleValues[selectedIndex]); }
+  function activateCursor() {
+    if (focusSection === "scale") setScale(scaleValues[selectedIndex])
+    else if (focusSection === "monitors" && displays[selectedIndex]) {
+      var display = displays[selectedIndex]
+      toggleDisplay(display.name, display.enabled)
+    }
+  }
   function wheel(delta) {
     wheelAccumulator += delta;
     var steps = Math.trunc(wheelAccumulator / 120);
@@ -163,6 +192,7 @@ DesktopPanelController {
     stdout: StdioCollector { id: output }
     onExited: function(code) {
       root.finishing = true
+      var completed = root.inFlight[0]
       root.inFlight = []
       try {
         var data = JSON.parse(output.text)
@@ -177,6 +207,10 @@ DesktopPanelController {
       } catch (error) {
         root.errorText = "Display backend unavailable"
         if (root.lastState) root.applyState(root.lastState)
+      }
+      if (completed === "text") {
+        Color.textSizeFile.reload()
+        if (!root.queue.some(function(item) { return item[0] === "text" })) root.textSizePreviewIndex = -1
       }
       root.finishing = false
       Qt.callLater(root.pump)

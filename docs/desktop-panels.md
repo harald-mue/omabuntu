@@ -61,23 +61,22 @@ No original Style, Color, translations service or shell startup is activated.
   changed. Existing monitor-rule fields are preserved. Inputs must be one of
   the displayed presets, produce integral logical pixels and not overlap any
   other active output. Unsafe requests fail with a panel error, not a layout
-  rearrangement. No config writes or reload. Output inventory is read-only;
-  monitor disabling, topology editing, global font-size changes and text-size
-  controls are excluded from this **installed legacy checkpoint**. Brightness/
-  scale writes are click-driven; panel startup/polling only read status.
-  Plan 160 source now adds a distinct same-popup profile page with persistent
-  per-output layout/mode/scale/transform/enabled state, explicit digest-reviewed
-  Apply/Keep/Restore, independent guarded recovery and opt-in exact-topology
-  login/hotplug reapplication. Original text-size controls are restored only for
-  shell-local styling, not GNOME/GTK/global font settings. The older scale helper
-  cooperates with profile locks/pending recovery. The verified 154-seal package
-  is a source checkpoint; owner-approved Plan 161 now installs the narrow
-  thirteen-file derivative with 154 matching seals and a wallpaper-disabled
-  managed-bar restart. Legacy current-directory compatibility is corrected
-  without permission changes. Installed read-only status and geometry checks
-  pass; no profile/text state or automation was activated; Plan 159 is fallback. New
-  behavior is not native display/recovery acceptance; exact connector-rule merge
-  and wildcard-default limitations are documented in [monitor profiles](display-profiles.md).
+  rearrangement. No compositor config writes or reload. Brightness/scale writes
+  are gesture-driven; panel startup/polling only read status.
+- **Monitor controls (Plan 162):** the rejected authored profile page and shared
+  automation owner are withdrawn. The single original-derived popup retains
+  brightness, text-size, scale and output rows without extra navigation or a
+  permanent technical block. Original output rows again switch the named output,
+  using owner/topology-bound fresh observation, shared pending-recovery fencing,
+  a durable private before/outcome record, last-active-output protection and
+  bounded readback. There is no layout-gap rejection/normalization, blind replay
+  or automatic compensation. Disabling moves windows/workspaces; re-enabling does
+  not restore their placement. The original text-size slider independently writes
+  shell-local state; unlike upstream it does not change GTK/GNOME/global fonts.
+  Legacy profile code/data remain dormant for history/recovery. No profile or
+  watcher is instantiated by the shell. Existing rule-merge/wildcard limitations
+  and historical Plans 160–161 are documented in [monitor controls](display-profiles.md).
+  Synthetic/contained tests are not real-device or owner visual acceptance.
 - **Power:** native UPower supplies battery percentage, capacity, charge rate
   and estimated time. Quickshell's native `PowerProfiles` interface talks to
   Ubuntu's existing power-profiles-daemon, avoiding a powerprofilesctl subprocess

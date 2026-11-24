@@ -144,7 +144,7 @@ DESKTOP_UPSTREAM = {
 DESKTOP_TRANSFORMS = {
     "BluetoothControlView.qml": ("bluetooth-agent-surface-v2", desktop_frontends.bluetooth),
     "BluetoothPanelController.qml": ("bluetooth-owned-cursor-v2", desktop_frontends.bluetooth_controller),
-    "DisplayControlView.qml": ("display-profiles-surface-v2", desktop_frontends.display),
+    "DisplayControlView.qml": ("original-monitor-controls-v3", desktop_frontends.display),
     "PowerControlView.qml": ("power-surface-v1", desktop_frontends.power),
     "DockWindow.qml": ("floating-dock-window-v2", desktop_frontends.dock),
 }

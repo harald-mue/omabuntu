@@ -569,8 +569,8 @@
       "git_blob_sha1": "a26fbd5b0f889da77cef9b08a15db792e4eda523",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "display-profiles-surface-v2",
-      "staged_sha256": "53e92ad461b0cb262974fa73925696c175ea95e7d17882982abc9adb5d287499"
+      "stage_transform": "original-monitor-controls-v3",
+      "staged_sha256": "ba672209905bd9a742426985a0bf454e6c53044b1a02becec25fe5e5e42ae089"
     },
     "PowerControlView.qml": {
       "path": "shell/plugins/panels/power/Panel.qml",
@@ -1168,7 +1168,7 @@
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "0d4dee1a6cdd0b581cacfb10294b0698ba46e30dde5b6a0d4d7493c2de5956ea"
+      "sha256": "6e4452ede2fcd3e64d7b38a134b101a4e40e4ffcea9d5dd2f54234796134bb79"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
@@ -1224,7 +1224,7 @@
     },
     "AudioPanelController.qml": {
       "path": "config/shell/preview/AudioPanelController.qml",
-      "sha256": "70353ea324899f6f9764a6f78ea16ba33a97c34ea7a1f1596869be224accd200"
+      "sha256": "2a660ceb1c4b4be6bcfd5a95bedfc2e82dd9a47869d44c2f6c0b20e8df1c177c"
     },
     "NetworkPanelController.qml": {
       "path": "config/shell/preview/NetworkPanelController.qml",
@@ -1240,7 +1240,7 @@
     },
     "DisplayPanelController.qml": {
       "path": "config/shell/preview/DisplayPanelController.qml",
-      "sha256": "283ed34270237c35583f27e642ee8ab25e775de187759b1b936425f9c1576bb4"
+      "sha256": "9630d701ec8c92faa5edb9d1a5d8acfedb413ed6b210fa0db1e133bc6cb6ad08"
     },
     "PowerPanelController.qml": {
       "path": "config/shell/preview/PowerPanelController.qml",
@@ -1324,7 +1324,7 @@
     },
     "AudioNativeControls.qml": {
       "path": "config/shell/preview/AudioNativeControls.qml",
-      "sha256": "22a05ad39a859effb73321a521d07dcea26c97e62f00c2f2bc2f9a8e76ddc20a"
+      "sha256": "abf1d256e7dbba0ada343f474b24f4f02e697e522838e503792953057d68c057"
     },
     "AudioFeedback.qml": {
       "path": "config/shell/preview/AudioFeedback.qml",

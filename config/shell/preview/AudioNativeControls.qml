@@ -9,14 +9,16 @@ Column {
   property var controller: null
   property color foreground: Color.foreground
   property string fontFamily: Style.font.family
-  readonly property bool expanded: !!controller && controller.advancedAudio
+  readonly property bool available: !!controller && controller.advancedAudioAvailable === true
+  readonly property bool expanded: available && controller.advancedAudio
   readonly property var entries: buildEntries()
   readonly property var actions: entries.filter(function(row) { return row.kind === "action" })
-  visible: bridge !== null
+  visible: available && bridge !== null
+  enabled: available
   spacing: Style.space(6)
 
   function buildEntries() {
-    if (!bridge) return []
+    if (!available || !bridge) return []
     var rows = [], cursor = 0
     function header(text) { rows.push(Object.freeze({kind:"header", text:text, index:-1})) }
     function action(id, op, text, enabled, fields, selected) {
@@ -61,7 +63,7 @@ Column {
   }
   function invoke(row) {
     // A stale delegate/cursor cannot silently select a different capability.
-    if (!row || !row.enabled || !entries.some(function(current) {
+    if (!available || !row || !row.enabled || !entries.some(function(current) {
       return current.id === row.id && JSON.stringify(current) === JSON.stringify(row)
     })) return false
     switch (row.op) {

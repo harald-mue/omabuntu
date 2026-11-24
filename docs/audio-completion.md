@@ -1,4 +1,43 @@
-# Audio completion: admitted contracts (plans 153–157)
+# Audio contracts and disabled Advanced audio
+
+## Current UI boundary (Plan 163)
+
+At the owner's request, **Advanced audio is disabled**. The authored entry/page
+is not part of the pinned Omarchy audio panel. A fixed false controller capability
+hides/disables its component, exposes no action/cursor rows, refuses forced page
+selection and rejects stale action invocation. No user setting or startup grant
+re-enables it. Normal output/input/application-stream controls, accepted height,
+symmetric overflow-only scrollbar clearance, labels, media and OSD remain intact.
+The hidden component consumes no layout space.
+
+Dormant backend/recovery code and private records are retained, not deleted or
+acknowledged. Backend-only contained profile/recovery tests do not imply an
+available profile UI. The ordinary shell no longer exposes the optional bridge's
+query-consent action; it stays ungranted. In particular, disabling the page must
+not silently grant optional virtual-input fallback access. Existing ordinary
+typed controls are unchanged; no native profile/gain/mute/default/routing setter
+is part of this correction or deployment. Existing owner visual acceptance is
+historical, not acceptance of every newly changed view.
+
+Plan 163 is now locally installed as
+`original-shell-163-20261124T072222.680204Z`: only the two capability/controller
+shell files and provenance changed. All 154 installed shell seals, exact bytes,
+manifest and runtime preflight pass. 1,640 units, 43 contained audio cases,
+39 frame cases, eight tooltip cases, clock and clean-source checks pass. The
+actual sealed popup test checks hidden/disabled entry, absent cursor/actions,
+forced-page/stale-action refusal, unchanged normal layout fitting and constrained
+last-row reachability. Backend profile tests call the synthetic bridge directly;
+they do not re-enable the page for testing.
+
+Only the owned session-lifetime bar restarted, with wallpaper restoration disabled
+and zero new warnings. Settings, helpers/runtime/assets, native/audio receipts,
+text and monitor geometry remain unchanged; the Plan 162 monitor correction is
+preserved. No unresolved audio/display/update/deployment transactions remain.
+The verified immediate fallback is Plan 162, with Plan 161 also retained/verified.
+No live optional audio query/subscription/setter/profile operation or new consent
+was issued. New native/pointer/pixel/call/security acceptance is not inferred.
+
+## Historical implementation and deployments (Plans 153–157)
 
 Plan 153 implements the remaining B-audio source integration in the existing
 original audio/media surfaces. Its implementation request was source-only.
@@ -66,14 +105,12 @@ generated mirrors must match deterministic extraction. The original measured OSD
 card, progress/readout geometry, icons, transient hide behavior and bounded image
 slot remain. A nonvisual shared owner replaces only OSD IPC/activation plumbing.
 
-The audio hero, sliders, stream rows, scroll/popup and cursor are still original
-components. Added profile/recovery capabilities use their original Button,
-PanelSectionHeader and separator inside that panel, not a replacement panel.
-On the advanced page they join its existing arrow/j/k cursor and Enter/Space
-activation, with navigation restricted to the visible page. Horizontal
-adjustment is a no-op there; m does not accidentally mute an unrelated output.
-Changing approval/model membership revokes a positional profile cursor. Tab keeps
-its existing cross-panel meaning. Existing typed 0–100% device controls and
+The audio hero, sliders, stream rows, scroll/popup and cursor are original-derived
+components. The added profile/recovery page used original Button,
+PanelSectionHeader and separator primitives, but its layout/navigation/workflow
+were authored for Omabuntu, not original Omarchy behavior. Plan 163 disables that
+page, its entry and cursor/invocation paths. Tab keeps its existing cross-panel
+meaning. Existing typed 0–100% device controls and
 0–150% playback-stream controls retain their established contracts.
 
 ## Optional local bridge and session lifetime
@@ -84,8 +121,10 @@ reviewed PulseAudio 17 contract at
 imported. Quickshell stays pinned to
 `2b4501a282689792b62e94f3fb30d8f512324fe6`.
 
-Queries are off until an explicit in-panel grant discloses that connecting to an
-existing local socket can activate a stopping transport. Only the canonical,
+Queries default off. Before Plan 163, an explicit in-panel grant disclosed that
+connecting to an existing local socket can activate a stopping transport. That
+UI grant is now disabled; the retained backend contract still requires explicit
+consent rather than inferring permission from installation or panel navigation. Only the canonical,
 already-proved same-user pipewire-pulse owner and trusted `/usr/bin/pactl` are
 admitted. Missing executable/owner/schema/helper configuration is reported; no
 package installation, daemon start, alternate server or wpctl fallback occurs.

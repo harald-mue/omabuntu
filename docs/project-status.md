@@ -267,11 +267,29 @@ layout and its owner acceptance remain unchanged. All 150 seals, 1,590 units and
 files and provenance changed; Plan 156 is the immediate fallback. Owner
 confirmation of the new labels remains separate from broader live audio checks.
 
-The optional bridge remains disconnected until explicit UI consent. Deployment
-issued no optional audio query/subscription/setter/profile change, package/service
-action, binding/autostart change, commit or publication. Existing owner everyday
-acceptance is preserved, not generalized into new profile/call/hotplug/native
-input/pixel/OSD-coexistence/security acceptance.
+**Plan 163 disables Advanced audio at the owner's request.** Its entry/page and
+profile/recovery workflow were Omabuntu-authored, not original Omarchy behavior.
+A fixed disabled capability hides/disables the component, removes its action and
+keyboard rows, refuses forced page selection and rejects stale invocation. Normal
+output/input/stream controls, accepted panel sizing/scrollbar behavior, labels,
+media and OSD are unchanged. The ordinary shell no longer exposes optional-query
+consent; the bridge remains ungranted, including optional virtual-input fallback.
+No implicit grant substitutes for the removed entry. Backend/recovery code and
+records remain dormant/intact; contained backend tests are not available UI.
+
+Plan 163 is now locally installed: exactly two sealed shell files and provenance
+changed, retaining the Plan 162 monitor correction. All 154 installed seals,
+manifest, exact bytes and runtime preflight pass; 1,640 units, 43 contained audio,
+39 frame, eight tooltip, clock and clean-source cases pass. Only the owned session
+bar restarted, with wallpaper restoration disabled and zero new warnings.
+Settings/receipts/runtime/assets/helpers, monitor geometry and text remain
+unchanged; no transactions remain unresolved. Plan 162 is the verified immediate
+fallback. Corrected native/visual behavior still needs owner acceptance.
+
+Deployment issues no optional audio query/subscription/setter/profile change,
+package/service action, binding/autostart change, commit or publication. Existing
+owner everyday acceptance is historical, not generalized into new profile/call/
+hotplug/native input/pixel/OSD-coexistence/security acceptance.
 
 ### Bluetooth and native policy integration
 
@@ -306,31 +324,36 @@ ownership/recovery/security scope; source completion does not authorize them.
 
 ### Displays, power and input methods
 
-Brightness and runtime scale remain installed and owner-accepted. **Plan 160 now
-implements D in source; owner-approved Plan 161 now installs it locally**: named persistent output profiles,
-advertised modes/positions/transforms/scales, guarded enable/disable, saved-layout
-review/apply/keep/restore, durable independent confirmation recovery, previous
-layout drafts and original shell-local text-size controls. One shared owner
-supports explicitly approved previously kept exact-topology login/hotplug
-reapplication, not an external-writer override loop or new autostart/service.
+Brightness and runtime scale were owner-accepted. **The owner rejected the
+Plan 161 authored profile interface** after duplicate navigation, excessive
+technical text and capture refusing an existing layout gap. Named profiles,
+review/apply/keep and profile automation were Omabuntu additions, not a faithful
+copy of the pinned Omarchy panel. The earlier source-completion/installation
+checkpoint must not be read as original parity or native/visual acceptance.
 
-1,624 units, seven real-process isolated fake-IPC recovery/startup/hotplug cases,
-actual contained original-popup/profile/Process/text-readback controls and audio/
-frame/tooltip/desktop/clock/clean-source regressions pass. A private source-check
-bundle verifies all 154 seals, exact helper/manager bytes, manifest and runtime
-preflight, retaining the Bluetooth helper. Plan 161 installs a narrow thirteen-
-file derivative: seven shell files, three display helpers, manager/updater export
-and provenance. Fresh 1,625 units (28 focused profile cases), seven private IPC
-scenarios, QML and preflight pass. Legacy current-state permission compatibility
-is corrected without chmod. All 154 installed seals match; zero new warnings or
-open journals; settings/receipts/runtime/assets/menu/audio/Bluetooth preserved.
-The bar alone restarted with session lifetime and wallpaper restoration disabled;
-Plan 159 is immediate fallback. Read-only before/after geometry and installed
-status RPC pass; profile/text paths remain absent and automation is off. Native
-device/login/hotplug/
-pixel/recovery/security acceptance remains separate. Advanced color/VRR/mirroring,
-full monitor-rule or window/workspace placement rollback and GNOME/global app
-text sizing are explicit exclusions. See [monitor profiles](display-profiles.md).
+**Plan 162 withdraws that page and the shared profile/automation owner.** The
+single original-derived popup again has normal brightness, text-size, scale and
+output controls. Original output clicks/keyboard activation perform guarded
+partial enable/disable updates rather than opening a profile editor. Last-output
+protection, fresh owner/topology binding, private durable before/outcome records,
+pending-recovery fences and bounded readback stay behind the controls. Existing
+gaps are not rejected or normalized. Text sizing remains shell-local, deliberately
+not GTK/GNOME/global. Legacy profile code and data remain dormant for recovery;
+no records, pending transactions or automatic selections are silently cleared.
+
+1,640 units (15 new normal-control regressions), contained actual original-popup/
+CLI pointer-signal/keyboard/text-first-create/readback checks and desktop/audio/
+frame/tooltip/clock/clean-source regressions pass. Plan 162 is locally installed
+as a narrow five-file derivative with 154 matching shell seals, exact helper/
+manifest and passing runtime preflight. The owned session bar alone restarted
+with wallpaper restoration disabled and zero new warnings. Read-only installed
+status and before/after geometry pass; text, settings, receipts and dormant profile
+state remain unchanged; there are no open update/deployment/display transactions.
+Plan 161 is the verified immediate fallback, with Plan 159 also retained/verified.
+These checks do not establish physical device, pointer, visual, login/hotplug,
+recovery or security acceptance. No live layout/text/output setter is part of
+verification or deployment. See [monitor controls and historical profile
+contracts](display-profiles.md) for scope and rule-merge limitations.
 
 The power panel uses Ubuntu's existing power-profiles-daemon. Upstream's automatic
 AC/battery policy is not installed, and unsupported cycle/charge-limit readings

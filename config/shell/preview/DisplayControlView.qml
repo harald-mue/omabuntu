@@ -36,7 +36,6 @@ DisplayPanelController {
       implicitHeight: panelColumn.implicitHeight
       anchors.fill: parent
       onMoveRequested: function(dx, dy) {
-        if (root.profilePage) return
         if (!root.cursorActive) { root.cursorActive = true; return }
         if (dy !== 0) root.moveCursor(dy)
         else if (dx !== 0) {
@@ -45,7 +44,7 @@ DisplayPanelController {
           else if (root.focusSection === "scale") root.moveCursorH(dx)
         }
       }
-      onActivateRequested: if (!root.profilePage && root.cursorActive) root.activateCursor()
+      onActivateRequested: if (root.cursorActive) root.activateCursor()
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
 
@@ -68,27 +67,6 @@ DisplayPanelController {
           width: scrollArea.availableWidth
           spacing: Style.space(14)
 
-          Button {
-            width: parent.width
-            text: root.profilePage ? "Back to display" : "Monitor profiles"
-            iconText: root.profilePage ? "󰁍" : "󰍹"
-            foreground: root.bar.foreground
-            fontFamily: root.bar.fontFamily
-            focusable: true
-            visible: !!root.profiles
-            onClicked: { root.profilePage=!root.profilePage;if(root.profilePage)root.profiles.refresh() }
-          }
-          DisplayProfilesView {
-            width: parent.width
-            visible: root.profilePage
-            owner: root.profiles
-            bar: root.bar
-            onBack: root.profilePage=false
-          }
-          Column {
-            width: parent.width
-            spacing: Style.space(14)
-            visible: !root.profilePage
           // ---------- Hero: display icon · title/status ----------
           Item {
             width: parent.width
@@ -397,7 +375,6 @@ DisplayPanelController {
             font.pixelSize: Style.font.bodySmall
           }
         }
-        } // Original normal-page column.
       }
     }
   }
@@ -433,7 +410,7 @@ DisplayPanelController {
     required property int rowIndex
 
     readonly property bool isFocused: display && display.focused
-    readonly property bool canToggle: !!root.profiles // Opens reviewed profile editing; never a direct toggle.
+    readonly property bool canToggle: display && !root.controlsBusy && root.controlKey !== "" && (!display.enabled || root.enabledDisplayCount > 1)
 
     hasCursor: root.cursorActive && root.focusSection === "monitors" && root.selectedIndex === rowIndex
     onHasCursorChanged: if (hasCursor) root.ensureCursorVisible(monitorRow)

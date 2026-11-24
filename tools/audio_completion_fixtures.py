@@ -228,19 +228,18 @@ ShellRoot {
           require(test.view.displayAudioSinks.length===8&&test.view.displayAudioSources.length===4,"populated original device layout includes more rows than the reported setup")
           require(test.view.panelWindow.contentHeight>560&&scroll.contentHeight<=scroll.availableHeight+.5,"normal panel grows beyond the old cap and fits populated content: "+JSON.stringify({panel:test.view.panelWindow.contentHeight,normal:normal.height,content:scroll.contentHeight,height:scroll.height,available:scroll.availableHeight}))
           var nav=find(test.view,function(item){return item.objectName==="audioAdvancedNavigation"})
-          require(nav&&nav.iconText!==""&&nav.mapToItem(scroll,0,nav.height).y<=scroll.height+.5,"icon navigation is fully visible without scrolling")
+          require(nav&&!nav.visible&&!nav.enabled,"Advanced audio navigation is hidden and disabled")
           require(scroll.leftPadding===0&&scroll.rightPadding===0&&Math.abs(normal.width-scroll.width)<.5,"nonoverflow content has no asymmetric reserved space")
-          require(test.view.profileControls.actions.length===1,"ordinary popup contains only compact advanced entry")
+          require(!test.view.advancedAudioAvailable&&test.view.profileControls.actions.length===0,"disabled capability exposes no cursor or invocation rows")
           var title=find(test.view,function(item){return item.text==="DEVICE PROFILES AND VIRTUAL INPUTS"})
           require(title&&!title.visible,"technical block is hidden on ordinary page")
           test.view.focusSection="profiles";test.view.selectedIndex=0;test.view.cursorActive=true;test.view.activateCursor()
-          require(test.view.advancedAudio&&!normal.visible&&test.view.visibleSections.join(",")==="profiles","advanced page replaces rather than extends ordinary content")
-          require(!test.bridge.granted&&!test.bridge.rpc.running&&!test.bridge.events.running,"opening advanced page grants nothing")
-          test.view.moveCursor(-1);require(test.view.focusSection==="profiles","advanced cursor never reaches hidden hero")
-          var staleQuery=test.view.profileControls.actions.filter(function(row){return row.op==="query"})[0]
-          test.view.profileControls.activate(0)
-          require(!test.view.advancedAudio&&normal.visible,"Back restores the original page without queries")
-          require(!test.view.profileControls.invoke(staleQuery),"hidden advanced actions cannot retain delegate authority")
+          require(!test.view.advancedAudio&&normal.visible&&test.view.visibleSections.indexOf("profiles")<0,"disabled page cannot be reached through the keyboard cursor")
+          test.view.advancedAudio=true
+          require(!test.view.advancedAudio&&normal.visible,"forced legacy page selection is refused")
+          require(!test.view.profileControls.activate(0)&&!test.view.profileControls.invoke({enabled:true,op:"query"}),"disabled actions and stale rows cannot invoke queries")
+          require(!test.bridge.granted&&!test.bridge.rpc.running&&!test.bridge.events.running,"disabled page never grants or starts optional audio access")
+          test.view.clampCursor();require(test.view.focusSection!=="profiles","normal cursor excludes the disabled page")
           scroll.anchors.fill=null;scroll.width=340;scroll.height=120;test.phase=31;return
         }
         if(test.phase===31){
@@ -256,14 +255,15 @@ ShellRoot {
           test.phase=32;return
         }
         if(test.phase===32){
-          var last=find(test.view,function(item){return item.objectName==="audioAdvancedNavigation"})
+          var last=find(test.view,function(item){return item.node&&item.node.name==="fixture_input_11"&&item.rowIndex===3})
+          require(last,"last original input row exists")
           var bottom=last.mapToItem(scroll,0,last.height).y
-          require(bottom<=scroll.height+.5&&bottom-last.height>=-.5,"constrained fallback scroll reaches the entire last action")
+          require(bottom<=scroll.height+.5&&bottom-last.height>=-.5,"constrained fallback scroll reaches the entire last original row")
           scroll.height=2000;test.phase=33;return
         }
         require(!scroll.ScrollBar.vertical.visible&&scroll.leftPadding===0&&scroll.rightPadding===0,"nonoverflow returns the full content width")
-        test.view.profileControls.activate(0);test.view.close();test.view.open()
-        require(!test.view.advancedAudio&&!test.bridge.granted,"reopen resets page without granting backend access")
+        test.view.close();test.view.open()
+        require(!test.view.advancedAudio&&!test.bridge.granted&&test.view.profileControls.actions.length===0,"reopen keeps Advanced audio disabled without granting backend access")
         done();return
       }
       if(test.mode==="native-scope"){
@@ -294,10 +294,8 @@ ShellRoot {
         test.view.open();require(test.view.panelWindow.ensureContent()!==null,"actual original audio content loads")
         require(test.view.source&&test.view.source.untyped&&!test.view.inputLevelShown,"actual provider admits proved virtual input without inventing a peak meter")
         require(!provider.inputPeakMonitor.enabled,"untyped input never activates capture monitoring")
-        require(test.view.profileControls&&test.view.profileControls.actions.length===1,"advanced entry is compact by default")
-        if(test.mode!=="native-drag")test.view.profileControls.activate(0)
-        require(test.mode==="native-drag"||test.view.profileControls.actions.length>=5,"profile capability rows require explicit page entry")
-        require(test.view.visibleSections.indexOf("profiles")>=0,"profiles join the original cursor model")
+        require(test.view.profileControls&&test.view.profileControls.actions.length===0&&!test.view.profileControls.visible,"Advanced audio remains disabled even with a synthetic bridge grant")
+        require(test.view.visibleSections.indexOf("profiles")<0,"disabled profiles never join the original cursor model")
         if(test.mode==="native-query"){
           var second=make("AudioPanelController.qml",{bar:test.host.ownerApi,backend:provider})
           second.open();test.view.close();require(provider.monitoring,"one closing panel cannot stop another panel's monitor")
@@ -310,8 +308,7 @@ ShellRoot {
           var before=JSON.stringify(test.bridge.snapshot.cards)
           test.view.adjustVolume(.05)
           require(JSON.stringify(test.bridge.snapshot.cards)===before,"h/l cannot switch profiles")
-          var stale=test.view.profileControls.actions[0]
-          test.bridge.revoke();require(!test.view.profileControls.invoke(stale),"stale scope action refused")
+          test.bridge.revoke();require(!test.view.profileControls.invoke({enabled:true,op:"query"}),"disabled legacy scope action refused")
           done();return
         }
         if(test.mode==="native-drag"){
@@ -327,11 +324,9 @@ ShellRoot {
           test.phase=20;return
         }
         if(test.mode==="native-profile"){
-          var choices=test.view.profileControls.actions
-          var index=choices.findIndex(function(row){return row.op==="review"&&row.fields.profile==="hdmi"})
-          require(index>=0,"review choice exists")
-          test.view.focusSection="profiles";test.view.selectedIndex=index;test.view.cursorActive=true
-          test.view.activateCursor();test.phase=2;return
+          // Backend recovery coverage only; the deployed UI stays disabled.
+          require(test.bridge.reviewProfile("alsa_card.fixture","hdmi"),"explicit synthetic backend-only profile review")
+          test.phase=2;return
         }
         if(test.mode==="native-timeout")test.bridge.deadline.interval=200
         require(test.view.backend.setSourceVolume(test.view.source,.25),"original provider issues explicit proof-bound virtual gain request")
@@ -356,10 +351,9 @@ ShellRoot {
         if(test.phase===2){
           if(!test.bridge.pendingReview||test.bridge.busy)return
           require(test.bridge.snapshot.cards[0].active_profile==="analog","review does not change native profile")
-          require(!test.view.cursorActive,"changed approval model revokes positional cursor")
-          var apply=test.view.profileControls.actions.findIndex(function(row){return row.op==="apply"})
-          test.view.focusSection="profiles";test.view.selectedIndex=apply;test.view.cursorActive=true
-          test.view.activateCursor();test.phase=3;return
+          require(test.view.profileControls.actions.length===0,"backend approval cannot re-enable the disabled UI")
+          require(test.bridge.applyProfile(),"explicit synthetic backend-only apply")
+          test.phase=3;return
         }
         if(test.phase===3){
           if(!test.bridge.writable||test.bridge.snapshot.cards[0].active_profile!=="hdmi")return
