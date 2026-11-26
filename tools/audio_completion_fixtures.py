@@ -6,7 +6,7 @@ import struct
 import zlib
 
 CASES = ('native-query', 'native-profile', 'native-failure', 'native-unavailable',
-         'native-timeout', 'native-scope', 'native-malformed', 'native-drag', 'native-layout', 'audio-osd', 'media-artwork')
+         'native-timeout', 'native-scope', 'native-malformed', 'native-layout', 'audio-osd', 'media-artwork')
 
 OVERLAY = '''import QtQuick
 Item {
@@ -46,11 +46,8 @@ elif op=='restore-profile':
  s['profile']='analog';s['history'][0]['status']='restored';result={'status':'previous-profile-observed'}
 elif op=='volume':
  s['volume']=p['value'];s['pending']=True;state.write_text(json.dumps(s))
- if MODE=='native-drag':
-  s['pending']=False;result={'status':'observed'};time.sleep(.08)
- else:
-  if MODE=='native-timeout': time.sleep(2)
-  print(json.dumps({'ok':False,'error':'command-timeout'}));sys.exit(1)
+ if MODE=='native-timeout': time.sleep(2)
+ print(json.dumps({'ok':False,'error':'command-timeout'}));sys.exit(1)
 elif op=='ack-control':
  s['pending']=False;result={'status':'acknowledged','restored':False}
 elif op=='history':
@@ -87,6 +84,15 @@ def prepare(case, name):
     """Write only into the already-created disposable fixture case."""
     case = Path(case)
     (case / 'probe/FixtureAudioOverlay.qml').write_text(OVERLAY)
+    if name in CASES and name.startswith('native-') and name != 'native-layout':
+        # Offline bridge/recovery probes only, never part of the packaged shell.
+        root = Path(__file__).resolve().parents[1]
+        meta = json.loads((root / 'upstream/clock-preview.json').read_text())
+        record = meta['offline_authored']['AudioNativeState.qml']
+        data = (root / record['path']).read_bytes()
+        if hashlib.sha256(data).hexdigest() != record['sha256']:
+            raise ValueError('Offline audio fixture source seal differs')
+        (case / 'probe/AudioNativeState.qml').write_bytes(data)
     if name not in CASES:
         return
     (case / 'probe/FixtureUntypedInput.qml').write_text('''import QtQml
@@ -188,21 +194,21 @@ ShellRoot {
           test.view=make("MediaControlView.qml",{bar:test.host.ownerApi});test.view.popupOpen=true
           test.phase=1;return
         }
-        test.bridge=make("AudioNativeState.qml",{enabled:false,menuHelper:"/probe/helpers/menu_model.py"})
-        require(!test.bridge.granted&&!test.bridge.rpc.running&&!test.bridge.events.running,"no startup query, setter or subscription")
-        test.bridge.enabled=true
         if(test.mode==="native-layout"){
           var nodes=[]
           for(var n=0;n<12;n++)nodes.push({id:n+1,name:"fixture_"+(n<8?"output_":"input_")+n,
             isSink:n<8,isStream:false,ready:true,properties:{"object.serial":String(n+100),"node.description":"Fixture device "+n},
             audio:{volume:.5,muted:false}})
           Pipewire.nodes={values:nodes};Pipewire.defaultAudioSink=nodes[0];Pipewire.defaultAudioSource=nodes[8]
-          var provider=make("AudioOutputProvider.qml",{bridge:test.bridge})
+          var provider=make("AudioOutputProvider.qml")
           test.view=make("AudioOutputView.qml",{bar:test.host.ownerApi,backend:provider})
           test.view.parent=layoutWindow.contentItem
           test.view.open();test.view.panelWindow.ensureContent();test.phase=30;return
         }
-        require(test.bridge.grantQueries(),"explicit query/risk grant")
+        test.bridge=make("AudioNativeState.qml",{enabled:false,menuHelper:"/probe/helpers/menu_model.py"})
+        require(!test.bridge.granted&&!test.bridge.rpc.running&&!test.bridge.events.running,"offline bridge has no startup query or subscription")
+        test.bridge.enabled=true
+        require(test.bridge.grantQueries(),"explicit offline fixture query/risk grant")
         if(test.mode==="native-scope"){
           test.oldScope=test.bridge.scope;test.bridge.revoke();test.phase=10;return
         }
@@ -224,21 +230,18 @@ ShellRoot {
         var normal=find(test.view,function(item){return item.objectName==="audioNormalPage"})
         var scroll=test.view.panelWindow.loadedContent.scrollArea
         if(test.phase===30){
-          require(normal&&normal.visible&&!test.view.advancedAudio,"normal original page is the default")
+          require(normal&&normal.visible,"normal original page is the only page")
           require(test.view.displayAudioSinks.length===8&&test.view.displayAudioSources.length===4,"populated original device layout includes more rows than the reported setup")
           require(test.view.panelWindow.contentHeight>560&&scroll.contentHeight<=scroll.availableHeight+.5,"normal panel grows beyond the old cap and fits populated content: "+JSON.stringify({panel:test.view.panelWindow.contentHeight,normal:normal.height,content:scroll.contentHeight,height:scroll.height,available:scroll.availableHeight}))
           var nav=find(test.view,function(item){return item.objectName==="audioAdvancedNavigation"})
-          require(nav&&!nav.visible&&!nav.enabled,"Advanced audio navigation is hidden and disabled")
+          require(nav===null,"Advanced audio navigation is not instantiated")
           require(scroll.leftPadding===0&&scroll.rightPadding===0&&Math.abs(normal.width-scroll.width)<.5,"nonoverflow content has no asymmetric reserved space")
-          require(!test.view.advancedAudioAvailable&&test.view.profileControls.actions.length===0,"disabled capability exposes no cursor or invocation rows")
+          require(test.view.profileControls===undefined&&test.view.advancedAudio===undefined,"controller has no optional page state")
           var title=find(test.view,function(item){return item.text==="DEVICE PROFILES AND VIRTUAL INPUTS"})
-          require(title&&!title.visible,"technical block is hidden on ordinary page")
+          require(title===null,"optional technical block is not instantiated")
           test.view.focusSection="profiles";test.view.selectedIndex=0;test.view.cursorActive=true;test.view.activateCursor()
-          require(!test.view.advancedAudio&&normal.visible&&test.view.visibleSections.indexOf("profiles")<0,"disabled page cannot be reached through the keyboard cursor")
-          test.view.advancedAudio=true
-          require(!test.view.advancedAudio&&normal.visible,"forced legacy page selection is refused")
-          require(!test.view.profileControls.activate(0)&&!test.view.profileControls.invoke({enabled:true,op:"query"}),"disabled actions and stale rows cannot invoke queries")
-          require(!test.bridge.granted&&!test.bridge.rpc.running&&!test.bridge.events.running,"disabled page never grants or starts optional audio access")
+          require(normal.visible&&test.view.visibleSections.indexOf("profiles")<0,"removed page has no keyboard route")
+          require(test.bridge===null&&test.view.backend.bridge===undefined,"normal page constructs no optional bridge")
           test.view.clampCursor();require(test.view.focusSection!=="profiles","normal cursor excludes the disabled page")
           scroll.anchors.fill=null;scroll.width=340;scroll.height=120;test.phase=31;return
         }
@@ -263,7 +266,11 @@ ShellRoot {
         }
         require(!scroll.ScrollBar.vertical.visible&&scroll.leftPadding===0&&scroll.rightPadding===0,"nonoverflow returns the full content width")
         test.view.close();test.view.open()
-        require(!test.view.advancedAudio&&!test.bridge.granted&&test.view.profileControls.actions.length===0,"reopen keeps Advanced audio disabled without granting backend access")
+        require(test.bridge===null&&test.view.profileControls===undefined,"reopen never creates optional state or controls")
+        var provider=test.view.backend
+        var second=make("AudioPanelController.qml",{bar:test.host.ownerApi,backend:provider})
+        second.open();test.view.close();require(provider.monitoring,"one closing panel cannot stop another panel monitor")
+        second.close();require(!provider.monitoring,"last owner releases monitoring")
         done();return
       }
       if(test.mode==="native-scope"){
@@ -287,71 +294,21 @@ ShellRoot {
       }
       if(test.phase===1){
         if(!test.bridge.writable)return
-        var input=make("FixtureUntypedInput.qml")
-        Pipewire.nodes={values:[input]};Pipewire.defaultAudioSource=input
-        var provider=make("AudioOutputProvider.qml",{bridge:test.bridge})
-        test.view=make("AudioOutputView.qml",{bar:test.host.ownerApi,backend:provider})
-        test.view.open();require(test.view.panelWindow.ensureContent()!==null,"actual original audio content loads")
-        require(test.view.source&&test.view.source.untyped&&!test.view.inputLevelShown,"actual provider admits proved virtual input without inventing a peak meter")
-        require(!provider.inputPeakMonitor.enabled,"untyped input never activates capture monitoring")
-        require(test.view.profileControls&&test.view.profileControls.actions.length===0&&!test.view.profileControls.visible,"Advanced audio remains disabled even with a synthetic bridge grant")
-        require(test.view.visibleSections.indexOf("profiles")<0,"disabled profiles never join the original cursor model")
-        if(test.mode==="native-query"){
-          var second=make("AudioPanelController.qml",{bar:test.host.ownerApi,backend:provider})
-          second.open();test.view.close();require(provider.monitoring,"one closing panel cannot stop another panel's monitor")
-          second.close();require(!provider.monitoring,"last owner releases monitoring")
-          var oldInput=test.view.source
-          var replacement=make("FixtureUntypedInput.qml")
-          Pipewire.nodes={values:[replacement]};Pipewire.defaultAudioSource=replacement
-          require(!provider.setSourceVolume(oldInput,.9)&&!test.bridge.inFlight,"recycled native node rejects stale virtual-source setter")
-          test.view.focusSection="profiles";test.view.selectedIndex=0;test.view.cursorActive=true
-          var before=JSON.stringify(test.bridge.snapshot.cards)
-          test.view.adjustVolume(.05)
-          require(JSON.stringify(test.bridge.snapshot.cards)===before,"h/l cannot switch profiles")
-          test.bridge.revoke();require(!test.view.profileControls.invoke({enabled:true,op:"query"}),"disabled legacy scope action refused")
-          done();return
-        }
-        if(test.mode==="native-drag"){
-          var slider=find(test.view,function(item){return item.maximum===1&&item.enabled&&item.value===.5&&item.dragging!==undefined})
-          require(slider,"original virtual-input slider exists")
-          slider.dragging=true;slider.liveValue=.2;slider.moved(.2);slider.liveValue=.7;slider.moved(.7)
-          require(!test.bridge.inFlight&&test.view.dragSourceTarget,"intermediate moves retain captured intent without RPCs")
-          slider.dragging=false;slider.released(.7)
-          require(test.bridge.inFlight&&test.bridge.inFlight.value===.7,"release issues only final captured value")
-          require(test.view.source&&test.view.source.volume===.5&&!test.view.inputWriteAvailable,"pending keeps last observation and independently fences writes")
-          test.bridge.invalidate()
-          require(test.view.source&&test.view.source.volume===.5&&!provider.setSourceVolume(test.view.source,.9),"local event invalidation retains only observed presentation behind the write fence")
-          test.phase=20;return
-        }
+        require(test.bridge.known&&test.bridge.snapshot.sources.length===1,"offline bridge inspects synthetic state only")
+        if(test.mode==="native-query"){done();return}
         if(test.mode==="native-profile"){
           // Backend recovery coverage only; the deployed UI stays disabled.
           require(test.bridge.reviewProfile("alsa_card.fixture","hdmi"),"explicit synthetic backend-only profile review")
           test.phase=2;return
         }
         if(test.mode==="native-timeout")test.bridge.deadline.interval=200
-        require(test.view.backend.setSourceVolume(test.view.source,.25),"original provider issues explicit proof-bound virtual gain request")
+        require(test.bridge.change("volume",{name:test.bridge.snapshot.sources[0].name,serial:test.bridge.snapshot.sources[0].serial},.25,test.bridge.snapshot.key),"offline backend issues explicit synthetic gain request")
         test.phase=2;return
-      }
-      if(test.mode==="native-drag"){
-        if(!test.bridge.writable)return
-        require(test.view.source.volume===.7,"fresh observation confirms final drag value")
-        var slider=find(test.view,function(item){return item.maximum===1&&item.enabled&&item.value===.7&&item.dragging!==undefined})
-        require(slider,"same original slider readmits observed state")
-        slider.dragging=true;slider.liveValue=.9;slider.moved(.9);test.view.close()
-        require(!slider.dragging&&!test.view.dragSourceTarget&&!test.bridge.inFlight,"close cancels gesture without setter")
-        slider.released(.9);require(!test.bridge.inFlight,"late release cannot retarget current source")
-        test.view.open();slider.dragging=true;slider.liveValue=.8;slider.moved(.8)
-        var replacement=make("FixtureUntypedInput.qml")
-        Pipewire.nodes={values:[replacement]};Pipewire.defaultAudioSource=replacement
-        require(!slider.dragging&&!test.view.dragSourceTarget,"replacement cancels captured gesture")
-        slider.released(.8);require(!test.bridge.inFlight,"replacement receives no delayed gain request")
-        done();return
       }
       if(test.mode==="native-profile"){
         if(test.phase===2){
           if(!test.bridge.pendingReview||test.bridge.busy)return
           require(test.bridge.snapshot.cards[0].active_profile==="analog","review does not change native profile")
-          require(test.view.profileControls.actions.length===0,"backend approval cannot re-enable the disabled UI")
           require(test.bridge.applyProfile(),"explicit synthetic backend-only apply")
           test.phase=3;return
         }

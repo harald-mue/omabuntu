@@ -54,6 +54,9 @@ class AudioCompletionSourceTests(unittest.TestCase):
         state = (ROOT / 'config/shell/preview/AudioNativeState.qml').read_text()
         self.assertIn('property bool granted: false', state)
         self.assertIn('known && subscribing && !busy', state)
+        self.assertNotIn('AudioNativeState', panel)
+        self.assertNotIn('audioNative', panel)
+        self.assertNotIn('bridge:', panel)
         package = (ROOT / 'tools/package_user.py').read_text()
         for name in ('audio_pactl.py', 'audio_profiles.py', 'audio_controls.py', 'audio_recovery.py', 'audio_events.py', 'audio_artwork.py'):
             self.assertIn(repr(name), package)
@@ -63,43 +66,34 @@ class AudioCompletionSourceTests(unittest.TestCase):
             self.assertIn('bounded completion fixture', text)
             self.assertNotIn('Quickshell.Services.Pipewire', text)
 
-    def test_advanced_audio_is_disabled_at_surface_cursor_and_invocation_boundaries(self):
+    def test_withdrawn_sources_are_sealed_offline_and_absent_from_runtime(self):
         files, meta = preview.verified_sources(ROOT)
-        output = files["AudioOutputView.qml"].decode()
-        controls = files["AudioNativeControls.qml"].decode()
-        controller = files["AudioPanelController.qml"].decode()
-        self.assertIn("visible: !root.advancedAudio", output)
-        self.assertIn("? ScrollBar.vertical.width + Style.space(10) : 0", output)
-        self.assertIn("ScrollBar.horizontal.policy: ScrollBar.AlwaysOff", output)
-        self.assertIn("if (root.advancedAudio) return", output)
-        self.assertIn('readonly property bool advancedAudioAvailable: false', controller)
-        self.assertIn('if (advancedAudio && !advancedAudioAvailable) { advancedAudio = false; return; }', controller)
-        self.assertIn('visible: available && bridge !== null', controls)
-        self.assertIn('enabled: available', controls)
-        self.assertIn('if (!available || !bridge) return []', controls)
-        self.assertIn('if (!available || !row || !row.enabled', controls)
-        self.assertIn('return advancedAudioAvailable && !!profileControls', controller)
-        self.assertIn('if (advancedAudioAvailable && profileControls)', controller)
-        self.assertIn('if (advancedAudio && section !== "profiles") return false;', controller)
-        self.assertIn('if (advancedAudio && focusSection !== "profiles") return;', controller)
-        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-native-input-frontend-v8")
+        for name, path in preview.OFFLINE_AUTHORED.items():
+            self.assertNotIn(name, files)
+            record = meta["offline_authored"][name]
+            self.assertEqual(record["path"], path)
+            self.assertEqual(record["sha256"], hashlib.sha256((ROOT / path).read_bytes()).hexdigest())
+        for name in ("TrialPanel.qml", "AudioOutputView.qml", "AudioPanelController.qml", "AudioOutputProvider.qml"):
+            text = files[name].decode()
+            for forbidden in ("AudioNative", "AudioUntyped", "advancedAudio", "profileControls", "bridge.change"):
+                self.assertNotIn(forbidden, text, name)
+        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-native-input-frontend-v9")
         fixture = fixtures.fixture("native-layout")
-        for witness in ("Advanced audio navigation is hidden and disabled", "forced legacy page selection is refused", "disabled actions and stale rows cannot invoke queries", "disabled page never grants or starts optional audio access", "measured content-to-scrollbar gap", "nonoverflow returns the full content width"):
+        for witness in ("Advanced audio navigation is not instantiated", "controller has no optional page state",
+                        "normal page constructs no optional bridge", "removed page has no keyboard route"):
             self.assertIn(witness, fixture)
 
-    def test_disabling_advanced_preserves_accepted_normal_height_and_scroll_geometry(self):
+    def test_normal_page_preserves_accepted_height_and_scroll_geometry(self):
         files, _ = preview.verified_sources(ROOT)
         output = files["AudioOutputView.qml"].decode()
-        controls = files["AudioNativeControls.qml"].decode()
         self.assertIn("panel.fittedContentHeight(panel.loadedContentHeight)", output)
         self.assertNotIn("Style.space(560)", output)
         self.assertIn("contentHeight: panelColumn.implicitHeight", output)
         self.assertIn("contentWidth: availableWidth", output)
         self.assertIn("rightPadding: leftPadding", output)
-        self.assertIn('objectName:"audioAdvancedNavigation"', controls)
-        self.assertIn('iconText:root.expanded ?', controls)
         fixture = fixtures.fixture("native-layout")
-        for witness in ("normal panel grows beyond the old cap", "constrained fallback scroll reaches the entire last original row", "nonoverflow content has no asymmetric reserved space", "reopen keeps Advanced audio disabled"):
+        for witness in ("normal panel grows beyond the old cap", "constrained fallback scroll reaches the entire last original row",
+                        "nonoverflow content has no asymmetric reserved space", "reopen never creates optional state or controls"):
             self.assertIn(witness, fixture)
 
     def test_artwork_slot_cannot_consume_native_remote_or_arbitrary_file_urls(self):

@@ -209,8 +209,8 @@
       "git_blob_sha1": "e3ae77181fde99723e222a80fad928c9c7c5ef73",
       "license": "MIT",
       "source_modifications": [],
-      "stage_transform": "audio-native-input-frontend-v8",
-      "staged_sha256": "df8adc89830477d21aedafe1c007e5052b6a2b51676e4d6a26d9d485efb55de0"
+      "stage_transform": "audio-native-input-frontend-v9",
+      "staged_sha256": "4eff1e75e36eb1d012be0c085821c5c7bae27117912cd82703ca7c317b85098f"
     },
     "BarTooltip.qml": {
       "path": "shell/plugins/bar/Bar.qml",
@@ -1137,6 +1137,28 @@
       "staged_sha256": "e7c2a140de06e5aa4a3e7bbf6588428ed3f687b257efa6dded6a63e2c384e0f8"
     }
   },
+  "offline_authored": {
+    "AudioNativeState.qml": {
+      "path": "config/shell/preview/AudioNativeState.qml",
+      "sha256": "538e6394c3465bf1ca56639c6a3c829d0e11a2c0ab9488e801d03c56b77f323a"
+    },
+    "AudioNativeControls.qml": {
+      "path": "config/shell/preview/AudioNativeControls.qml",
+      "sha256": "abf1d256e7dbba0ada343f474b24f4f02e697e522838e503792953057d68c057"
+    },
+    "AudioUntyped.js": {
+      "path": "config/shell/preview/AudioUntyped.js",
+      "sha256": "f064919aac7a559023f4c2f4f45cc8508d8dcd9d1885f1724c9461819ab6eeba"
+    },
+    "DisplayProfilesState.qml": {
+      "path": "config/shell/preview/DisplayProfilesState.qml",
+      "sha256": "312bd4a176b568eec50ec148076eb35603519899ce4d2f4f438938f51c64b0b8"
+    },
+    "DisplayProfilesView.qml": {
+      "path": "config/shell/preview/DisplayProfilesView.qml",
+      "sha256": "f867c207004a1f4c3fe93f88cc765bb37cb3ff7754204c78b04561c758432445"
+    }
+  },
   "authored": {
     "IndicatorState.qml": {
       "path": "config/shell/preview/IndicatorState.qml",
@@ -1148,11 +1170,11 @@
     },
     "Commons/Color.qml": {
       "path": "config/shell/preview/Color.qml",
-      "sha256": "8677b078e5e23f97576b3dad15dd1c0dfd876f251b79d9e26a871f9fcbfe133e"
+      "sha256": "b1dbb3e35acfc3f9694f183f2b37419dd7900fcbbf3e431209f109280e31b340"
     },
     "Commons/I18n.qml": {
       "path": "config/shell/preview/I18n.qml",
-      "sha256": "922ea7617825465c4439044c8d26e102037327eb926d888ad77beb7a3c9dc307"
+      "sha256": "b6b47f453f1ab0005823fff1f3daf3630ad56af5969ae4c5370af94cf4e1adb7"
     },
     "PreviewContent.qml": {
       "path": "config/shell/preview/PreviewContent.qml",
@@ -1168,7 +1190,7 @@
     },
     "TrialPanel.qml": {
       "path": "config/shell/preview/TrialPanel.qml",
-      "sha256": "6e4452ede2fcd3e64d7b38a134b101a4e40e4ffcea9d5dd2f54234796134bb79"
+      "sha256": "33fc676c31fb1d64e28f2bd12be83aee858f4351de9dcf7ef120ddeb80232d19"
     },
     "LiveStatus.qml": {
       "path": "config/shell/preview/LiveStatus.qml",
@@ -1220,11 +1242,11 @@
     },
     "AudioOutputProvider.qml": {
       "path": "config/shell/preview/AudioOutputProvider.qml",
-      "sha256": "848472e99fb68f80840cf5ca88ec7917132bff8200be0731020894818c572f64"
+      "sha256": "d0498ce72dafd8d22ac60aa6587d210dafea0da174ccabaa19dd79c9d14c5112"
     },
     "AudioPanelController.qml": {
       "path": "config/shell/preview/AudioPanelController.qml",
-      "sha256": "2a660ceb1c4b4be6bcfd5a95bedfc2e82dd9a47869d44c2f6c0b20e8df1c177c"
+      "sha256": "11597ae1af12754abb0330e05a1a0dc74030345297a124d89f4ec1f5375af38d"
     },
     "NetworkPanelController.qml": {
       "path": "config/shell/preview/NetworkPanelController.qml",
@@ -1318,14 +1340,6 @@
       "path": "config/shell/preview/AudioInput.js",
       "sha256": "a29c9a67e7a402b861f8048e09b41bdae4e460a2cddc3c4f1dd85e79a4abc4b1"
     },
-    "AudioNativeState.qml": {
-      "path": "config/shell/preview/AudioNativeState.qml",
-      "sha256": "538e6394c3465bf1ca56639c6a3c829d0e11a2c0ab9488e801d03c56b77f323a"
-    },
-    "AudioNativeControls.qml": {
-      "path": "config/shell/preview/AudioNativeControls.qml",
-      "sha256": "abf1d256e7dbba0ada343f474b24f4f02e697e522838e503792953057d68c057"
-    },
     "AudioFeedback.qml": {
       "path": "config/shell/preview/AudioFeedback.qml",
       "sha256": "558297112ebae344a33a9cd575e1d8771c5e87e077100b38645373916ad3ad7a"
@@ -1334,10 +1348,6 @@
       "path": "config/shell/preview/MediaArtwork.qml",
       "sha256": "491633eb5dbd80cf5200d551facdbda02f43a9bf49cd026bf5ab69dba24524dc"
     },
-    "AudioUntyped.js": {
-      "path": "config/shell/preview/AudioUntyped.js",
-      "sha256": "f064919aac7a559023f4c2f4f45cc8508d8dcd9d1885f1724c9461819ab6eeba"
-    },
     "BluetoothSession.qml": {
       "path": "config/shell/preview/BluetoothSession.qml",
       "sha256": "c4a45e7f062c7867c2621a85d024a31fe17efeb5a6596ecde0d025f344767a90"
@@ -1345,14 +1355,6 @@
     "BluetoothPairingPrompt.qml": {
       "path": "config/shell/preview/BluetoothPairingPrompt.qml",
       "sha256": "6f365e687a5cc463bce9b82df6d7979b24a0557fda5ef3e4142b0737328e7e56"
-    },
-    "DisplayProfilesState.qml": {
-      "path": "config/shell/preview/DisplayProfilesState.qml",
-      "sha256": "312bd4a176b568eec50ec148076eb35603519899ce4d2f4f438938f51c64b0b8"
-    },
-    "DisplayProfilesView.qml": {
-      "path": "config/shell/preview/DisplayProfilesView.qml",
-      "sha256": "f867c207004a1f4c3fe93f88cc765bb37cb3ff7754204c78b04561c758432445"
     }
   },
   "module_maps": {

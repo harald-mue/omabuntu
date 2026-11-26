@@ -1,6 +1,33 @@
 # Audio contracts and disabled Advanced audio
 
-## Current UI boundary (Plan 163)
+## Current source boundary (Plan 171; not deployed)
+
+Advanced audio is now removed from the **ordinary source/runtime graph**, not
+merely hidden behind a false capability. The shared panel no longer constructs
+`AudioNativeState`; the output view/controller have no optional page, navigation,
+profile actions or bridge property. The ordinary provider uses typed native
+inputs directly, with no untyped merge or optional bridge hooks.
+
+`AudioNativeState.qml`, `AudioNativeControls.qml` and `AudioUntyped.js` remain
+hash-reviewed offline sources, but are not staged or packaged into the normal
+shell. Backend recovery helpers and existing private settings, profile stores,
+backups and receipts are retained. Explicit contained offline bridge/recovery
+tests copy only the needed sealed source into their disposable test directory;
+that is not a normal-shell grant. The former optional-input gesture case has
+been retired with that runtime path; typed input identity/churn/drag guards remain
+covered by the ordinary input contracts.
+
+The original-derived output, typed microphone and application-stream controls,
+DSP routing, shared-owner peak monitoring, media, OSD, accepted fitting height
+and symmetric overflow clearance remain. Synthetic checks cover absent optional
+objects/actions, normal layout/reopen behavior and last-owner monitor release.
+They do not establish live microphone, native popup, pixel or crash acceptance.
+
+Plan 171 is source-only. The installed Plan 163 release and its session GDB
+capture remain unchanged; installation/restart need separate approval. This is
+dependency cleanup, **not an attributed or proven crash fix**.
+
+## Installed UI boundary (Plan 163)
 
 At the owner's request, **Advanced audio is disabled**. The authored entry/page
 is not part of the pinned Omarchy audio panel. A fixed false controller capability

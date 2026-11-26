@@ -30,6 +30,7 @@ import clock_frontend
 import network_destinations
 import elsewhen_frontend
 import weather_frontend
+import notification_frontend
 
 builder = check_runtime.builder
 ROOT = Path(__file__).resolve().parents[1]
@@ -166,7 +167,7 @@ AUTHORED = {name: "config/shell/preview/" + source for name, source in (
     ("MediaIdentity.js", "MediaIdentity.js"),
     ("AudioOutputProvider.qml", "AudioOutputProvider.qml"), ("AudioPanelController.qml", "AudioPanelController.qml"),
     ("NetworkPanelController.qml", "NetworkPanelController.qml"))}
-for name in ("DisplayProfilesState", "DisplayProfilesView", "BluetoothSession", "BluetoothPairingPrompt", "DesktopPanelController", "BluetoothActions", "DisplayPanelController", "PowerPanelController", "FloatingDock"):
+for name in ("BluetoothSession", "BluetoothPairingPrompt", "DesktopPanelController", "BluetoothActions", "DisplayPanelController", "PowerPanelController", "FloatingDock"):
     AUTHORED[name + ".qml"] = "config/shell/preview/" + name + ".qml"
 AUTHORED["Commons/ElsewhenSettings.qml"] = "config/shell/preview/ElsewhenSettings.qml"
 AUTHORED["Commons/TrialDesktopState.qml"] = "config/shell/preview/TrialDesktopState.qml"
@@ -177,9 +178,11 @@ AUTHORED["NetworkSpeedController.qml"] = "config/shell/preview/NetworkSpeedContr
 AUTHORED["DockState.qml"] = "config/shell/preview/DockState.qml"
 AUTHORED["AppearanceState.qml"] = "config/shell/preview/AppearanceState.qml"
 AUTHORED["IndicatorState.qml"] = "config/shell/preview/IndicatorState.qml"
-for name in ("AudioNativeState", "AudioNativeControls", "AudioFeedback", "MediaArtwork"):
+for name in ("AudioFeedback", "MediaArtwork"):
     AUTHORED[name + ".qml"] = "config/shell/preview/" + name + ".qml"
-AUTHORED["AudioUntyped.js"] = "config/shell/preview/AudioUntyped.js"
+OFFLINE_AUTHORED = {name: "config/shell/preview/" + name for name in (
+    "AudioNativeState.qml", "AudioNativeControls.qml", "AudioUntyped.js",
+    "DisplayProfilesState.qml", "DisplayProfilesView.qml")}
 UPSTREAM.update({"AudioOsdView.qml": "shell/plugins/osd/Osd.qml",
                  "Port/OsdModel.js": "shell/plugins/osd/OsdModel.js",
                  "Ui/SizedImage.qml": "shell/Ui/SizedImage.qml"})
@@ -254,7 +257,9 @@ def verified_sources(root):
             or meta.get("production_catalog") != "empty" or meta.get("host_activation") != "separate-approval-required"
             or meta.get("module_maps") != MAPS or not isinstance(meta.get("upstream"), dict)
             or set(meta["upstream"]) != set(UPSTREAM) or not isinstance(meta.get("authored"), dict)
-            or set(meta["authored"]) != set(AUTHORED) or not isinstance(pin, dict)
+            or set(meta["authored"]) != set(AUTHORED)
+            or not isinstance(meta.get("offline_authored"), dict)
+            or set(meta["offline_authored"]) != set(OFFLINE_AUTHORED) or not isinstance(pin, dict)
             or any(pin.get(key) != value for key, value in source.items())
             or not isinstance(pin.get("license"), dict) or pin["license"].get("spdx") != "MIT"
             or meta.get("notice_paths") != ["licenses/Omarchy-MIT.txt", "vendor/omarchy/LICENSE"]):
@@ -263,7 +268,7 @@ def verified_sources(root):
     for target, source_path in UPSTREAM.items():
         record = meta["upstream"][target]
         vendor = "vendor/omarchy/" + source_path
-        transform = {"ClockLabel.qml": "readonly-clock-v1", "AudioOutputView.qml": "audio-native-input-frontend-v8",
+        transform = {"ClockLabel.qml": "readonly-clock-v1", "AudioOutputView.qml": "audio-native-input-frontend-v9",
                      "AudioOsdView.qml": "original-audio-osd-v1",
                      "Commons/MediaSelection.qml": "guarded-media-owner-v3",
                      "MediaControlView.qml": "original-media-widget-v2",
@@ -299,7 +304,7 @@ def verified_sources(root):
         if (record.get("bytes") != len(data) or record.get("sha256") != hashlib.sha256(data).hexdigest()
                 or record.get("git_blob_sha1") != blob):
             raise builder.BuildError("Upstream clock-preview source changed")
-        transforms = {"readonly-clock-v1": derive_clock, "audio-native-input-frontend-v8": audio_frontend.derive_audio,
+        transforms = {"readonly-clock-v1": derive_clock, "audio-native-input-frontend-v9": audio_frontend.derive_audio,
                       "original-audio-osd-v1": audio_feedback_frontend.derive_osd,
                       "guarded-media-owner-v3": media_frontend.derive_selection,
                       "original-media-widget-v2": media_frontend.derive_widget,
@@ -355,6 +360,13 @@ def verified_sources(root):
         if not isinstance(record, dict) or record.get("path") != path or record.get("sha256") != hashlib.sha256(data).hexdigest():
             raise builder.BuildError("Authored preview source differs from review")
         files[target] = data
+    # Retain sealed offline recovery/test sources without staging them runnable.
+    for target, path in OFFLINE_AUTHORED.items():
+        record = meta["offline_authored"][target]
+        data = audit_widgets.bounded(root, path, 65536)
+        if (not isinstance(record, dict) or record.get("path") != path
+                or record.get("sha256") != hashlib.sha256(data).hexdigest()):
+            raise builder.BuildError("Offline source differs from review")
     for path in meta["notice_paths"]:
         data = audit_widgets.bounded(root, path, 8192)
         if hashlib.sha256(data).hexdigest() != pin["license"].get("sha256"):
@@ -362,6 +374,10 @@ def verified_sources(root):
     files["LICENSE"] = data
     if files["Ui/BarIndicator.qml"] != audit_widgets.bounded(root, "config/shell/preview/BarIndicator.qml", 65536):
         raise builder.BuildError("Generated indicator frontend mirror differs")
+    try:
+        files.update(notification_frontend.sources(root))
+    except ValueError as error:
+        raise builder.BuildError(str(error)) from error
     return files, meta
 
 

@@ -86,20 +86,29 @@ Variants {
     })
   }
 
+  property QtObject notificationContext: QtObject {
+    readonly property QtObject bar: QtObject {
+      readonly property string position: "top"
+      readonly property int barSize: 26
+      readonly property bool barHidden: bars.barHidden
+      function barSizeFor(name) { return 26 }
+    }
+  }
+  property NotificationHost notificationHost: NotificationHost {
+    legacyDnd: bars.indicatorState.dnd
+    shellContext: bars.notificationContext
+  }
+
   function hasAudioWidget(id) {
     if (!appearance || !appearance.loaded) return id === "omarchy.audio"
     return Object.keys(appearance.bar.bar_layout || {}).some(function(region) {
       return bars.appearance.bar.bar_layout[region].indexOf(id) >= 0
     })
   }
-  property AudioNativeState audioNative: AudioNativeState {
-    enabled: !bars.barHidden && bars.hasAudioWidget("omarchy.audio")
-  }
   property AudioFeedback audioFeedback: AudioFeedback {
     enabled: !bars.barHidden && (bars.hasAudioWidget("omarchy.audio") || bars.hasAudioWidget("omarchy.media"))
   }
   property AudioOutputProvider audioProvider: AudioOutputProvider {
-    bridge: bars.audioNative
     feedback: bars.audioFeedback
   }
   property AudioOsdView audioOsd: AudioOsdView { feedback: bars.audioFeedback }
@@ -306,7 +315,7 @@ Variants {
       id: mediaComponent
       MediaControlView { bar: clockBar }
     }
-    Component { id: dndIndicatorComponent; DndIndicator { backend: bars.indicatorState.dnd } }
+    Component { id: dndIndicatorComponent; DndIndicator { backend: bars.notificationHost.dnd } }
     Component { id: nightlightIndicatorComponent; NightLightIndicator { backend: bars.indicatorState.nightlight } }
     Component {
       id: indicatorsComponent
@@ -314,7 +323,7 @@ Variants {
         bar: clockBar
         settings: ({items: ["NightLight", "Dnd"], stableControls: true})
         indicatorComponents: ({
-          "Dnd": bars.indicatorState.dnd.known ? dndIndicatorComponent : null,
+          "Dnd": bars.notificationHost.dnd && bars.notificationHost.dnd.known ? dndIndicatorComponent : null,
           "NightLight": bars.indicatorState.nightlight.known ? nightlightIndicatorComponent : null
         })
         onRefreshRequested: bars.indicatorState.refresh()

@@ -88,6 +88,13 @@ QtObject {
     readonly property color background: root.background
     readonly property color border: Qt.rgba(0.792, 0.800, 0.800, 0.45)
   }
+  // Original notification role defaults; share the admitted palette owner.
+  readonly property QtObject notifications: QtObject {
+    readonly property color background: root.background
+    readonly property color text: root.foreground
+    readonly property color border: root.accent
+    readonly property color countdown: root.accent
+  }
   readonly property QtObject tooltip: QtObject {
     readonly property color background: root.background
     readonly property color text: root.foreground

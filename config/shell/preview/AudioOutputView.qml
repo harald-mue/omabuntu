@@ -49,8 +49,6 @@ AudioPanelController {
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
-        // Hidden normal-page controls cannot acquire advanced-page keys.
-        if (root.advancedAudio) return
         // 'm' operates on the current section or that individual stream only.
         if ((t === "m" || t === "M") && root.cursorActive) {
           if (root.focusSection === "streams") {
@@ -87,7 +85,6 @@ AudioPanelController {
           Column {
             id: normalAudioColumn
             objectName: "audioNormalPage"
-            visible: !root.advancedAudio
             width: parent.width
             spacing: Style.space(14)
           // ---------- Hero: speaker icon · title/status ----------
@@ -402,13 +399,6 @@ AudioPanelController {
               }
             }
           }
-          }
-          AudioNativeControls {
-            width: parent.width
-            bridge: "bridge" in root.backend ? root.backend.bridge : null
-            controller: root
-            foreground: root.bar.foreground
-            fontFamily: root.bar.fontFamily
           }
           Text {
             visible: root.errorText !== ""

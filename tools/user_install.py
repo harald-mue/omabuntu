@@ -526,7 +526,6 @@ class Installation:
                    OMABUNTU_CLOCK_TRIAL=json.dumps(GRANT), QS_DISABLE_CRASH_HANDLER='1',
                    OMABUNTU_NETWORK_HELPER=str(release / 'helpers/network_nm.py'),
                    OMABUNTU_DISPLAY_HELPER=str(release / 'helpers/display_backend.py'),
-                   OMABUNTU_DISPLAY_PROFILES_HELPER=str(release / 'helpers/display_profiles.py'),
                    OMABUNTU_DOCK_HELPER=str(release / 'helpers/dock_state.py'),
                    OMABUNTU_KEYBINDINGS_HELPER=str(release / 'helpers/keybindings_menu.py'),
                    OMABUNTU_MENU_HELPER=str(release / 'helpers/menu_model.py'),

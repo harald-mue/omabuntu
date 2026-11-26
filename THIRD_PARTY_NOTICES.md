@@ -103,6 +103,21 @@ Do not extend root-license assumptions to unrelated images, fonts, datasets or
 components. Unimported components discussed in historical audits are not claimed
 as licensed imports by this inventory.
 
+### Original notification components (Omarchy / Omapager)
+
+- Source: Omarchy v4.5.0, commit `ac2690cd7be4f47e4a255f5e2e78d904d436b068`,
+  `shell/plugins/notifications/`; per-file provenance is in
+  [upstream/notifications.json](upstream/notifications.json).
+- Omarchy: Copyright (c) David Heinemeier Hansson, MIT.
+- The service identifies its engine as originating in
+  [Omapager](https://github.com/omacom/omapager),
+  Copyright (c) 2026 Neil Jagdish Patel, MIT. Its file-level attribution is
+  preserved; complete MIT terms are in
+  [licenses/Omapager-MIT.txt](licenses/Omapager-MIT.txt).
+- No upstream installer, migration, executable helper, font or image asset is
+  included by this import. Staged service changes are deterministic Ubuntu seams;
+  notification deployment and runtime ownership remain separately gated.
+
 ### Elsewhen world clock
 
 - Included path: [vendor/omarchy/shell/plugins/panels/elsewhen](vendor/omarchy/shell/plugins/panels/elsewhen).

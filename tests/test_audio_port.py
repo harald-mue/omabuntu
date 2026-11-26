@@ -17,8 +17,7 @@ class AudioPortTests(unittest.TestCase):
             self.assertEqual(meta["upstream"][target]["stage_transform"], "none")
 
     def test_typed_sources_admitted_without_helper_or_process_route(self):
-        # Typed controls remain native; the optional proof-bound untyped bridge
-        # is a separate owner, never an upstream shell-command dispatch seam.
+        # The normal runtime has only typed native controls, not an optional bridge.
         for name in ("AudioOutputProvider.qml", "AudioOutputView.qml", "AudioActions.js", "AudioPresentation.js"):
             text = (ROOT / "config/shell/preview" / name).read_text()
             for forbidden in ("Process {", "execDetached", "wpctl", "pactl", "Quickshell.Io", "UntypedInput", "omarchy-"):
@@ -27,7 +26,9 @@ class AudioPortTests(unittest.TestCase):
     def test_provider_input_boundary_is_native_and_gated(self):
         text = (ROOT / "config/shell/preview/AudioOutputProvider.qml").read_text()
         self.assertIn("!node.isSink && !node.isStream", text)
-        self.assertIn("Untyped.merge(Input.snapshot(", text)
+        self.assertIn("inputState: Input.snapshot(", text)
+        for forbidden in ("AudioUntyped", "Untyped.", "root.bridge", "bridge.change"):
+            self.assertNotIn(forbidden, text)
         self.assertIn('!== "quickshell"', text)
         self.assertEqual(text.count("Pipewire.preferredDefaultAudioSource = node"), 1)
         self.assertIn("function chooseInput(key)", text)
@@ -71,7 +72,7 @@ class AudioPortTests(unittest.TestCase):
         self.assertIn("wheelRemainder / 120", controller)
 
     def test_fixed_fixtures_are_not_native_audio(self):
-        self.assertEqual(len(fixtures.CASES), 43)
+        self.assertEqual(len(fixtures.CASES), 42)
         with self.assertRaises(ValueError):
             fixtures.fixture("play-test-sound")
         text = fixtures.fixture("controls")

@@ -146,7 +146,7 @@ class InputIntegrationContracts(unittest.TestCase):
         self.assertIn(b'enabled: root.inputWriteAvailable', files['AudioOutputView.qml'])
         self.assertIn(b'Routing.sameKey(inputs[j].control, key.control)', files['AudioPanelController.qml'])
         self.assertIn(b'Microphone controls unavailable', files['AudioPanelController.qml'])
-        self.assertEqual(meta['upstream']['AudioOutputView.qml']['stage_transform'], 'audio-native-input-frontend-v8')
+        self.assertEqual(meta['upstream']['AudioOutputView.qml']['stage_transform'], 'audio-native-input-frontend-v9')
 
     def test_actual_provider_fixtures_reject_unexpected_warnings(self):
         for name in ('input-direct', 'input-churn', 'input-guards', 'input-uncertain'):

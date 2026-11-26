@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "quickshell_commit": "2b4501a282689792b62e94f3fb30d8f512324fe6",
+  "source_path": "src/services/notifications/server.cpp",
+  "source_sha256": "439808002a8bb2ef39d49330cff29ddc121d4fd90235cdebc39c30304d3fb1b6",
+  "patch": "native/notification-exclusive.patch",
+  "patch_sha256": "e651a077caed007f2af786ebe1e09d99871f5b0326b434c30a09127314cd2180",
+  "patched_source_sha256": "02f1b8c0ded01f1a2f57c3126b09d16fc7cd44f4a440691e57355c769b8ed1bc",
+  "status": "candidate-not-built-or-runtime-accepted",
+  "activation": "blocked-until-reviewed-exclusive-runtime-and-deployment"
+}

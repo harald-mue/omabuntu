@@ -6,6 +6,11 @@ Selected unchanged files from Omarchy v4.5.0 stable, commit
 See the [stable component update](../../docs/omarchy-450-update.md) for the
 source/deployment boundary, dependency review and retained exclusions.
 
+- shell/plugins/notifications/{Service.qml,Toast.qml,DeedButton.qml,Delivery.js,
+  Detect.js,Icons.js,Layout.js,Markup.js,Security.js,Store.js}: original notification
+  engine/cards/models, including the inherited Omapager MIT attribution. Source
+  seals and the narrow service derivation are in `upstream/notifications.json`;
+  activation/runtime gates are documented in `docs/notifications.md`.
 - shell/plugins/panels/weather/{Panel.qml,BarWidget.qml,Model.js,manifest.json}:
   original MIT weather source. `tools/weather_frontend.py` retains the view and
   model and original city editor. A bounded Python adapter handles wttr.in

@@ -16,7 +16,7 @@ import re
 import subprocess
 import time
 
-import display_profiles
+import display_common
 
 ROOT = Path(__file__).resolve().parents[1]
 SCALES = (1, 1.25, 1.5, 1.6, 2, 3, 4)
@@ -49,7 +49,7 @@ def control_key(monitors, owner):
 
 
 def status(native=None):
-    native = native or display_profiles.Native()
+    native = native or display_common.Native()
     monitors = native.inventory()
     if not isinstance(monitors, list):
         raise ValueError('Unexpected monitor report')
@@ -73,11 +73,11 @@ def toggle_program(monitors, output, enabled):
             + str(enabled).lower() + ' }); return "ok"')
 
 
-def toggle(native, profiles, output, enabled, expected):
+def toggle(native, guard, output, enabled, expected):
     if not isinstance(expected, str) or not re.fullmatch(r'[a-f0-9]{64}', expected):
         raise ValueError('Missing display observation; refresh before switching')
-    with profiles.lock():
-        profiles.idle()
+    with guard.lock():
+        guard.idle()
         before = status(native)
         if before['control_key'] != expected:
             raise ValueError('Display state or compositor owner changed; refresh before switching')
@@ -97,14 +97,14 @@ def toggle(native, profiles, output, enabled, expected):
                 if (not matches[0].get('disabled', False)) == (not enabled):
                     if not any(not m.get('disabled', False) for m in after['displays']):
                         raise ValueError('No active output observed; external state changed')
-                    display_profiles.put(backup.with_suffix('.outcome.json'),
+                    display_common.put(backup.with_suffix('.outcome.json'),
                                          {'status': 'observed', 'after': after})
                     return after
                 if time.monotonic() >= deadline:
                     raise ValueError('Output switch not observed; check the displays')
                 time.sleep(.1)
         except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
-            display_profiles.put(backup.with_suffix('.outcome.json'),
+            display_common.put(backup.with_suffix('.outcome.json'),
                                  {'status': 'uncertain', 'error': str(error)[:256]})
             raise
 
@@ -188,9 +188,9 @@ def main(argv=None):
             raise ValueError('Invalid scale')
         # Cooperate with profile confirmation/recovery and automation; never let
         # the older scale slider bypass a pending profile transaction.
-        profiles = display_profiles.Profiles()
-        with profiles.lock():
-            profiles.idle()
+        guard = display_common.State()
+        with guard.lock():
+            guard.idle()
             state = status()
             program = scale_program(state['displays'], args.values[0], scale)
             save_previous(state)
@@ -199,15 +199,17 @@ def main(argv=None):
     elif args.action == 'text':
         if len(args.values) != 1 or not re.fullmatch(r'\d{1,2}', args.values[0]):
             raise ValueError('Expected shell text size')
-        display_profiles.Profiles(native=display_profiles.Native()).set_text(int(args.values[0]))
+        native = display_common.Native()
+        display_common.State().set_text(int(args.values[0]))
+        state = status(native)
     elif args.action == 'toggle':
         if len(args.values) != 3 or args.values[1] not in ('true', 'false'):
             raise ValueError('Expected output, observed enabled state and observation key')
-        state = toggle(display_profiles.Native(), display_profiles.Profiles(),
+        state = toggle(display_common.Native(), display_common.State(),
                        args.values[0], args.values[1] == 'true', args.values[2])
     elif args.values:
         raise ValueError('Status takes no arguments')
-    print(json.dumps(state if args.action in ('status', 'toggle') else status()))
+    print(json.dumps(state if args.action in ('status', 'toggle', 'text') else status()))
 
 
 if __name__ == '__main__':

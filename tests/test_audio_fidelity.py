@@ -19,7 +19,7 @@ class AudioFidelityTests(unittest.TestCase):
         self.assertEqual(self.output, (ROOT / "config/shell/preview/AudioOutputView.qml").read_text())
         files, meta = preview.verified_sources(ROOT)
         self.assertEqual(files["AudioOutputView.qml"].decode(), self.output)
-        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-native-input-frontend-v8")
+        self.assertEqual(meta["upstream"]["AudioOutputView.qml"]["stage_transform"], "audio-native-input-frontend-v9")
         self.assertNotIn("AudioOutputView.qml", meta["authored"])
 
     def test_original_hero_is_byte_identical(self):

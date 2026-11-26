@@ -18,6 +18,7 @@ import build_plugin
 import desktop_font
 import plugin_manager
 import update_payload
+import notification_admission
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -147,12 +148,14 @@ def managed_snippet(data, *, manager):
     return data
 
 
-def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None, bluetooth_build=None):
+def prepare(version, candidate, screenshot_build=None, image_assets=None, build_inputs=None, font_file=None, plugin_build=None, bluetooth_build=None, notification_runtime=None):
     if not isinstance(version, str) or not user_install.VERSION.fullmatch(version):
         raise ValueError('Invalid release version')
     monitor_policy = monitor_workspaces.verify(ROOT)
     files, profile = preview.verified_sources(ROOT)
-    build, runtime, _ = check_runtime.verify_stage(ROOT, candidate)
+    if notification_runtime is not None and screenshot_build is not None:
+        raise ValueError('Exclusive notification review excludes additional runtime artifacts')
+    build, runtime, notification_case = notification_admission.select_runtime(ROOT, candidate, notification_runtime)
     screenshot = build_omasnap.verify_stage(ROOT, screenshot_build) if screenshot_build is not None else None
     if build_inputs is not None and (not isinstance(build_inputs, str) or not re.fullmatch(r'[a-f0-9]{64}', build_inputs)):
         raise ValueError('Invalid bootstrap input digest')
@@ -173,7 +176,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
             path.chmod(0o444)
-        for name in ('network_nm.py', 'display_backend.py', 'display_profiles.py', 'display_profile_model.py', 'qrcodegen.py', 'dock_state.py',
+        for name in ('network_nm.py', 'notification_state.py', 'notification_admission.py', 'notification_session.py', 'display_backend.py', 'display_common.py', 'display_profiles.py', 'display_profile_model.py', 'qrcodegen.py', 'dock_state.py',
                      'keybindings_menu.py', 'menu_model.py', 'menu_common.py', 'appearance_backend.py', 'menu_update.py',
                      'native_compatibility.py', 'window_controls.py', 'bar_layout.py',
                      'indicator_native.py', 'indicator_state.py', 'audio_pactl.py', 'audio_profiles.py',
@@ -237,6 +240,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
         cpptrace = next(sources.glob('cpptrace-*'))
         licenses = {
             'Omarchy-MIT.txt': ROOT / 'licenses/Omarchy-MIT.txt',
+            'Omapager-MIT.txt': ROOT / 'licenses/Omapager-MIT.txt',
             'Omabuntu-MIT.txt': ROOT / 'LICENSE',
             'Quickshell-LGPL.txt': quickshell / 'LICENSE',
             'Quickshell-GPL.txt': quickshell / 'LICENSE-GPL',
@@ -254,10 +258,15 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
         if plugin is None:
             stage_manager_policy(ROOT, temporary)
         font_pin = desktop_font.stage(ROOT, temporary, font_file) if font_file is not None else None
+        notification_capability = (notification_admission.stage(ROOT, temporary, notification_case)
+                                   if notification_case is not None else None)
         (temporary / 'PROVENANCE.json').write_text(json.dumps({
             'omarchy': profile['source'], 'runtime_sources': source_lock,
             'monitor_workspace_policy': monitor_policy,
             'profile_sha256': hashlib.sha256((ROOT / 'upstream/clock-preview.json').read_bytes()).hexdigest(),
+            'notification_profile_sha256': hashlib.sha256((ROOT / 'upstream/notifications.json').read_bytes()).hexdigest(),
+            'notification_role': 'inactive-until-separate-exclusive-runtime-deployment',
+            'exclusive_notification_runtime': notification_capability,
             'runtime_alias_adaptation': 'bin/qs uses a relative quickshell target for relocation',
             'distribution': 'Local private installation only; no remote publication approval.',
             'local_image_directories': local_images,
@@ -289,10 +298,13 @@ def main(argv=None):
     parser.add_argument('--version', required=True)
     parser.add_argument('--build-dir', type=Path, required=True,
                         help="Explicit verified directory under this project's work/builds")
+    parser.add_argument('--notification-runtime', type=Path,
+                        help='Explicit private-bus-verified exclusive variant; packaged inactive, never a live role grant')
     parser.add_argument('--bluetooth-build', type=Path, help='Explicit verified production QtDBus helper build; no implicit compilation/install')
     args = parser.parse_args(argv)
     os.umask(0o077)
-    prepare(args.version, args.build_dir, bluetooth_build=args.bluetooth_build)
+    prepare(args.version, args.build_dir, bluetooth_build=args.bluetooth_build,
+            notification_runtime=args.notification_runtime)
 
 
 if __name__ == '__main__':

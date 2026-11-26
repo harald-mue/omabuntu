@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -13,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import display_backend as backend
 import display_profiles as profiles
+import display_common as common
 
 
 def monitors():
@@ -54,6 +56,7 @@ class DisplayControlsTests(unittest.TestCase):
         self.home = Path(self.tmp.name)
         self.native = Native()
         self.profiles = profiles.Profiles(self.home, native=self.native)
+        self.state = common.State(self.home)
         self.env = patch.dict(os.environ, {'OMABUNTU_STATE_HOME': str(self.home)})
         self.env.start()
         self.addCleanup(self.env.stop)
@@ -65,7 +68,7 @@ class DisplayControlsTests(unittest.TestCase):
         return backend.status(self.native)['control_key']
 
     def switch(self, name='DP-2', enabled=True, key=None):
-        return backend.toggle(self.native, self.profiles, name, enabled, key or self.key())
+        return backend.toggle(self.native, self.state, name, enabled, key or self.key())
 
     def receipts(self):
         return sorted((self.home / 'desktop-actions').glob('*.json'))
@@ -187,33 +190,87 @@ class DisplayControlsTests(unittest.TestCase):
         current = self.home / 'current'
         current.mkdir(mode=0o775)
         current.chmod(0o775)
-        with patch.object(profiles, 'Native', return_value=self.native), patch('builtins.print'):
+        with patch.object(common, 'Native', return_value=self.native), patch('builtins.print'):
             backend.main(['text', '14'])
         self.assertEqual(self.profiles.text_size(), 14)
         self.assertEqual(current.stat().st_mode & 0o777, 0o775)
         self.assertEqual(self.native.calls, [])
         self.assertFalse(self.profiles.path.exists())
-        backup = next((self.profiles.directory / 'backups').glob('*.json'))
+        backup = next((self.home / 'desktop-actions').glob('text-*.json'))
         self.assertFalse(json.loads(backup.read_text())['text']['existed'])
 
     def test_normal_text_control_preserves_previous_file_and_mode_in_backup(self):
         profiles.atomic(self.profiles.text_path, b'12\n')
         self.profiles.text_path.chmod(0o640)
-        with patch.object(profiles, 'Native', return_value=self.native), patch('builtins.print'):
+        with patch.object(common, 'Native', return_value=self.native), patch('builtins.print'):
             backend.main(['text', '16'])
         self.assertEqual(self.profiles.text_size(), 16)
-        backup = json.loads(next((self.profiles.directory / 'backups').glob('*.json')).read_text())
+        backup = json.loads(next((self.home / 'desktop-actions').glob('text-*.json')).read_text())
         self.assertEqual(backup['text']['mode'], 0o640)
         self.assertEqual(backup['text']['data'], 'MTIK')
         self.assertEqual(self.native.calls, [])
 
     def test_invalid_text_does_not_create_state_or_write(self):
-        with patch.object(profiles, 'Native', return_value=self.native), patch('builtins.print'):
+        with patch.object(common, 'Native', return_value=self.native), patch('builtins.print'):
             for value in ('100', '13', 'NaN', '9;bad'):
                 with self.subTest(value=value), self.assertRaises(ValueError):
                     backend.main(['text', value])
         self.assertEqual(self.native.calls, [])
         self.assertEqual(list(self.home.iterdir()), [])
+
+    def test_normal_text_ignores_malformed_profile_store_and_preserves_it(self):
+        common.private(self.profiles.directory, True)
+        self.profiles.path.write_text("not a profile store")
+        with patch.object(common, 'Native', return_value=self.native), patch('builtins.print'):
+            backend.main(['text', '14'])
+        self.assertEqual(self.profiles.path.read_text(), "not a profile store")
+        self.assertEqual(self.state.text_size(), 14)
+        self.assertFalse((self.profiles.directory / 'backups').exists())
+
+    def test_normal_text_does_not_enumerate_profile_receipts(self):
+        original = Path.glob
+        def guarded(path, pattern):
+            if path == self.profiles.directory / 'transactions':
+                raise AssertionError('normal controls enumerated profile history')
+            return original(path, pattern)
+        with patch.object(Path, 'glob', guarded), patch.object(common, 'Native', return_value=self.native), patch('builtins.print'):
+            backend.main(['text', '14'])
+        self.assertEqual(self.state.text_size(), 14)
+
+    def test_pending_recovery_also_blocks_text_before_backup(self):
+        common.put(self.state.pending_path, dict(token='b' * 32, status='prepared', deadline=100))
+        with patch.object(common, 'Native', return_value=self.native), patch('builtins.print'):
+            with self.assertRaisesRegex(ValueError, 'Pending monitor transaction'):
+                backend.main(['text', '14'])
+        self.assertFalse(self.state.text_path.exists())
+        self.assertEqual(self.receipts(), [])
+
+    def test_legacy_recovery_and_normal_controls_share_the_same_lock(self):
+        with self.profiles.lock():
+            with self.assertRaises(BlockingIOError):
+                with self.state.lock():
+                    self.fail('normal controls bypassed the legacy recovery lock')
+
+    def test_normal_text_checks_native_session_before_creating_state(self):
+        with patch.object(common, 'Native', side_effect=ValueError('Compositor owner changed')):
+            with self.assertRaisesRegex(ValueError, 'owner changed'):
+                backend.main(['text', '14'])
+        self.assertEqual(list(self.home.iterdir()), [])
+
+    def test_normal_backend_import_does_not_load_profile_modules(self):
+        code = ("import sys; sys.path.insert(0, " + repr(str(ROOT / 'tools')) + "); "
+                "import display_backend; "
+                "assert 'display_profiles' not in sys.modules; "
+                "assert 'display_profile_model' not in sys.modules")
+        result = subprocess.run([sys.executable, '-B', '-I', '-c', code],
+                                capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_normal_backend_has_no_profile_workflow_import(self):
+        for name in ('display_backend.py', 'display_common.py'):
+            source = (ROOT / 'tools' / name).read_text()
+            self.assertNotIn('import display_profiles', source)
+            self.assertNotIn('import display_profile_model', source)
 
 
 if __name__ == '__main__':

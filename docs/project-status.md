@@ -4,6 +4,117 @@ This is the current acceptance summary after the owner's plan-133 review.
 Older plans are historical records, not a live backlog. Removing an obsolete
 unchecked task does not mean its proposed operation was executed or approved.
 
+## Original notifications and approved live session (Plans 173–185)
+
+The owner requested the original notification component closure rather than
+SwayNC styling. Ten original files are imported with sealed provenance and
+Omarchy/Omapager MIT notices. The deterministic service derivation adds private
+Omabuntu state preparation, closed Ubuntu actions, fixed IPC and the shared DND
+facade. Original cards/models and deck interaction source are retained, not
+replaced by authored toast panels. See [notification contracts](notifications.md).
+
+Plan 185's owner-approved minimal overlay is now active for the current explicit
+session: actual bus owner/parent, original state/DND readiness, preserved quiet,
+installed release integrity and GDB/supervisor tracing are verified. SwayNC is
+stopped behind a runtime-only activation fence; no autostart or automatic
+competing fallback was added. The private transaction journal preserves exact
+recovery state. The owner subsequently confirmed basic live popup display.
+That is not full visual/interaction or production-application acceptance.
+
+Historically, Plan 174 clean-built the pinned
+exclusive-registration variant separately and passed six actual private-bus
+checks, including native Notify/clean exit, replacement/conflict refusal, no
+queue/late takeover, missing bus and bus loss. An unpatched negative control
+reproduced the original late-takeover bug. Only the staged executable differs
+from the unchanged baseline. Artifact/checker-bound eligibility is verified;
+this is native bus evidence, not just the synthetic QML server test.
+
+Plan 175 adds explicit inactive variant packaging against the verified parent,
+with the exact patch, build/test/eligibility evidence and a read-only offline
+capability validator. A real local review package passes full release/capability
+validation; no installation or startup occurs. Both normal host admission flags
+remain false. Runtime capability does not supply the separately approved live
+role or a security boundary against arbitrary same-user code. These earlier
+preparation steps did not change SwayNC, the installed release or shell/debugger;
+Plan 185 subsequently performs only the separately approved controlled switch.
+
+Plan 177 subsequently prepares nine exact Ubuntu packages only under private
+work/, with no system installation, and proves the device-free native graphics
+prerequisite: Labwc headless/Pixman/SHM, Qt OpenGL/llvmpipe, actual PanelWindow
+instances and shader/mask positive/negative captures on one and two outputs.
+Private protocol/linkage, namespace, guarded activation, immutable input and owned
+child cleanup checks pass. That graphics-only checkpoint starts no notification
+service or host-session test.
+
+Plan 178 subsequently passes actual original Service/Toast on the same private
+lab with one/two outputs and a real private NotificationServer/bus: native cards,
+replacement/grouping/expiry, private DND, original photo/symbolic/raw icon effects,
+real virtual-keyboard Escape/Return and a matching native standard action signal.
+The sealed native surface/shader/input-region source stays unchanged; no authored
+replacement card or direct key-handler simulation supplies this evidence. Final
+synthetic persistence validates read-only; inputs and owned cleanup checks pass.
+See [native fixture evidence and retained failures](notification-native-probe.md).
+
+Plan 179 adds single-output native pointer evidence with the unchanged closure:
+hover hold/leave/resumed expiry, grouped expansion, idle/outside-deck click-through,
+right-click dismissal and left-click standard action signal. A separate owned
+native background window receives keys before/after original exclusive keyboard
+mode without refocus, but not during it. The persistent pointer is a bounded
+standard-library private-protocol fixture, not a host input device. See the
+[pointer/focus checkpoint](notification-native-input.md) and its retained failure.
+
+Plan 180 crosses real process boundaries: separate notification and native app
+processes plus a persistent QtDBus sender pass native action/close callbacks,
+replacement identity, exclusive-keyboard suppression and Escape handoff without
+refocus. Sender exit leaves a dismissible original snapshot; a later sender filters
+its old action ID and receives only its own callback count for a fresh notice.
+Standard action signals remain broadcasts, not confidential replies. The sender
+is compiled only inside the private namespace using existing Qt 6.10.2 tools.
+See the [cross-process checkpoint](notification-native-processes.md).
+
+Plan 181's native history/transience/redaction failure is resolved in Plan 184.
+The reduced control reproduces warnings on code-card dismissal, not arrival.
+An early service-derivation guard excludes height reports from departing or
+unreserved rows before layout retargeting; upstream cards/layout, surfaces and
+close ordering remain unchanged. The unchanged canonical native history runner
+now passes all seven assertions across three process generations with no extra
+warnings. Native rendering, pointer and cross-process runners also pass again.
+Failed controls/unsealed proposals remain separate from sealed acceptance; the
+strict warning policy is unchanged. See the
+[history checkpoint and reduction](notification-native-history.md). This is not
+a cause established for the independent live crashes.
+
+Multi-output pointer behavior, production application focus/actions, Hyprland
+policy, clipboard/locked privacy and broad security/crash acceptance remain open.
+The owner explicitly approved the controlled live switch and shell/GDB
+coordination in Plan 183; its first attempt stopped at the native gate without
+live changes. Plan 185 now implements artifact/session/parent-bound one-use
+admission, a minimal overlay preserving the installed audio/profile/screenshot
+components, and an explicit provider/capture transaction with checked recovery.
+A private native host test passes real admission/card ingestion and duplicate,
+wrong-session and tampered-artifact refusals. Canonical native regressions pass
+again after adding the full store/quiet readiness gate. See the
+[live session procedure](notification-live.md). Actual live completion is now recorded
+in the Plan 185 outcome and private transaction journal, after owner/role/DND/
+release/capture checks rather than inferred from isolated tests or approval.
+
+## Source-only runtime cleanup (Plan 171)
+
+The approved cleanup removes withdrawn Advanced-audio roots/UI/bridge hooks from
+the ordinary shell and excludes the five withdrawn audio/profile QML/JS sources
+from packaging while retaining sealed offline recovery sources and helpers.
+Normal monitor controls now use a neutral shared safety/state module instead of
+the profile workflow; legacy lock/pending/text paths and recovery records remain
+compatible. Normal text changes no longer enumerate profile/history data.
+
+Unit regressions and contained audio/desktop/clock checks pass; see Plan 171 and
+the [audio](audio-completion.md) / [monitor](display-profiles.md) contracts for
+scope and exclusions. This is not an established fix for the native crashes.
+No installation, live restart, settings migration, native setter or commit was
+performed. The installed Plan 163 shell is unchanged by this cleanup; session GDB capture
+is managed separately under explicit owner approval. Deployment needs separate approval. Earlier acceptance below does not
+automatically cover these undeployed changes.
+
 ## Owner-reported acceptance
 
 The owner explicitly confirmed that the everyday checks listed in the project

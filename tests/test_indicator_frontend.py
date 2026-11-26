@@ -72,8 +72,9 @@ class IndicatorFrontendTests(unittest.TestCase):
         self.assertEqual(panel.count('property IndicatorState indicatorState:'), 1)
         import bar_layout
         self.assertNotIn('omarchy.indicators', json.dumps(bar_layout.defaults()))
-        for kind, component in [('dnd', 'dndIndicatorComponent'), ('nightlight', 'nightlightIndicatorComponent')]:
-            self.assertIn('bars.indicatorState.' + kind + '.known ? ' + component + ' : null', panel)
+        self.assertIn('bars.notificationHost.dnd && bars.notificationHost.dnd.known ? dndIndicatorComponent : null', panel)
+        self.assertIn('bars.indicatorState.nightlight.known ? nightlightIndicatorComponent : null', panel)
+        self.assertIn('legacyDnd: bars.indicatorState.dnd', panel)
 
     def test_original_native_parent_mirrors_and_narrow_provider_seams(self):
         files, meta = clock.verified_sources(ROOT)

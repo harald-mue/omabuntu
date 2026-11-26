@@ -1,0 +1,84 @@
+--- a/src/services/notifications/server.cpp
++++ b/src/services/notifications/server.cpp
+@@ -4,6 +4,8 @@
+ #include <qcontainerfwd.h>
+ #include <qcoreapplication.h>
+ #include <qdbusconnection.h>
++#include <qdbusconnectioninterface.h>
++#include <qtimer.h>
+ #include <qdbusmetatype.h>
+ #include <qdbusservicewatcher.h>
+ #include <qlogging.h>
+@@ -35,26 +37,23 @@
+ 	auto bus = QDBusConnection::sessionBus();
+ 
+ 	if (!bus.isConnected()) {
+-		qCWarning(logNotifications) << "Could not connect to DBus. Notification service will not work.";
+-		return;
++		qFatal("OMABUNTU_NOTIFICATION_EXCLUSIVE_V1: session bus unavailable");
+ 	}
+ 
+ 	if (!bus.registerObject("/org/freedesktop/Notifications", this)) {
+-		qCWarning(logNotifications) << "Could not register Notification server object with DBus. "
+-		                               "Notification server will not work.";
+-		return;
+-	}
+-
+-	QObject::connect(
+-	    &this->serviceWatcher,
+-	    &QDBusServiceWatcher::serviceUnregistered,
+-	    this,
+-	    &NotificationServer::onServiceUnregistered
+-	);
+-
+-	this->serviceWatcher.setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
+-	this->serviceWatcher.addWatchedService("org.freedesktop.Notifications");
+-	this->serviceWatcher.setConnection(bus);
++		qFatal("OMABUNTU_NOTIFICATION_EXCLUSIVE_V1: notification object unavailable");
++	}
++
++	// No watcher, queue, replacement or late takeover of another provider.
++	// This checks connection health, not component lifetime or idle expiry.
++	auto* health = new QTimer(this);
++	health->setInterval(500);
++	QObject::connect(health, &QTimer::timeout, this, [bus]() {
++		if (!bus.isConnected()) {
++			qFatal("OMABUNTU_NOTIFICATION_EXCLUSIVE_V1: session bus disconnected");
++		}
++	});
++	health->start();
+ 
+ 	NotificationServer::tryRegister();
+ }
+@@ -114,23 +113,21 @@
+ 
+ void NotificationServer::tryRegister() {
+ 	auto bus = QDBusConnection::sessionBus();
+-	auto success = bus.registerService("org.freedesktop.Notifications");
++	auto reply = bus.interface()->registerService(
++	    "org.freedesktop.Notifications",
++	    QDBusConnectionInterface::DontQueueService,
++	    QDBusConnectionInterface::DontAllowReplacement
++	);
++	auto success = reply.isValid() && reply.value() == QDBusConnectionInterface::ServiceRegistered;
+ 
+ 	if (success) {
+ 		qCInfo(logNotifications) << "Registered notification server with dbus.";
+ 	} else {
+-		qCWarning(
+-		    logNotifications
+-		) << "Could not register notification server at org.freedesktop.Notifications, presumably "
+-		     "because one is already registered.";
+-		qCWarning(
+-		    logNotifications
+-		) << "Registration will be attempted again if the active service is unregistered.";
++		qFatal("OMABUNTU_NOTIFICATION_EXCLUSIVE_V1: notification role unavailable");
+ 	}
+ }
+ void NotificationServer::onServiceUnregistered(const QString& /*unused*/) {
+-	qCDebug(logNotifications) << "Active notification server unregistered, attempting registration";
+-	NotificationServer::tryRegister();
++	qFatal("OMABUNTU_NOTIFICATION_EXCLUSIVE_V1: unexpected ownership transition");
+ }
+ 
+ void NotificationServer::CloseNotification(uint id) {

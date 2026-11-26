@@ -13,18 +13,7 @@ Item {
   required property QtObject bar
   required property QtObject backend
   property var panelWindow: null
-  property var profileControls: null
   property bool opened: false
-  // The authored Advanced audio surface is disabled, not a user preference.
-  readonly property bool advancedAudioAvailable: false
-  property bool advancedAudio: false
-  onAdvancedAudioChanged: {
-    if (advancedAudio && !advancedAudioAvailable) { advancedAudio = false; return; }
-    dragTarget = null; cancelInputDrag(); cursorActive = false;
-    focusSection = advancedAudio ? "profiles" : "output";
-    selectedIndex = advancedAudio ? 0 : -1;
-    Qt.callLater(resetScroll);
-  }
   property bool cursorActive: false
   property string focusSection: "output"
   property int selectedIndex: -1
@@ -40,7 +29,7 @@ Item {
   readonly property bool outputControlAvailable: !!current && current.controlAvailable !== false
   readonly property real outputVolume: current ? current.volume : 0
   readonly property bool outputMuted: !current || current.muted
-  // Typed and separately proved untyped input observations.
+  // Typed native input observations.
   readonly property var source: backend.inputState.current
   readonly property var displayAudioSources: opened ? backend.inputState.inputs : []
   readonly property real inputVolume: source ? source.volume : 0
@@ -50,7 +39,7 @@ Item {
   readonly property bool inputWriteAvailable: inputControlAvailable && source.writeAvailable !== false
   readonly property bool inputUnavailable: !!backend.inputState.defaultPresent && !inputControlAvailable
   readonly property bool inputLevelKnown: inputControlAvailable
-  readonly property bool inputLevelShown: !!source && source.untyped !== true
+  readonly property bool inputLevelShown: !!source
   readonly property real inputPeak: backend.peak
   // Original hero semantics: on while either channel remains unmuted.
   // The bar glyph and the separate output/input row actions stay channel-local.
@@ -72,7 +61,6 @@ Item {
   onInputControlAvailableChanged: { clampCursor(); if (!inputControlAvailable) cancelInputDrag(); }
   onSourceChanged: if (dragSourceTarget && (!source || source.id !== dragSourceTarget.id
     || source.name !== dragSourceTarget.name || source.serial !== dragSourceTarget.serial
-    || source.bridgeKey !== dragSourceTarget.bridgeKey
     || (source.control ? !Routing.sameKey(source.control, dragSourceTarget.control) : !!dragSourceTarget.control))) cancelInputDrag()
   onDisplayAudioStreamsChanged: clampCursor()
   onVisibleSectionsChanged: clampCursor()
@@ -86,7 +74,6 @@ Item {
       selectedIndex = -1;
       Qt.callLater(resetScroll);
     } else {
-      advancedAudio = false;
       dragTarget = null;
       cancelInputDrag();
     }
@@ -119,16 +106,10 @@ Item {
   function beginInputDrag() { inputDragCancelledState = false; dragSourceTarget = source; }
   function finishInputDrag(value) {
     if (inputDragCancelledState) { inputDragCancelledState = false; return; }
-    var captured = dragSourceTarget;
     dragSourceTarget = null;
-    if (captured && captured.untyped) errorText = backend.setSourceVolume(captured, value)
-      ? "" : "Microphone changed, unavailable or gain outcome uncertain";
   }
   function setInputVolume(value) {
     if (inputDragCancelledState) { errorText = "Microphone gesture cancelled; start a new action"; return; }
-    // The pulse-backed gesture issues once on release, never a replay/retarget
-    // of asynchronous intermediate moves. Typed controls remain continuous.
-    if (dragSourceTarget && dragSourceTarget.untyped) return;
     errorText = backend.setSourceVolume(dragSourceTarget || source, value) ? "" : "Microphone changed, unavailable or gain outcome uncertain";
   }
   function toggleInputMute() {
@@ -180,15 +161,12 @@ Item {
     if (section === "output") return displayAudioSinks.length;
     if (section === "input") return displayAudioSources.length;
     if (section === "streams") return displayAudioStreams.length;
-    if (section === "profiles") return advancedAudioAvailable && profileControls ? profileControls.actions.length : 0;
     return 0;
   }
   function sectionVisible(section) {
-    if (advancedAudio && section !== "profiles") return false;
     if (section === "output") return true;
     if (section === "input") return displayAudioSources.length > 0 || !!source;
     if (section === "streams") return displayAudioStreams.length > 0;
-    if (section === "profiles") return advancedAudioAvailable && !!profileControls && profileControls.actions.length > 0;
     return false;
   }
   function sectionHasSlider(section) {
@@ -201,10 +179,9 @@ Item {
     if (sectionVisible("output")) list.push("output");
     if (sectionVisible("input")) list.push("input");
     if (sectionVisible("streams")) list.push("streams");
-    if (sectionVisible("profiles")) list.push("profiles");
     return list;
   }
-  function setHeaderCursor() { cursorActive = true; focusSection = advancedAudio ? "profiles" : "header"; if (advancedAudio) selectedIndex = 0; }
+  function setHeaderCursor() { cursorActive = true; focusSection = "header"; }
   function moveCursor(delta) {
     var sections = visibleSections;
     if (sections.length === 0) return;
@@ -230,7 +207,7 @@ Item {
         focusSection = sections[sIdx - 1];
         var prevMax = sectionCount(focusSection) - 1;
         selectedIndex = prevMax >= 0 ? prevMax : (sectionHasSlider(focusSection) ? -1 : 0);
-      } else if (!advancedAudio) {
+      } else {
         focusSection = "header";
       }
     }
@@ -254,7 +231,6 @@ Item {
   }
   // Device rows are no-ops for h/l; stream rows adjust only their own slider.
   function adjustVolume(delta) {
-    if (advancedAudio) return;
     if (focusSection === "output" && selectedIndex === -1) setOutputVolume(outputVolume + delta);
     else if (focusSection === "input" && selectedIndex === -1) {
       inputDragCancelledState = false;
@@ -266,11 +242,6 @@ Item {
     }
   }
   function activateCursor() {
-    if (advancedAudio && focusSection !== "profiles") return;
-    if (focusSection === "profiles") {
-      if (advancedAudioAvailable && profileControls) profileControls.activate(selectedIndex);
-      return;
-    }
     if (focusSection === "header") { toggleAllMuted(); return; }
     if (focusSection === "output") {
       if (selectedIndex === -1) { toggleOutputMute(); return; }

@@ -1,6 +1,38 @@
 # Monitor controls and withdrawn profile integration
 
-## Current correction (Plan 162)
+## Current source boundary (Plan 171; not deployed)
+
+Normal monitor actions now import `display_common.py`, not the profile workflow
+or model. It owns the reviewed Hyprland 0.57.0 session/inventory client, private
+bounded state I/O, shell text state, shared lock and pending-recovery fence.
+The offline profile backend reuses these primitives; its apply/restore/guard
+workflow remains separate and available for explicitly reviewed recovery.
+
+Compatibility paths are intentionally unchanged: `display-profiles/control.lock`,
+`display-profiles/pending.json` and `current/text-size.txt`. A pending legacy
+transaction still blocks normal text/output/scale changes; recovery and normal
+controls cannot acquire different locks. Old profile stores/history/backups and
+receipts are neither deleted nor migrated.
+
+Normal text changes no longer call profile `overview()` or read saved profiles
+and transaction history. They retain the native-session precheck, private durable
+previous text bytes/mode, and locked pending-transaction refusal. New previous-text
+records live under `desktop-actions/text-<token>.json`; old profile backups stay
+where they were. Existing `current/` directory permissions are not rewritten.
+Normal status/output geometry, partial monitor commands, last-active-output
+protection, bounded observation and before/outcome records remain unchanged.
+
+The unused profile helper environment export is removed.
+`DisplayProfilesState.qml` and `DisplayProfilesView.qml` remain sealed offline
+sources but are excluded from normal shell staging/packaging. Recovery Python
+helpers remain packaged, not started automatically. No profile watcher, migration,
+native setter or desktop restart was activated by this source cleanup.
+
+The installed release still contains the earlier Plan 162 correction via Plan
+163; the active GDB-supervised shell has not been replaced. Deployment and live
+acceptance require separate approval; these changes do not prove crash freedom.
+
+## Installed correction (Plan 162)
 
 The owner rejected the Plan 161 profile interface: duplicate Back navigation,
 a permanent technical paragraph and capture refusing an existing layout gap.

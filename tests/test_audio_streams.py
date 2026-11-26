@@ -121,7 +121,7 @@ console.log('stream-labels-ok');'''
         files, meta = preview.verified_sources(ROOT)
         self.assertEqual(files['AudioOutputView.qml'].decode(), self.source('AudioOutputView.qml'))
         self.assertEqual(meta['upstream']['AudioOutputView.qml']['stage_transform'],
-                         'audio-native-input-frontend-v8')
+                         'audio-native-input-frontend-v9')
         self.assertEqual(meta['upstream']['AudioOutputView.qml']['source_modifications'], [])
 
 

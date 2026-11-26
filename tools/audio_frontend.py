@@ -32,8 +32,6 @@ def derive_audio(data):
     panel = between(text, "  KeyboardPanel {\n", "          // ---- Per-app streams ----\n")
     keys = between(panel, "      onTextKey: function(t) {\n", "      ScrollView {\n")
     panel = replace(panel, keys, '''      onTextKey: function(t) {
-        // Hidden normal-page controls cannot acquire advanced-page keys.
-        if (root.advancedAudio) return
         // 'm' operates on the current section or that individual stream only.
         if ((t === "m" || t === "M") && root.cursorActive) {
           if (root.focusSection === "streams") {
@@ -71,8 +69,7 @@ def derive_audio(data):
     panel = replace(panel, "inputPeakMonitor.peak", "root.inputPeak")
     panel += between(text, "          // ---- Per-app streams ----\n",
                      "        }\n      }\n    }\n  }\n\n  // ---- Reusable inline components ----\n")
-    # New capability rows join the existing cursor; m must not act on an
-    # unrelated output while the cursor is on profile/recovery actions.
+    # Only the normal output/header cursor may operate the output mute key.
     panel = replace(panel, 'else root.toggleOutputMute()',
                     'else if (root.focusSection === "output" || root.focusSection === "header") root.toggleOutputMute()')
     panel = replace(panel, "panel.fittedContentHeight(panel.loadedContentHeight, Style.space(560))",
@@ -81,12 +78,11 @@ def derive_audio(data):
                     "panelColumn.implicitHeight > availableHeight ? ScrollBar.AsNeeded")
     panel = replace(panel, "value: panelColumn.implicitHeight > scrollArea.height",
                     "value: panelColumn.implicitHeight > scrollArea.availableHeight")
-    # Preserve the original normal-page markup inside one visibility wrapper.
+    # Preserve the accepted normal-page grouping and measured scroll geometry.
     panel = replace(panel, "          // ---------- Hero: speaker icon · title/status ----------",
                     "          Column {\n"
                     "            id: normalAudioColumn\n"
                     "            objectName: \"audioNormalPage\"\n"
-                    "            visible: !root.advancedAudio\n"
                     "            width: parent.width\n"
                     "            spacing: Style.space(14)\n"
                     "          // ---------- Hero: speaker icon · title/status ----------")
@@ -99,17 +95,9 @@ def derive_audio(data):
                     "        leftPadding: contentHeight > availableHeight\n"
                     "          ? ScrollBar.vertical.width + Style.space(10) : 0\n"
                     "        rightPadding: leftPadding\n")
-    # Close the original normal-page wrapper before the advanced-page entry.
+    # Close the normal grouping, then the exact upstream container chain.
     panel += '          }\n'
-    # Close the exact upstream Column, ScrollView, key catcher and panel.
-    panel += '''          AudioNativeControls {
-            width: parent.width
-            bridge: "bridge" in root.backend ? root.backend.bridge : null
-            controller: root
-            foreground: root.bar.foreground
-            fontFamily: root.bar.fontFamily
-          }
-          Text {
+    panel += '''          Text {
             visible: root.errorText !== ""
             width: parent.width
             textFormat: Text.PlainText

@@ -25,8 +25,10 @@ class ClockPreviewTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(dir=ROOT / "work")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        names = ["upstream/omarchy-source.json", "upstream/clock-preview.json",
+        names = [*checker.notification_frontend.INPUTS,
+                 "upstream/omarchy-source.json", "upstream/clock-preview.json",
                  "licenses/Omarchy-MIT.txt", "vendor/omarchy/LICENSE", *checker.AUTHORED.values(),
+                 *checker.OFFLINE_AUTHORED.values(),
                  "config/shell/preview/AudioOutputView.qml",
                  "config/shell/preview/MediaSelection.qml",
                  "config/shell/preview/MediaControlView.qml",
@@ -89,6 +91,12 @@ class ClockPreviewTests(unittest.TestCase):
     def test_changed_authored_source_rejected(self):
         (self.root / "config/shell/preview/TrialPolicy.js").write_text("changed")
         with self.assertRaisesRegex(checker.builder.BuildError, "Authored preview source differs"):
+            checker.verified_sources(self.root)
+
+    def test_changed_offline_source_is_rejected_without_staging_it(self):
+        path = self.root / checker.OFFLINE_AUTHORED["AudioNativeState.qml"]
+        path.write_bytes(path.read_bytes() + b" ")
+        with self.assertRaisesRegex(checker.builder.BuildError, "Offline source differs"):
             checker.verified_sources(self.root)
 
     def test_generated_audio_mirror_change_rejected(self):

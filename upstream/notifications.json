@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/omacom/omarchy",
+  "commit": "ac2690cd7be4f47e4a255f5e2e78d904d436b068",
+  "license": "MIT",
+  "notices": [
+    "licenses/Omarchy-MIT.txt",
+    "licenses/Omapager-MIT.txt"
+  ],
+  "activation": "separate-exclusive-owner-deployment-required",
+  "service_adaptations": [
+    "Ubuntu private validated storage, admitted actions, native IPC and exclusive-runtime deployment gate",
+    "Ignore height feedback from departing or unreserved rows before layout retargeting; original cards and layout remain unchanged (Plan 184)",
+    "Server creation waits for validated live/history/quiet readiness; artifact/session/parent-bound one-use host admission (Plan 185)"
+  ],
+  "upstream": {
+    "DeedButton.qml": {
+      "path": "vendor/omarchy/shell/plugins/notifications/DeedButton.qml",
+      "source_path": "shell/plugins/notifications/DeedButton.qml",
+      "sha256": "fea9d71bcb6cc6bb474a570a83cbf9f1017f552072b4f9cc074091640816b10a"
+    },
+    "Delivery.js": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Delivery.js",
+      "source_path": "shell/plugins/notifications/Delivery.js",
+      "sha256": "f4f266e7bcf603ab9f34b276cfc1bf3a6eace6c0489189f09f21cc6d3cf43e5c"
+    },
+    "Detect.js": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Detect.js",
+      "source_path": "shell/plugins/notifications/Detect.js",
+      "sha256": "42343e92c35c34b9421eb0d641b218188aff4512b0f1aa02439bdc09e3f419c6"
+    },
+    "Icons.js": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Icons.js",
+      "source_path": "shell/plugins/notifications/Icons.js",
+      "sha256": "84c2313a69abf2a9a19339bf0f79f223bcd31b6427e88425c34f8e009c9b7277"
+    },
+    "Layout.js": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Layout.js",
+      "source_path": "shell/plugins/notifications/Layout.js",
+      "sha256": "1e2d8090f8c02025f1a0ef087cb063b32bff9668aa03d6434f984b818bffa939"
+    },
+    "Markup.js": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Markup.js",
+      "source_path": "shell/plugins/notifications/Markup.js",
+      "sha256": "97e37eb6e188a59df744aa135814c8cbb0257b01fa8c0ecb929f7c557aa77951"
+    },
+    "Security.js": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Security.js",
+      "source_path": "shell/plugins/notifications/Security.js",
+      "sha256": "a36017c79810820a985dad06e38a2c9e547e8e650dec413b2f2cbecd063e5c95"
+    },
+    "Service.qml": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Service.qml",
+      "source_path": "shell/plugins/notifications/Service.qml",
+      "sha256": "35a5dfcad2687af5201bf9ec52faadad9b4a5000fb74e43756ed02299385c6b6"
+    },
+    "Store.js": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Store.js",
+      "source_path": "shell/plugins/notifications/Store.js",
+      "sha256": "187240713ae27ee52f23d7b5516fb194456da9040845dc58c8a0434030c931a8"
+    },
+    "Toast.qml": {
+      "path": "vendor/omarchy/shell/plugins/notifications/Toast.qml",
+      "source_path": "shell/plugins/notifications/Toast.qml",
+      "sha256": "abd059d05d46dc81e9d0247c647a521681ead91da03e2b9e6ee3c6bfbee3ad30"
+    }
+  },
+  "authored": {
+    "NotificationHost.qml": {
+      "path": "config/shell/preview/NotificationHost.qml",
+      "sha256": "f40827c20dc6e18bb6b375ffae9e229cd194d0ed2353ec4cf83d1d7e63d462c7"
+    },
+    "Notifications/Actions.js": {
+      "path": "config/shell/preview/NotificationActions.js",
+      "sha256": "4417c98580828e812a8bdc074b6d83d533bcfc1d40c65286d9821d1c33afcaa2"
+    }
+  },
+  "staged": {
+    "Notifications/qmldir": "6e48bb5d4240135ffc0742fb12382fc6c733be79f272ce1c22c5b923335e06f2",
+    "Notifications/DeedButton.qml": "fea9d71bcb6cc6bb474a570a83cbf9f1017f552072b4f9cc074091640816b10a",
+    "Notifications/Delivery.js": "f4f266e7bcf603ab9f34b276cfc1bf3a6eace6c0489189f09f21cc6d3cf43e5c",
+    "Notifications/Detect.js": "42343e92c35c34b9421eb0d641b218188aff4512b0f1aa02439bdc09e3f419c6",
+    "Notifications/Icons.js": "84c2313a69abf2a9a19339bf0f79f223bcd31b6427e88425c34f8e009c9b7277",
+    "Notifications/Layout.js": "1e2d8090f8c02025f1a0ef087cb063b32bff9668aa03d6434f984b818bffa939",
+    "Notifications/Markup.js": "97e37eb6e188a59df744aa135814c8cbb0257b01fa8c0ecb929f7c557aa77951",
+    "Notifications/Security.js": "a36017c79810820a985dad06e38a2c9e547e8e650dec413b2f2cbecd063e5c95",
+    "Notifications/Service.qml": "67e84746faa9b01a89976e8f66b9c218015a062d9e3509d172aeff05ea008e3d",
+    "Notifications/Store.js": "187240713ae27ee52f23d7b5516fb194456da9040845dc58c8a0434030c931a8",
+    "Notifications/Toast.qml": "abd059d05d46dc81e9d0247c647a521681ead91da03e2b9e6ee3c6bfbee3ad30",
+    "NotificationHost.qml": "f40827c20dc6e18bb6b375ffae9e229cd194d0ed2353ec4cf83d1d7e63d462c7",
+    "Notifications/Actions.js": "4417c98580828e812a8bdc074b6d83d533bcfc1d40c65286d9821d1c33afcaa2",
+    "Notifications/Omarchy-MIT.txt": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+    "Notifications/Omapager-MIT.txt": "818f37b7c46d059639ed8f00ebf46332b428ad49f00d30139ba468c525cccce0"
+  },
+  "notice_hashes": {
+    "licenses/Omarchy-MIT.txt": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+    "licenses/Omapager-MIT.txt": "818f37b7c46d059639ed8f00ebf46332b428ad49f00d30139ba468c525cccce0"
+  }
+}

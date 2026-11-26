@@ -10,7 +10,14 @@ QtObject {
   readonly property bool rightToLeft: false
   function formatNumber(value, decimals) { return decimals === undefined ? String(value) : Number(value).toFixed(decimals); }
   function t(key, fallback) {
-    var labels = {"bar.allowNotifications": "Allow Notifications",
+    var labels = {"notifications.minutesAgo": "%1 min ago",
+                  "notifications.yesterday": "Yesterday",
+                  "notifications.copyCode": "Copy code",
+                  "notifications.copyThisCode": "Copy %1",
+                  "notifications.redactedSummary": "Verification code",
+                  "notifications.redactedBody": "Sensitive content is not stored",
+                  "notifications.noneRecent": "No recent notifications",
+                  "bar.allowNotifications": "Allow Notifications",
                   "bar.silenceNotifications": "Silence Notifications",
                   "bar.dayLight": "Day Light", "bar.nightLight": "Night Light",
                   "weather.feels": "FEELS", "weather.humid": "HUMIDITY",
