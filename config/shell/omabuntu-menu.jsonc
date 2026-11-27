@@ -41,6 +41,7 @@
   // tools/menu_model.py. Font stays a provider submenu in the card.
   "appearance.theme": {"icon": "\udb83\ude0c", "label": "Theme", "aliases": ["theme", "themes", "style.theme"], "provider": "themes", "action": "omabuntu-open:themes"},
   "appearance.background": {"icon": "\uf03e", "label": "Background", "aliases": ["background", "wallpaper", "style.background"], "provider": "backgrounds", "action": "omabuntu-open:backgrounds"},
+  "appearance.background-folder": {"icon": "\uf07b", "label": "Own Backgrounds Folder", "description": "Open the current theme folder; add still images, then reopen Background", "action": "omabuntu-background:open-folder"},
   "appearance.font": {"icon": "\ue659", "label": "Font", "aliases": ["style.font"], "provider": "fonts"},
 
   // Original stable Appearance rows with a closed Ubuntu preference registry.

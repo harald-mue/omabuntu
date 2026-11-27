@@ -24,6 +24,10 @@ class TempState(unittest.TestCase):
         os.environ['OMABUNTU_STATE_HOME'] = self.home.name
         self.addCleanup(self.home.cleanup)
         self.addCleanup(os.environ.pop, 'OMABUNTU_STATE_HOME', None)
+        # Personal theme artwork must be as isolated as the state fixtures.
+        config = patch.dict(os.environ, {'XDG_CONFIG_HOME': str(Path(self.home.name) / 'config')})
+        config.start()
+        self.addCleanup(config.stop)
 
 
 class ThemeTests(TempState):

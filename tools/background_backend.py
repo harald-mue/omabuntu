@@ -33,6 +33,7 @@ import sys
 import time
 
 import menu_common
+import user_backgrounds
 
 ROOT = Path(__file__).resolve().parents[1]
 THEME_BACKGROUNDS = ROOT / 'config' / 'menu' / 'backgrounds'
@@ -83,17 +84,17 @@ def _assets(assets=None):
 
 def theme_ids(assets=None):
     assets = _assets(assets)
-    if assets.is_symlink() or not assets.is_dir():
-        return []
-    return sorted(entry.name for entry in assets.iterdir()
-                  if entry.is_dir() and not entry.is_symlink())
+    supplied = ([] if assets.is_symlink() or not assets.is_dir() else
+                [entry.name for entry in assets.iterdir()
+                 if entry.is_dir() and not entry.is_symlink()])
+    return sorted(set(supplied + user_backgrounds.theme_ids()))
 
 
 def theme_backgrounds(theme_id, assets=None):
     """Imported still backgrounds of one theme, sorted like upstream."""
-    if not theme_id or '/' in theme_id or theme_id.startswith('.'):
+    if not user_backgrounds.valid_theme(theme_id):
         return []
-    return _images(_assets(assets) / theme_id)
+    return _images(_assets(assets) / theme_id) + user_backgrounds.images(theme_id)
 
 
 def all_theme_backgrounds(assets=None):
@@ -316,7 +317,7 @@ def publish_lock_background(resolved, root=None):
     return link.is_symlink() and os.readlink(link) == destination
 
 
-def set_background(path_text, dirs=None, root=None, run=None, assets=None):
+def set_background(path_text, dirs=None, root=None, run=None, assets=None, remember=True):
     path = Path(path_text)
     if path.is_symlink() or not path.is_file() or path.suffix.lower() not in IMAGE_SUFFIXES:
         return {'ok': False, 'error': 'unknown', 'message': 'Unknown background file.'}
@@ -339,6 +340,12 @@ def set_background(path_text, dirs=None, root=None, run=None, assets=None):
     backup = menu_common.backup_and_write(
         target, lambda target_path: menu_common.write_json(target_path, payload))
     menu_common.record('background-set', str(path), backup, {'applied': applied['ok']})
+    # Remember explicit picker choices, not only defaults applied by theme-set.
+    # Theme-set records its target separately after the outgoing theme changes.
+    import theme_backend
+    theme_id = current_theme(root)
+    if remember and user_backgrounds.valid_theme(theme_id):
+        theme_backend.record_theme_background(theme_id, str(path), root)
     return {'ok': True, 'path': str(path), 'applied': applied['ok'], 'lock_background': published,
             'wallpaper': applied, 'message': applied.get('message', '')}
 

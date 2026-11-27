@@ -211,7 +211,7 @@ def set_theme(theme_id, path=None, root=None, run=None, config_path=None,
     background_path = theme_background(theme_id, root, assets)
     if background_path:
         background_result = background_backend.set_background(
-            background_path, root=root, run=background_run, assets=assets)
+            background_path, root=root, run=background_run, assets=assets, remember=False)
         background_ok = bool(background_result.get('ok'))
         if background_ok:
             record_theme_background(theme_id, background_path, root)

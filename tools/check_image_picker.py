@@ -31,7 +31,8 @@ ROOT = Path(__file__).resolve().parents[1]
 MARKER = 'OMABUNTU_PICKER_FIXTURE_OK'
 HELPERS = ('menu_model.py', 'menu_common.py', 'appearance_backend.py', 'dock_state.py', 'menu_update.py',
            'defaults_backend.py', 'theme_backend.py',
-           'font_backend.py', 'background_backend.py', 'power_actions.py')
+           'font_backend.py', 'background_backend.py', 'user_backgrounds.py', 'power_actions.py',
+           'bar_layout.py', 'window_controls.py')
 DATA = (('omabuntu-menu.jsonc', 'config/shell/omabuntu-menu.jsonc'),
         ('themes.json', 'config/menu/themes.json'))
 PNG = base64.b64decode(

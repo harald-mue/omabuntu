@@ -181,7 +181,7 @@ def prepare(version, candidate, screenshot_build=None, image_assets=None, build_
                      'native_compatibility.py', 'window_controls.py', 'bar_layout.py',
                      'indicator_native.py', 'indicator_state.py', 'audio_pactl.py', 'audio_profiles.py',
                      'audio_controls.py', 'audio_events.py', 'audio_artwork.py', 'audio_recovery.py',
-                     'theme_backend.py', 'font_backend.py', 'background_backend.py',
+                     'theme_backend.py', 'font_backend.py', 'background_backend.py', 'user_backgrounds.py',
                      'defaults_backend.py', 'power_actions.py', 'elsewhen_probe.py', 'elsewhen_settings.py',
                      'capture_screenshot.py', 'weather_probe.py', 'omabuntu_hyprland_window_minimize.py', 'plugin_login.py'):
             target = temporary / 'helpers' / name

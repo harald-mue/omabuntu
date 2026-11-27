@@ -80,6 +80,11 @@ untouched and are not package dependencies of this project.
   system `libwebp`; no bundled codec is added. A running shell must be
   restarted before it rescans the image plugins.
 
+The background import dialog was withdrawn in Plan 188 after a captured live
+crash and unacceptable rendering. QtQuick.Dialogs is no longer imported by the
+picker or declared as a feature prerequisite. Existing system packages were not
+removed; no package was installed for the withdrawn feature.
+
 These feature dependencies are separate from the source-build toolchain.
 Do not install all development packages just to run a reviewed compatible
 release. This record is not yet a complete, clean-target-validated runtime

@@ -91,7 +91,7 @@ BASELINE = ('manager.py', 'runtime/bin/quickshell', 'shell/TrialShell.qml',
             'licenses/Omarchy-MIT.txt', 'licenses/Omabuntu-MIT.txt',
             'licenses/Quickshell-LGPL.txt', 'licenses/Quickshell-GPL.txt', 'licenses/cpptrace-MIT.txt')
 INCOMING = BASELINE + ('helpers/menu_model.py', 'helpers/menu_common.py', 'helpers/theme_backend.py',
-                       'helpers/font_backend.py', 'helpers/background_backend.py', 'helpers/defaults_backend.py', 'helpers/power_actions.py',
+                       'helpers/font_backend.py', 'helpers/background_backend.py', 'helpers/user_backgrounds.py', 'helpers/defaults_backend.py', 'helpers/power_actions.py',
                        'helpers/elsewhen_probe.py', 'helpers/elsewhen_settings.py', 'helpers/capture_screenshot.py', 'helpers/weather_probe.py',
                        'shell/omabuntu-menu.jsonc', 'menu/themes.json')
 

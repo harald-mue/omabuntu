@@ -31,7 +31,9 @@ foreground, accent, and urgent for the note line.
   (background, accent bar, seven color chips, the name, and the mode). The
   current theme is preselected.
 - Backgrounds: the current theme's imported upstream stills first (under
-  `config/menu/backgrounds/<theme>/`), then Ubuntu's
+  `config/menu/backgrounds/<theme>/`), then the current theme's personal
+  `$XDG_CONFIG_HOME/omabuntu/backgrounds/<theme>/` images (default
+  `~/.config/omabuntu/backgrounds/<theme>/`), then Ubuntu's
   `/usr/share/backgrounds` plus files in `~/Pictures`, all read through the
   reviewed helper. Before any theme is selected, all available theme stills
   are listed instead of hiding downloaded artwork. The Ubuntu/Pictures roots
@@ -41,10 +43,28 @@ foreground, accent, and urgent for the note line.
   there is no on-disk thumbnail generation and no video support
   (ffmpegthumbnailer stays out). Only static images appear.
 
+## Personal folders (no import dialog)
+
+Appearance > **Own Backgrounds Folder** creates/opens the current theme's
+personal folder, like Omarchy v4.5.0's `omarchy-theme-bg-install`. Add PNG,
+JPEG or still WebP files with your file manager, then reopen Background to
+refresh the rows. Subdirectories and symlinks are not followed. The folder is
+user-owned and independent of releases, downloaded artwork and Git.
+
+The owner withdrew the image importer after its badly rendered in-process Qt
+file dialog crashed the shared shell. Plan 188 removes the menu route, chooser,
+copy/import backend, special overlay adaptations and dependency declaration.
+There is no replacement import dialog. Existing personal images, import receipts
+and crash evidence are preserved; no files are removed or overwritten.
+
+Explicit background selections are remembered per theme, including personal
+images and the existing Pictures source, and restored when switching back. A
+theme switch does not overwrite the outgoing theme's remembered choice.
+
 ## Apply
 
 Selection dispatches through `tools/menu_model.py run <provider row id>`;
-the surface never runs a command and never sends a file path. A theme apply
+the surface never runs shell text or submits a file path. A theme apply
 is the reviewed `theme_backend.set_theme`: state plus backup, the live
 bar recolor plus the two Hyprland border keywords, the same two color
 literals persisted in the user's `hyprland.lua` (backup first, shape
@@ -113,6 +133,20 @@ acceptance.
   restart beyond the reviewed hyprland.lua color edit is excluded.
 
 ## Evidence
+
+Plan 188 retains personal-folder enumeration, safe directory opening and
+per-theme selection regressions, and explicitly rejects the withdrawn import
+route/CLI/backend. The original picker surface is restored without QtQuick.Dialogs
+or import-specific mask, paint or focus adaptations. Existing private tests of
+the withdrawn chooser are historical evidence only, not stability acceptance.
+
+`tools/background_deployment.py` remains plan-only unless `--apply`. Its explicit
+`--resume-crashed <prior-transaction-directory>` path requires the exact stopped
+shell record, completed fatal capture, original parent claim, unchanged prior
+artifact and same compositor session. It preserves DND and the provider fence,
+uses a fresh exact notification grant and GDB, and never reapplies wallpaper.
+Failure remains stopped without reviving the withdrawn dialog or activating a
+competing provider. Normal running-shell upgrade preflight remains separate.
 
 Python contracts: `tests/test_image_picker.py` (derivation witnesses, the
 preview-image wiring with the palette fallback), `tests/test_menu_model.py`
